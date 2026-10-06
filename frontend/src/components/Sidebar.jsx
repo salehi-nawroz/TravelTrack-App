@@ -11,7 +11,9 @@ function Sidebar() {
       <AppNav />
       <GlobalSearch />
 
-      <Outlet />
+      <div className={styles.outlet}>
+        <Outlet />
+      </div>
       <Footer />
     </div>
   );

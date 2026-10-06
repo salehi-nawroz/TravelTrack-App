@@ -294,39 +294,48 @@ function Profile() {
         </form>
       )}
 
-      <div className={`${styles.form} ${styles.dangerZone}`}>
-        <h2>Danger zone</h2>
-        <p className={styles.dangerText}>
-          Permanently delete your account, including your cities and profile
-          data. This cannot be undone.
-        </p>
-
-        <div className={styles.row}>
-          <label htmlFor="deletePassword">Confirm your password</label>
-          <input
-            type="password"
-            id="deletePassword"
-            autoComplete="current-password"
-            onChange={(e) => setDeletePassword(e.target.value)}
-            value={deletePassword}
-            disabled={isDeletingAccount}
-          />
+      {isAdmin ? (
+        <div className={`${styles.form} ${styles.dangerZone}`}>
+          <h2>Danger zone</h2>
+          <p>Contact your super admin to delete this account.</p>
         </div>
+      ) : (
+        <div className={`${styles.form} ${styles.dangerZone}`}>
+          <h2>Danger zone</h2>
+          <p className={styles.dangerText}>
+            Permanently delete your account, including your cities and
+            profile data. This cannot be undone.
+          </p>
 
-        {deleteAccountError && (
-          <p style={{ color: "var(--color-danger)" }}>{deleteAccountError}</p>
-        )}
+          <div className={styles.row}>
+            <label htmlFor="deletePassword">Confirm your password</label>
+            <input
+              type="password"
+              id="deletePassword"
+              autoComplete="current-password"
+              onChange={(e) => setDeletePassword(e.target.value)}
+              value={deletePassword}
+              disabled={isDeletingAccount}
+            />
+          </div>
 
-        <div>
-          <Button
-            type="back"
-            onClick={handleDeleteAccountClick}
-            disabled={isDeletingAccount}
-          >
-            {isDeletingAccount ? "Deleting..." : "Delete my account"}
-          </Button>
+          {deleteAccountError && (
+            <p style={{ color: "var(--color-danger)" }}>
+              {deleteAccountError}
+            </p>
+          )}
+
+          <div>
+            <Button
+              type="back"
+              onClick={handleDeleteAccountClick}
+              disabled={isDeletingAccount}
+            >
+              {isDeletingAccount ? "Deleting..." : "Delete my account"}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {showDeleteConfirm && (
         <ConfirmDialog

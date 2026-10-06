@@ -3,8 +3,6 @@
   flex-direction: column;
   gap: 2rem;
   width: 100%;
-  max-height: 65vh;
-  overflow-y: auto;
 }
 
 .title {
@@ -94,6 +92,13 @@
   flex: 2 1 22rem;
 }
 
+/* The Users tab only has two fields (name search + role), so its search
+   field doesn't need the wider basis tuned for the five-field Cities
+   toolbar - a narrower one keeps both fields comfortably side by side. */
+.userToolbar .toolbarField:first-child {
+  flex: 1 1 18rem;
+}
+
 .toolbarLabel {
   font-size: 1.2rem;
   font-weight: 700;
@@ -124,6 +129,24 @@
 .toolbarSelect:focus {
   background-color: #fff;
   border-color: var(--color-brand--2);
+}
+
+/* A native <select>'s arrow is drawn by the browser/OS and can't be
+   reproduced exactly on a plain input, so getting the two controls to look
+   truly identical means drawing the arrow ourselves for both instead of
+   trying to match the native one. Scoped to .userToolbar so the Cities tab's
+   selects keep their native arrows, unaffected. */
+.userToolbar .toolbarSelect,
+.toolbarCombo {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  padding-right: 3.2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%232d3439'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.19l3.71-3.96a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.2rem;
 }
 
 .toolbarResult {
@@ -202,9 +225,11 @@
 
 .listHeaderRow {
   color: var(--color-light--1);
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  border-bottom: 2px solid var(--color-dark--1);
 }
 
 .role {
@@ -349,7 +374,8 @@
   }
 
   .toolbarField,
-  .toolbarField:first-child {
+  .toolbarField:first-child,
+  .userToolbar .toolbarField:first-child {
     flex: 1 1 auto;
     min-width: 0;
   }

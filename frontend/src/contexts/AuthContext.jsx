@@ -182,6 +182,10 @@ function AuthProvider({ children }) {
   }
 
   async function deleteAccount(currentPassword) {
+    if (profile?.role === "admin") {
+      throw new Error("Contact your super admin to delete this account.");
+    }
+
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: user.email,
       password: currentPassword,

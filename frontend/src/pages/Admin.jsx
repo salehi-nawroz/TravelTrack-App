@@ -13,6 +13,7 @@ import Pagination from "../components/Pagination";
 import styles from "./Admin.module.css";
 
 const CITIES_PAGE_SIZE = 10;
+const USERS_PAGE_SIZE = 10;
 
 const SORT_OPTIONS = [
   { value: "default", label: "Default" },
@@ -69,6 +70,9 @@ function Admin() {
   const [deleteError, setDeleteError] = useState("");
 
   const [activeTab, setActiveTab] = useState("users");
+
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCountry, setFilterCountry] = useState("");
@@ -136,6 +140,41 @@ function Admin() {
   const roleById = Object.fromEntries(
     profiles.map((profile) => [profile.id, profile.role]),
   );
+
+  const hasActiveUserControls = Boolean(
+    userSearchQuery.trim() || userRoleFilter,
+  );
+
+  const userNameOptions = useMemo(
+    () =>
+      [...new Set(profiles.map((profile) => profile.full_name).filter(Boolean))].sort(
+        (a, b) => a.localeCompare(b),
+      ),
+    [profiles],
+  );
+
+  // Pipeline: raw profiles -> search (by name) -> role filter. Pagination
+  // below then operates on this derived array, never the raw `profiles`
+  // state, which is never mutated.
+  const processedProfiles = useMemo(() => {
+    const query = userSearchQuery.trim().toLowerCase();
+
+    let result = profiles.filter((profile) => {
+      if (!query) return true;
+      return (profile.full_name || "").toLowerCase().includes(query);
+    });
+
+    if (userRoleFilter) {
+      result = result.filter((profile) => profile.role === userRoleFilter);
+    }
+
+    return result;
+  }, [profiles, userSearchQuery, userRoleFilter]);
+
+  function handleClearUserFilters() {
+    setUserSearchQuery("");
+    setUserRoleFilter("");
+  }
 
   const countryOptions = useMemo(
     () =>
@@ -290,6 +329,15 @@ function Admin() {
     resetPage,
   } = usePagination(userIdsWithCities.length, CITIES_PAGE_SIZE);
 
+  const {
+    currentPage: usersCurrentPage,
+    totalPages: usersTotalPages,
+    startIndex: usersStartIndex,
+    endIndex: usersEndIndex,
+    goToPage: usersGoToPage,
+    resetPage: usersResetPage,
+  } = usePagination(processedProfiles.length, USERS_PAGE_SIZE);
+
   // A single effect covers every way the visible user groups can change
   // (search, any filter, sort, or Clear resetting all of them at once)
   // rather than wiring a resetPage() call into five separate handlers.
@@ -304,9 +352,17 @@ function Admin() {
     resetPage,
   ]);
 
+  useEffect(() => {
+    usersResetPage();
+  }, [userSearchQuery, userRoleFilter, usersResetPage]);
+
   if (!isAdmin && !isSuperAdmin) return <Navigate replace to="/app" />;
 
   const paginatedUserIds = userIdsWithCities.slice(startIndex, endIndex);
+  const paginatedProfiles = processedProfiles.slice(
+    usersStartIndex,
+    usersEndIndex,
+  );
 
   async function handleConfirmDeleteCity() {
     const city = cityPendingDelete;
@@ -358,22 +414,110 @@ function Admin() {
           ) : !profiles.length ? (
             <Message message="No users found." />
           ) : (
-            <ul className={styles.list}>
-              <li className={`${styles.listRow} ${styles.listHeaderRow}`}>
-                <span>Name</span>
-                <span>Role</span>
-              </li>
-              {profiles.map((profile) => (
-                <li key={profile.id} className={styles.listRow}>
-                  <span>{profile.full_name || "(no name)"}</span>
-                  <span
-                    className={`${styles.role} ${styles[`role-${profile.role}`] || ""}`}
+            <>
+              <div className={`${styles.toolbar} ${styles.userToolbar}`}>
+                <div className={styles.toolbarField}>
+                  <label htmlFor="adminUserSearch" className={styles.toolbarLabel}>
+                    Search
+                  </label>
+                  <input
+                    id="adminUserSearch"
+                    type="text"
+                    className={`${styles.toolbarInput} ${styles.toolbarCombo}`}
+                    placeholder="Search by name..."
+                    list="adminUserNames"
+                    value={userSearchQuery}
+                    onChange={(e) => setUserSearchQuery(e.target.value)}
+                  />
+                  <datalist id="adminUserNames">
+                    {userNameOptions.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div className={styles.toolbarField}>
+                  <label htmlFor="adminRoleFilter" className={styles.toolbarLabel}>
+                    Role
+                  </label>
+                  <select
+                    id="adminRoleFilter"
+                    className={styles.toolbarSelect}
+                    value={userRoleFilter}
+                    onChange={(e) => setUserRoleFilter(e.target.value)}
                   >
-                    {ROLE_LABELS[profile.role] || profile.role}
+                    <option value="">All Roles</option>
+                    {Object.entries(ROLE_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.toolbarResult}>
+                  <span className={styles.toolbarCount}>
+                    {hasActiveUserControls
+                      ? `${processedProfiles.length} of ${profiles.length} users`
+                      : `${profiles.length} users`}
                   </span>
-                </li>
-              ))}
-            </ul>
+
+                  {hasActiveUserControls && (
+                    <button
+                      type="button"
+                      className={styles.toolbarClear}
+                      onClick={handleClearUserFilters}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {!processedProfiles.length ? (
+                <div className={styles.filteredEmpty}>
+                  <Message message="No users match your filters." />
+                  <button
+                    type="button"
+                    className={styles.toolbarClear}
+                    onClick={handleClearUserFilters}
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              ) : (
+                <ul className={styles.list}>
+                  <li className={`${styles.listRow} ${styles.listHeaderRow}`}>
+                    <span>Name</span>
+                    <span>Role</span>
+                  </li>
+                  {paginatedProfiles.map((profile) => (
+                    <li key={profile.id} className={styles.listRow}>
+                      <span>{profile.full_name || "(no name)"}</span>
+                      <span
+                        className={`${styles.role} ${styles[`role-${profile.role}`] || ""}`}
+                      >
+                        {ROLE_LABELS[profile.role] || profile.role}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {usersTotalPages > 1 && (
+                <div className={styles.paginationWrapper}>
+                  <p className={styles.pageInfo}>
+                    Page {usersCurrentPage} of {usersTotalPages}
+                  </p>
+                  <Pagination
+                    currentPage={usersCurrentPage}
+                    totalPages={usersTotalPages}
+                    totalItems={processedProfiles.length}
+                    onPageChange={usersGoToPage}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

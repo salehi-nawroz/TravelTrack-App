@@ -8,3 +8,14 @@
   align-items: center;
   height: calc(100vh - 4.8rem);
 }
+
+/* Fills whatever vertical space is left after Logo/AppNav/GlobalSearch/
+   Footer, and only scrolls internally if its content doesn't fit - so the
+   Footer stays pinned at the bottom instead of being pushed off-screen or
+   overlapped when a route's content (e.g. a long Admin list) grows tall. */
+.outlet {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
