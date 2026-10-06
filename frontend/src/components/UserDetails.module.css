@@ -1,0 +1,166 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(3px);
+}
+
+.dialog {
+  position: relative;
+  width: min(90%, 52rem);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 3rem;
+
+  background-color: var(--color-dark--2);
+  border: 1px solid var(--color-dark--1);
+  border-radius: 1rem;
+
+  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.35);
+
+  animation: dialogIn 0.2s ease-out;
+}
+
+.closeButton {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+
+  background: none;
+  border: none;
+
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--color-light--1);
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  color: var(--color-light--2);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.avatar {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.header h2 {
+  font-size: 2rem;
+  color: var(--color-light--2);
+}
+
+.email {
+  font-size: 1.4rem;
+  color: var(--color-light--1);
+}
+
+.detailsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--color-dark--1);
+
+  font-size: 1.4rem;
+}
+
+.detailRow dt {
+  color: var(--color-light--1);
+  font-weight: 600;
+}
+
+.detailRow dd {
+  color: var(--color-light--2);
+}
+
+.citiesTitle {
+  font-size: 1.5rem;
+  color: var(--color-light--2);
+  margin-bottom: 1rem;
+}
+
+.citiesList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+
+.cityRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  padding: 0.8rem 1rem;
+  background-color: var(--color-dark--1);
+  border-radius: 0.6rem;
+
+  font-size: 1.4rem;
+}
+
+.cityName {
+  flex: 1;
+  color: var(--color-light--2);
+  font-weight: 600;
+}
+
+.cityCountry {
+  color: var(--color-light--1);
+}
+
+.cityDate {
+  color: var(--color-light--1);
+  font-size: 1.3rem;
+}
+
+.noCities {
+  color: var(--color-light--1);
+  font-size: 1.4rem;
+  margin-bottom: 2rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .cityRow {
+    flex-wrap: wrap;
+  }
+}

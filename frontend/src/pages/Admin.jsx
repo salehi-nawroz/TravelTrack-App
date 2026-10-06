@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { getAllProfiles } from "../services/profileService";
+import { getAllProfiles, getAdminUsers } from "../services/profileService";
 import { getCities, deleteCity as deleteCityApi } from "../services/cityService";
 import { getContinent } from "../utils/continent";
+import { compareDates } from "../utils/compareDates";
 import { usePagination } from "../hooks/usePagination";
 import Spinner from "../components/Spinner";
 import Message from "../components/Message";
 import ConfirmDialog from "../components/ConfirmDialog";
 import FlagBox from "../components/FlagBox";
 import Pagination from "../components/Pagination";
+import AdminUsers from "../components/AdminUsers";
 import styles from "./Admin.module.css";
 
 const CITIES_PAGE_SIZE = 10;
-const USERS_PAGE_SIZE = 10;
 
 const SORT_OPTIONS = [
   { value: "default", label: "Default" },
@@ -26,21 +27,6 @@ const SORT_OPTIONS = [
   { value: "createdNewest", label: "Created date newest first" },
   { value: "createdOldest", label: "Created date oldest first" },
 ];
-
-// Compares two dates safely, treating missing/invalid values as "oldest" so
-// they sort last regardless of direction, rather than breaking the sort.
-function compareDates(a, b) {
-  const timeA = a ? new Date(a).getTime() : NaN;
-  const timeB = b ? new Date(b).getTime() : NaN;
-  const validA = !Number.isNaN(timeA);
-  const validB = !Number.isNaN(timeB);
-
-  if (!validA && !validB) return 0;
-  if (!validA) return 1;
-  if (!validB) return -1;
-
-  return timeA - timeB;
-}
 
 const ROLE_LABELS = {
   user: "User",
@@ -58,9 +44,13 @@ function groupByCountry(cities) {
 function Admin() {
   const { isAdmin, isSuperAdmin } = useAuth();
 
+  // Used only to derive name/role lookups for the Cities tab below - its own
+  // loading/error state is never displayed, so it isn't tracked here.
   const [profiles, setProfiles] = useState([]);
-  const [isLoadingProfiles, setIsLoadingProfiles] = useState(true);
-  const [profilesError, setProfilesError] = useState("");
+
+  const [users, setUsers] = useState([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [usersError, setUsersError] = useState("");
 
   const [cities, setCities] = useState([]);
   const [isLoadingCities, setIsLoadingCities] = useState(true);
@@ -70,9 +60,6 @@ function Admin() {
   const [deleteError, setDeleteError] = useState("");
 
   const [activeTab, setActiveTab] = useState("users");
-
-  const [userSearchQuery, setUserSearchQuery] = useState("");
-  const [userRoleFilter, setUserRoleFilter] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCountry, setFilterCountry] = useState("");
@@ -86,22 +73,44 @@ function Admin() {
     let isMounted = true;
 
     async function loadProfiles() {
-      setIsLoadingProfiles(true);
-      setProfilesError("");
       try {
         const data = await getAllProfiles();
         if (isMounted) setProfiles(data);
       } catch (err) {
-        console.error("Failed to load users:", err.message);
-        if (isMounted) {
-          setProfilesError("Could not load users. Please try again.");
-        }
-      } finally {
-        if (isMounted) setIsLoadingProfiles(false);
+        console.error("Failed to load profiles:", err.message);
       }
     }
 
     loadProfiles();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Separate from `profiles` above (which the Cities tab's grouping/filter
+  // lookups still use, unchanged) - this feeds only the Users tab, via the
+  // get_admin_users() RPC, which additionally exposes email.
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadUsers() {
+      setIsLoadingUsers(true);
+      setUsersError("");
+      try {
+        const data = await getAdminUsers();
+        if (isMounted) setUsers(data);
+      } catch (err) {
+        console.error("Failed to load admin users:", err.message);
+        if (isMounted) {
+          setUsersError("Could not load users. Please try again.");
+        }
+      } finally {
+        if (isMounted) setIsLoadingUsers(false);
+      }
+    }
+
+    loadUsers();
 
     return () => {
       isMounted = false;
@@ -140,41 +149,6 @@ function Admin() {
   const roleById = Object.fromEntries(
     profiles.map((profile) => [profile.id, profile.role]),
   );
-
-  const hasActiveUserControls = Boolean(
-    userSearchQuery.trim() || userRoleFilter,
-  );
-
-  const userNameOptions = useMemo(
-    () =>
-      [...new Set(profiles.map((profile) => profile.full_name).filter(Boolean))].sort(
-        (a, b) => a.localeCompare(b),
-      ),
-    [profiles],
-  );
-
-  // Pipeline: raw profiles -> search (by name) -> role filter. Pagination
-  // below then operates on this derived array, never the raw `profiles`
-  // state, which is never mutated.
-  const processedProfiles = useMemo(() => {
-    const query = userSearchQuery.trim().toLowerCase();
-
-    let result = profiles.filter((profile) => {
-      if (!query) return true;
-      return (profile.full_name || "").toLowerCase().includes(query);
-    });
-
-    if (userRoleFilter) {
-      result = result.filter((profile) => profile.role === userRoleFilter);
-    }
-
-    return result;
-  }, [profiles, userSearchQuery, userRoleFilter]);
-
-  function handleClearUserFilters() {
-    setUserSearchQuery("");
-    setUserRoleFilter("");
-  }
 
   const countryOptions = useMemo(
     () =>
@@ -329,15 +303,6 @@ function Admin() {
     resetPage,
   } = usePagination(userIdsWithCities.length, CITIES_PAGE_SIZE);
 
-  const {
-    currentPage: usersCurrentPage,
-    totalPages: usersTotalPages,
-    startIndex: usersStartIndex,
-    endIndex: usersEndIndex,
-    goToPage: usersGoToPage,
-    resetPage: usersResetPage,
-  } = usePagination(processedProfiles.length, USERS_PAGE_SIZE);
-
   // A single effect covers every way the visible user groups can change
   // (search, any filter, sort, or Clear resetting all of them at once)
   // rather than wiring a resetPage() call into five separate handlers.
@@ -352,17 +317,9 @@ function Admin() {
     resetPage,
   ]);
 
-  useEffect(() => {
-    usersResetPage();
-  }, [userSearchQuery, userRoleFilter, usersResetPage]);
-
   if (!isAdmin && !isSuperAdmin) return <Navigate replace to="/app" />;
 
   const paginatedUserIds = userIdsWithCities.slice(startIndex, endIndex);
-  const paginatedProfiles = processedProfiles.slice(
-    usersStartIndex,
-    usersEndIndex,
-  );
 
   async function handleConfirmDeleteCity() {
     const city = cityPendingDelete;
@@ -387,7 +344,7 @@ function Admin() {
           onClick={() => setActiveTab("users")}
         >
           Users
-          {!isLoadingProfiles && !profilesError && ` (${profiles.length})`}
+          {!isLoadingUsers && !usersError && ` (${users.length})`}
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === "cities" ? styles.tabButtonActive : ""}`}
@@ -399,127 +356,12 @@ function Admin() {
       </div>
 
       {activeTab === "users" && (
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>
-            Users
-            {!isLoadingProfiles && !profilesError && (
-              <span className={styles.count}>({profiles.length})</span>
-            )}
-          </h2>
-
-          {isLoadingProfiles ? (
-            <Spinner />
-          ) : profilesError ? (
-            <p className={styles.error}>{profilesError}</p>
-          ) : !profiles.length ? (
-            <Message message="No users found." />
-          ) : (
-            <>
-              <div className={`${styles.toolbar} ${styles.userToolbar}`}>
-                <div className={styles.toolbarField}>
-                  <label htmlFor="adminUserSearch" className={styles.toolbarLabel}>
-                    Search
-                  </label>
-                  <input
-                    id="adminUserSearch"
-                    type="text"
-                    className={`${styles.toolbarInput} ${styles.toolbarCombo}`}
-                    placeholder="Search by name..."
-                    list="adminUserNames"
-                    value={userSearchQuery}
-                    onChange={(e) => setUserSearchQuery(e.target.value)}
-                  />
-                  <datalist id="adminUserNames">
-                    {userNameOptions.map((name) => (
-                      <option key={name} value={name} />
-                    ))}
-                  </datalist>
-                </div>
-
-                <div className={styles.toolbarField}>
-                  <label htmlFor="adminRoleFilter" className={styles.toolbarLabel}>
-                    Role
-                  </label>
-                  <select
-                    id="adminRoleFilter"
-                    className={styles.toolbarSelect}
-                    value={userRoleFilter}
-                    onChange={(e) => setUserRoleFilter(e.target.value)}
-                  >
-                    <option value="">All Roles</option>
-                    {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className={styles.toolbarResult}>
-                  <span className={styles.toolbarCount}>
-                    {hasActiveUserControls
-                      ? `${processedProfiles.length} of ${profiles.length} users`
-                      : `${profiles.length} users`}
-                  </span>
-
-                  {hasActiveUserControls && (
-                    <button
-                      type="button"
-                      className={styles.toolbarClear}
-                      onClick={handleClearUserFilters}
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {!processedProfiles.length ? (
-                <div className={styles.filteredEmpty}>
-                  <Message message="No users match your filters." />
-                  <button
-                    type="button"
-                    className={styles.toolbarClear}
-                    onClick={handleClearUserFilters}
-                  >
-                    Clear filters
-                  </button>
-                </div>
-              ) : (
-                <ul className={styles.list}>
-                  <li className={`${styles.listRow} ${styles.listHeaderRow}`}>
-                    <span>Name</span>
-                    <span>Role</span>
-                  </li>
-                  {paginatedProfiles.map((profile) => (
-                    <li key={profile.id} className={styles.listRow}>
-                      <span>{profile.full_name || "(no name)"}</span>
-                      <span
-                        className={`${styles.role} ${styles[`role-${profile.role}`] || ""}`}
-                      >
-                        {ROLE_LABELS[profile.role] || profile.role}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {usersTotalPages > 1 && (
-                <div className={styles.paginationWrapper}>
-                  <p className={styles.pageInfo}>
-                    Page {usersCurrentPage} of {usersTotalPages}
-                  </p>
-                  <Pagination
-                    currentPage={usersCurrentPage}
-                    totalPages={usersTotalPages}
-                    totalItems={processedProfiles.length}
-                    onPageChange={usersGoToPage}
-                  />
-                </div>
-              )}
-            </>
-          )}
-        </div>
+        <AdminUsers
+          users={users}
+          isLoadingUsers={isLoadingUsers}
+          usersError={usersError}
+          cities={cities}
+        />
       )}
 
       {activeTab === "cities" && (

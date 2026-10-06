@@ -1,0 +1,97 @@
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.listRow {
+  border-bottom: 1px solid var(--color-dark--1);
+}
+
+.listHeaderRow {
+  display: grid;
+  grid-template-columns: 4rem 1fr 1.4fr 10rem 9rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+
+  color: var(--color-light--1);
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--color-dark--1);
+}
+
+.avatarCell {
+  width: 3.2rem;
+}
+
+.rowButton {
+  display: grid;
+  grid-template-columns: 4rem 1fr 1.4fr 10rem 9rem;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.8rem 1rem;
+
+  background: none;
+  border: none;
+  border-radius: 5px;
+
+  font-family: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.rowButton:hover {
+  background-color: var(--color-dark--1);
+}
+
+.avatarThumb {
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.name {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-light--2);
+}
+
+.email {
+  font-size: 1.3rem;
+  color: var(--color-light--1);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cityCount {
+  font-size: 1.3rem;
+  color: var(--color-light--1);
+}
+
+@media (max-width: 600px) {
+  .listHeaderRow {
+    display: none;
+  }
+
+  .rowButton {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 1rem;
+  }
+
+  .email {
+    flex-basis: 100%;
+    white-space: normal;
+  }
+}

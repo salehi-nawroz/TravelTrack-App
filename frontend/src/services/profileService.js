@@ -31,6 +31,27 @@ export async function getAllProfiles() {
   return data;
 }
 
+// Admin/super_admin only - backed by the get_admin_users() SECURITY DEFINER
+// RPC (scripts/get-admin-users-function.sql), the one controlled path to
+// email, which lives in auth.users and is never queried directly from the
+// browser. The RPC itself enforces the same admin/super_admin visibility
+// rule as the "Admins can view all profiles" RLS policy, so a non-admin
+// caller simply gets an empty list back rather than an error.
+export async function getAdminUsers() {
+  const { data, error } = await supabase.rpc("get_admin_users");
+
+  if (error) throw new Error(error.message);
+
+  return data.map((row) => ({
+    id: row.id,
+    fullName: row.full_name,
+    email: row.email,
+    avatarPath: row.avatar_path,
+    role: row.role,
+    createdAt: row.created_at,
+  }));
+}
+
 export async function updateProfile({ full_name, avatar_path }) {
   const {
     data: { user },
