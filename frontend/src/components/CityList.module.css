@@ -5,6 +5,17 @@
   margin-bottom: 1.4rem;
 }
 
+.emptyActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.4rem;
+}
+
+.toolbarActions {
+  display: flex;
+  gap: 0.8rem;
+}
+
 .cityList {
   width: 100%;
   list-style: none;

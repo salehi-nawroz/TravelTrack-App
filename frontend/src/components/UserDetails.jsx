@@ -53,7 +53,7 @@ function UserDetails({
 
         <div className={styles.header}>
           <img
-            src={!isLoadingAvatar && avatarUrl ? avatarUrl : "/user.png"}
+            src={!isLoadingAvatar && avatarUrl ? avatarUrl : "/default-avatar.svg"}
             alt=""
             className={styles.avatar}
           />

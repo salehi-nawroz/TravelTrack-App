@@ -319,7 +319,7 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
                       onClick={() => handleSelectUser(user)}
                     >
                       <img
-                        src={thumbUrlByPath[user.avatarPath] || "/user.png"}
+                        src={thumbUrlByPath[user.avatarPath] || "/default-avatar.svg"}
                         alt=""
                         className={styles.avatarThumb}
                       />

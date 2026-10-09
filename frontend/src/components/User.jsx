@@ -22,7 +22,7 @@ function User() {
   return (
     <div className={styles.user}>
       <Link to="/app/profile" className={styles.identity}>
-        <img src={avatarUrl || "/user.png"} alt={user.email} />
+        <img src={avatarUrl || "/default-avatar.svg"} alt={user.email} />
         <span>{displayName}</span>
       </Link>
       <button className={styles.logoutBtn} onClick={handleClick}>

@@ -55,6 +55,12 @@ function reducer(state, action) {
         currentCity: action.payload,
       };
 
+    case "cities/imported":
+      return {
+        ...state,
+        cities: [...state.cities, ...action.payload],
+      };
+
     case "city/updated":
       return {
         ...state,
@@ -165,6 +171,30 @@ function CitiesProvider({ children }) {
     }
   }
 
+  // IMPORT CITIES (CSV) - inserts one by one through the same createCity
+  // service (owner = signed-in user, enforced by RLS) so each row succeeds or
+  // fails on its own. Deliberately no "loading" dispatch: that would swap
+  // the city list for a spinner and unmount the import dialog mid-way.
+  async function importCities(newCities) {
+    const created = [];
+    let failed = 0;
+
+    for (const city of newCities) {
+      try {
+        created.push(await createCityApi(city));
+      } catch (err) {
+        console.error("Failed to import city:", err.message);
+        failed++;
+      }
+    }
+
+    if (created.length) {
+      dispatch({ type: "cities/imported", payload: created });
+    }
+
+    return { imported: created.length, failed };
+  }
+
   // UPDATE CITY
   async function updateCity(id, city) {
     dispatch({ type: "loading" });
@@ -216,6 +246,7 @@ function CitiesProvider({ children }) {
         getCity,
         currentCity,
         createCity,
+        importCities,
         updateCity,
         deleteCity,
       }}

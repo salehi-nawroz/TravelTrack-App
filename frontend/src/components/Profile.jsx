@@ -162,7 +162,7 @@ function Profile() {
 
         <div className={styles.avatarRow}>
           <img
-            src={avatarUrl || "/user.png"}
+            src={avatarUrl || "/default-avatar.svg"}
             alt={user.email}
             className={styles.avatar}
           />

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Default avatar">
+  <defs>
+    <clipPath id="avatar-circle">
+      <circle cx="32" cy="32" r="32" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#avatar-circle)">
+    <!-- Colors match the dark-2 and light-3 tokens in index.css -->
+    <rect width="64" height="64" fill="#42484d" />
+    <circle cx="32" cy="25" r="11" fill="#d6dee0" />
+    <ellipse cx="32" cy="58" rx="20" ry="15" fill="#d6dee0" />
+  </g>
+</svg>

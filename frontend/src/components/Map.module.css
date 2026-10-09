@@ -3,6 +3,10 @@
   height: 100%;
   background-color: var(--color-dark--2);
   position: relative;
+  /* Own stacking context: Leaflet's internal z-indexes (panes 400, controls
+     up to 1000) then only order things inside the map, instead of competing
+     with app-level overlays like dialogs. */
+  isolation: isolate;
 }
 
 .map {
