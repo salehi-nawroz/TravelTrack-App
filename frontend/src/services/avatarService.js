@@ -66,3 +66,21 @@ export async function getAvatarSignedUrl(path) {
 
   return data.signedUrl;
 }
+
+// Batch version for lists: one request for many paths. Returns
+// { [path]: signedUrl } - paths the caller isn't allowed to read (or that
+// no longer exist) are simply left out, so the UI falls back per item.
+export async function getAvatarSignedUrls(paths) {
+  if (!paths.length) return {};
+
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrls(paths, SIGNED_URL_EXPIRES_IN_SECONDS);
+
+  if (error) throw new Error(error.message);
+
+  return data.reduce((acc, item) => {
+    if (!item.error && item.signedUrl) acc[item.path] = item.signedUrl;
+    return acc;
+  }, {});
+}

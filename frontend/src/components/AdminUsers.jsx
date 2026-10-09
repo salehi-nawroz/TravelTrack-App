@@ -7,7 +7,10 @@ import Pagination from "./Pagination";
 import UserDetails from "./UserDetails";
 import { usePagination } from "../hooks/usePagination";
 import { compareDates } from "../utils/compareDates";
-import { getAvatarSignedUrl } from "../services/avatarService";
+import {
+  getAvatarSignedUrl,
+  getAvatarSignedUrls,
+} from "../services/avatarService";
 
 const USERS_PAGE_SIZE = 10;
 
@@ -42,6 +45,8 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
   // arrives after the admin has already selected a different user (or
   // closed the modal) can be told apart from the one that's still current.
   const selectedUserIdRef = useRef(null);
+  // avatarPath -> signed URL for the rows on the current page only.
+  const [thumbUrlByPath, setThumbUrlByPath] = useState({});
 
   const hasActiveControls = Boolean(
     searchQuery.trim() || roleFilter || sortOption !== "default",
@@ -158,6 +163,30 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
   }
 
   const paginatedUsers = processedUsers.slice(startIndex, endIndex);
+
+  // Sign only the visible page's avatars, in a single request. The joined
+  // string keeps the effect from re-running on every render, since
+  // `paginatedUsers` is a new array each time.
+  const pageAvatarPathsKey = paginatedUsers
+    .map((user) => user.avatarPath)
+    .filter(Boolean)
+    .join("|");
+
+  useEffect(() => {
+    setThumbUrlByPath({});
+    if (!pageAvatarPathsKey) return;
+
+    let isCurrent = true;
+    getAvatarSignedUrls(pageAvatarPathsKey.split("|"))
+      .then((urls) => {
+        if (isCurrent) setThumbUrlByPath(urls);
+      })
+      .catch((err) => console.error("Failed to load avatars:", err.message));
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [pageAvatarPathsKey]);
 
   return (
     <div className={adminStyles.section}>
@@ -290,7 +319,7 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
                       onClick={() => handleSelectUser(user)}
                     >
                       <img
-                        src="/user.png"
+                        src={thumbUrlByPath[user.avatarPath] || "/user.png"}
                         alt=""
                         className={styles.avatarThumb}
                       />
