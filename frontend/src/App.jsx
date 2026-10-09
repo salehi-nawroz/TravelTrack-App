@@ -9,6 +9,7 @@ import ProtectRoute from "./pages/ProtectRoute";
 import CityList from "./components/CityList";
 import City from "./components/City";
 import CountryList from "./components/CountryList";
+import TripList from "./components/TripList";
 import Form from "./components/Form";
 import SpinnerFullPage from "./components/SpinnerFullPage";
 import Spinner from "./components/Spinner";
@@ -96,6 +97,9 @@ function App() {
 
                 {/* /app/countries */}
                 <Route path="countries" element={<CountryList />} />
+
+                {/* /app/trips */}
+                <Route path="trips" element={<TripList />} />
 
                 {/* /app/form */}
                 <Route path="form" element={<Form />} />
