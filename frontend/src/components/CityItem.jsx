@@ -56,7 +56,7 @@ function CityItem({ city }) {
           <button
             className={styles.deleteBtn}
             onClick={handleDelete}
-            aria-label={`Delete ${cityName}`}
+            aria-label={`Move ${cityName} to Trash`}
           >
             &times;
           </button>
@@ -65,7 +65,14 @@ function CityItem({ city }) {
 
       {showConfirm && (
         <ConfirmDialog
-          cityName={cityName}
+          title="Move to Trash?"
+          message={
+            <>
+              Move <strong>{cityName}</strong> to the Trash?
+            </>
+          }
+          confirmLabel="Move to Trash"
+          warning="You can restore it from the Trash."
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
         />

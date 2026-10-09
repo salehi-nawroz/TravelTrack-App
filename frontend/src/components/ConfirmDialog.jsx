@@ -7,6 +7,7 @@ function ConfirmDialog({
   message,
   cityName,
   confirmLabel = "Delete",
+  warning = "This action cannot be undone.",
   onConfirm,
   onCancel,
 }) {
@@ -45,7 +46,7 @@ function ConfirmDialog({
           )}
         </p>
 
-        <p className={styles.warning}>This action cannot be undone.</p>
+        <p className={styles.warning}>{warning}</p>
 
         <div className={styles.actions}>
           <Button type="back" onClick={onCancel}>

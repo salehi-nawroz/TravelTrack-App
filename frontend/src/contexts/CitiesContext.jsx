@@ -11,9 +11,11 @@ import {
   getCity as getCityApi,
   createCity as createCityApi,
   updateCity as updateCityApi,
-  deleteCity as deleteCityApi,
+  trashCity as trashCityApi,
+  restoreCity as restoreCityApi,
 } from "../services/cityService";
 import { useAuth } from "../contexts/AuthContext";
+import { compareDates } from "../utils/compareDates";
 
 const CitiesContext = createContext();
 
@@ -59,6 +61,16 @@ function reducer(state, action) {
       return {
         ...state,
         cities: [...state.cities, ...action.payload],
+      };
+
+    // Back in its original spot: the list is ordered by created_at, like
+    // getMyCities returns it.
+    case "city/restored":
+      return {
+        ...state,
+        cities: [...state.cities, action.payload].sort((a, b) =>
+          compareDates(a.createdAt, b.createdAt),
+        ),
       };
 
     case "city/updated":
@@ -218,12 +230,13 @@ function CitiesProvider({ children }) {
     }
   }
 
-  // DELETE CITY
+  // DELETE CITY - moves it to the Trash (soft delete); permanent deletion
+  // only happens from the Trash page.
   async function deleteCity(id) {
     dispatch({ type: "loading" });
 
     try {
-      await deleteCityApi(id);
+      await trashCityApi(id);
 
       dispatch({
         type: "city/deleted",
@@ -235,6 +248,15 @@ function CitiesProvider({ children }) {
         payload: "There was an error deleting the city...",
       });
     }
+  }
+
+  // RESTORE CITY (from the Trash). Throws so the Trash page can show the
+  // error next to the city; no "loading" dispatch, which would swap the
+  // sidebar content for a spinner.
+  async function restoreCity(id) {
+    const data = await restoreCityApi(id);
+    dispatch({ type: "city/restored", payload: data });
+    return data;
   }
 
   return (
@@ -249,6 +271,7 @@ function CitiesProvider({ children }) {
         importCities,
         updateCity,
         deleteCity,
+        restoreCity,
       }}
     >
       {children}

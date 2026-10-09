@@ -10,6 +10,7 @@ import CityList from "./components/CityList";
 import City from "./components/City";
 import CountryList from "./components/CountryList";
 import TripList from "./components/TripList";
+import Trash from "./components/Trash";
 import Form from "./components/Form";
 import SpinnerFullPage from "./components/SpinnerFullPage";
 import Spinner from "./components/Spinner";
@@ -94,6 +95,9 @@ function App() {
 
                 {/* /app/cities/:id/edit */}
                 <Route path="cities/:id/edit" element={<Form />} />
+
+                {/* /app/trash */}
+                <Route path="trash" element={<Trash />} />
 
                 {/* /app/countries */}
                 <Route path="countries" element={<CountryList />} />

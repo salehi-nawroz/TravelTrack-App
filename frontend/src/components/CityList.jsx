@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import Spinner from "./Spinner";
 import adminStyles from "../pages/Admin.module.css";
 import styles from "./CityList.module.css";
@@ -127,6 +128,9 @@ function CityList() {
             buttonClassName={adminStyles.toolbarClear}
             onDialogOpenChange={setIsEmptyStateImportOpen}
           />
+          <Link to="/app/trash" className={adminStyles.toolbarClear}>
+            Trash
+          </Link>
         </div>
       </>
     );
@@ -236,6 +240,10 @@ function CityList() {
             >
               Export CSV
             </button>
+
+            <Link to="/app/trash" className={adminStyles.toolbarClear}>
+              Trash
+            </Link>
           </div>
         </div>
       </div>

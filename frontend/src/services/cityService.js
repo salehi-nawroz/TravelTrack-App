@@ -32,6 +32,7 @@ function toDomainCity(row) {
     notes: row.notes,
     region: row.region ?? null,
     createdAt: row.created_at,
+    deletedAt: row.deleted_at ?? null,
     position: {
       lat: row.latitude,
       lng: row.longitude,
@@ -56,6 +57,7 @@ export async function getCities() {
   const { data, error } = await supabase
     .from("cities")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: true });
 
   if (error) throw new Error(error.message);
@@ -76,6 +78,7 @@ export async function getMyCities() {
     .from("cities")
     .select("*")
     .eq("user_id", user.id)
+    .is("deleted_at", null)
     .order("created_at", { ascending: true });
 
   if (error) throw new Error(error.message);
@@ -88,6 +91,7 @@ export async function getCity(id) {
     .from("cities")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .single();
 
   if (error) throw new Error(error.message);
@@ -132,4 +136,78 @@ export async function deleteCity(id) {
   const { error } = await supabase.from("cities").delete().eq("id", id);
 
   if (error) throw new Error(error.message);
+}
+
+// --- Trash (soft delete via cities.deleted_at) ---
+// All of these rely on the existing RLS policies: trash/restore are UPDATEs
+// (owner only via "Users can update own cities"), the permanent delete is a
+// DELETE. RLS blocks by matching 0 rows rather than erroring, so each call
+// selects what it changed and treats "nothing changed" as a failure.
+
+async function getCurrentUserId() {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error) throw new Error(error.message);
+  if (!user) throw new Error("User is not authenticated.");
+
+  return user.id;
+}
+
+export async function getMyTrashedCities() {
+  const userId = await getCurrentUserId();
+
+  const { data, error } = await supabase
+    .from("cities")
+    .select("*")
+    .eq("user_id", userId)
+    .not("deleted_at", "is", null)
+    .order("deleted_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+
+  return data.map(toDomainCity);
+}
+
+export async function trashCity(id) {
+  const { data, error } = await supabase
+    .from("cities")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .is("deleted_at", null)
+    .select("id");
+
+  if (error) throw new Error(error.message);
+  if (!data.length) throw new Error("City not found or not allowed.");
+}
+
+export async function restoreCity(id) {
+  const { data, error } = await supabase
+    .from("cities")
+    .update({ deleted_at: null })
+    .eq("id", id)
+    .not("deleted_at", "is", null)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+
+  return toDomainCity(data);
+}
+
+// Only ever removes a city that is already in the Trash.
+export async function deleteTrashedCity(id) {
+  const { data, error } = await supabase
+    .from("cities")
+    .delete()
+    .eq("id", id)
+    .not("deleted_at", "is", null)
+    .select("id");
+
+  if (error) throw new Error(error.message);
+  if (!data.length) {
+    throw new Error("You don't have permission to permanently delete this city.");
+  }
 }
