@@ -1,3 +1,10 @@
+/* Reuses the Admin toolbar; only the background differs, to match the
+   sidebar it sits on here. */
+.toolbar {
+  background-color: var(--color-dark--1);
+  margin-bottom: 1.4rem;
+}
+
 .cityList {
   width: 100%;
   list-style: none;
