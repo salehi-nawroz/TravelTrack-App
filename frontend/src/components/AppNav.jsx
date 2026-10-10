@@ -29,6 +29,9 @@ function AppNav() {
         <li>
           <NavLink to="trips"> Trips</NavLink>
         </li>
+        <li>
+          <NavLink to="stats"> Stats</NavLink>
+        </li>
         {(isAdmin || isSuperAdmin) && (
           <li>
             <NavLink to="admin"> Admin</NavLink>

@@ -25,6 +25,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Profile = lazy(() => import("./components/Profile"));
 const Admin = lazy(() => import("./pages/Admin"));
+const Stats = lazy(() => import("./components/Stats"));
 
 function App() {
   return (
@@ -104,6 +105,16 @@ function App() {
 
                 {/* /app/trips */}
                 <Route path="trips" element={<TripList />} />
+
+                {/* /app/stats */}
+                <Route
+                  path="stats"
+                  element={
+                    <Suspense fallback={<Spinner />}>
+                      <Stats />
+                    </Suspense>
+                  }
+                />
 
                 {/* /app/form */}
                 <Route path="form" element={<Form />} />

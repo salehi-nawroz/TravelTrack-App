@@ -1,32 +1,13 @@
+/* No scrolling of its own: the sidebar's content area (Sidebar .outlet)
+   scrolls, which avoids a second, nested scrollbar. */
 .countryList {
   width: 100%;
-
-  overflow-x: hidden;
-  overflow-y: auto;
 
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
 
-  padding: 0.5rem 0.7rem 2rem 0;
-}
-
-/* Chrome, Edge, Safari */
-.countryList::-webkit-scrollbar {
-  width: 6px;
-}
-
-.countryList::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.countryList::-webkit-scrollbar-thumb {
-  background: var(--color-dark--1);
-  border-radius: 10px;
-}
-
-.countryList::-webkit-scrollbar-thumb:hover {
-  background: var(--color-brand--1);
+  padding: 0.5rem 0 2rem 0;
 }
 
 .countryList section {

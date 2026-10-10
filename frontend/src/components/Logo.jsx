@@ -5,8 +5,10 @@ function Logo() {
   return (
     <Link to="/" className={styles.link}>
       <span className={styles.logo} aria-label="TravelTrack home">
-        <img src="/icon.svg" alt="" className={styles.icon} />
-        <span className={styles.wordmark}>TravelTrack</span>
+        <img src="/logo-mark.svg" alt="" className={styles.icon} />
+        <span className={styles.wordmark}>
+          Travel<span className={styles.accent}>Track</span>
+        </span>
       </span>
     </Link>
   );

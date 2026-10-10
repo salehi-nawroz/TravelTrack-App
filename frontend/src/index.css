@@ -114,3 +114,9 @@ input:focus {
     "description": "Import CSS Module as `styles`"
   },
 */
+
+/* Set by useResizableSidebar while the sidebar edge is being dragged. */
+body.is-resizing-sidebar {
+  cursor: col-resize;
+  user-select: none;
+}

@@ -1,0 +1,80 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.mapContainer {
+  height: 24rem;
+  border-radius: 7px;
+  overflow: hidden;
+  /* Same reason as Map.module.css: keep Leaflet's z-indexes local. */
+  isolation: isolate;
+}
+
+.map {
+  height: 100%;
+  background-color: var(--color-dark--1);
+}
+
+.legend {
+  list-style: none;
+  display: flex;
+  gap: 1.6rem;
+  font-size: 1.3rem;
+  color: var(--color-light--1);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.swatch {
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 3px;
+}
+
+.visited {
+  background-color: #00b060;
+}
+
+.notVisited {
+  background-color: #5a6166;
+}
+
+.note,
+.source,
+.error {
+  font-size: 1.2rem;
+  color: var(--color-light--1);
+}
+
+.source a:link,
+.source a:visited {
+  color: inherit;
+}
+
+.error {
+  font-size: 1.4rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+/* Leaflet tooltip, matching the dark popups on the main map. */
+.mapContainer :global(.leaflet-tooltip) {
+  background-color: var(--color-dark--1);
+  color: var(--color-light--2);
+  border: none;
+  border-left: 4px solid var(--color-brand--2);
+  font-family: inherit;
+  font-size: 1.3rem;
+}
+
+.mapContainer :global(.leaflet-tooltip-left::before),
+.mapContainer :global(.leaflet-tooltip-right::before) {
+  display: none;
+}

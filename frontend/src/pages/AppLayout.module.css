@@ -1,7 +1,60 @@
 .app {
   height: 100vh;
+  height: 100dvh;
   padding: 2.4rem;
   overscroll-behavior-y: none;
   display: flex;
   position: relative;
+  overflow: hidden;
+}
+
+/* --- Resize handle between sidebar and map --- */
+
+/* Zero-width in the layout so the map starts exactly where the sidebar
+   ends; the ::before gives it a wider invisible hit area over both. */
+.resizeHandle {
+  position: relative;
+  z-index: 1001; /* above Leaflet controls (1000) at the map's edge */
+  width: 0;
+  flex-shrink: 0;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+
+.resizeHandle::before {
+  content: "";
+  position: absolute;
+  inset: 0 -0.6rem;
+}
+
+/* The visible line, only on hover / drag / keyboard focus. */
+.resizeHandle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 2px;
+  background-color: var(--color-brand--2);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.resizeHandle:hover::after,
+.resizeHandle:focus-visible::after,
+.resizing::after {
+  opacity: 1;
+}
+
+/* Narrow screens: sidebar on top, map below; no dragging. */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .resizeHandle {
+    display: none;
+  }
 }

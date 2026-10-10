@@ -1,6 +1,11 @@
 .mapContainer {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
   height: 100%;
+  /* Lets the map's search box size itself against the map's own width,
+     which changes as the sidebar is resized (see LocationSearch .map). */
+  container-type: inline-size;
   background-color: var(--color-dark--2);
   position: relative;
   /* Own stacking context: Leaflet's internal z-indexes (panes 400, controls
@@ -9,39 +14,274 @@
   isolation: isolate;
 }
 
+/* Light gray shows while tiles load, close to the colour of empty map
+   land so loading areas don't flash dark. */
 .map {
   height: 100%;
+  background-color: #f2efe9;
+  font-family: inherit;
 }
 
+/* Location-picking mode: amber frame drawn above the tiles (an inset shadow
+   on the map itself would sit underneath them). */
 .selecting {
-  box-shadow: inset 0 0 0 4px var(--color-brand--1);
   cursor: crosshair;
 }
 
-/* Here we want to style classes that are coming from leaflet. So we want CSS Modules to give us the ACTUAL classnames, not to add some random ID to them, because then they won't match the classnames defined inside the map. The solution is to define these classes as GLOBAL */
-:global(.leaflet-popup .leaflet-popup-content-wrapper) {
-  background-color: var(--color-dark--1);
-  color: var(--color-light--2);
-  border-radius: 5px;
-  padding-right: 0.6rem;
+.selecting::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 999;
+  box-shadow: inset 0 0 0 4px var(--color-brand--1);
+  pointer-events: none;
 }
 
-:global(.leaflet-popup .leaflet-popup-content) {
-  font-size: 1.5rem;
+/* --- Pins (Leaflet divIcons, see createPin in Map.jsx) --- */
+
+.pin {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 2px solid var(--color-light--2);
+  box-shadow: 0 0.2rem 0.6rem rgba(0, 0, 0, 0.45);
+  transition: transform 0.15s ease;
+}
+
+/* Centre dot */
+.pin::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin: -0.4rem 0 0 -0.4rem;
+  border-radius: 50%;
+  background-color: var(--color-dark--1);
+}
+
+.cityPin {
+  background-color: var(--color-brand--2);
+}
+
+.selectedPin {
+  background-color: var(--color-brand--1);
+}
+
+:global(.leaflet-marker-icon):hover .pin,
+:global(.leaflet-marker-icon):focus-visible .pin {
+  transform: rotate(-45deg) scale(1.12);
+}
+
+:global(.leaflet-marker-icon):focus-visible {
+  outline: none;
+}
+
+/* --- Popups --- */
+
+.popup :global(.leaflet-popup-content-wrapper) {
+  background-color: var(--color-dark--1);
+  color: var(--color-light--2);
+  border-radius: 7px;
+  border-left: 4px solid var(--color-brand--2);
+  box-shadow: 0 0.8rem 2.4rem rgba(0, 0, 0, 0.45);
+  padding: 0;
+}
+
+.popup :global(.leaflet-popup-content) {
+  margin: 1.2rem 1.4rem;
+  min-width: 18rem;
+  max-width: 26rem;
+  font-size: 1.4rem;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.popup :global(.leaflet-popup-tip) {
+  background-color: var(--color-dark--1);
+}
+
+.popup :global(a.leaflet-popup-close-button) {
+  top: 0.4rem;
+  right: 0.4rem;
+  color: var(--color-light--1);
+  font-size: 2rem;
+}
+
+.popup :global(a.leaflet-popup-close-button:hover) {
+  color: var(--color-light--2);
+}
+
+.popupHeader {
   display: flex;
   align-items: center;
   gap: 1rem;
+  padding-right: 1.6rem; /* clear of the close button */
 }
 
-:global(.leaflet-popup .leaflet-popup-content span:first-child) {
-  font-size: 2.5rem;
-  line-height: 1;
+.popupTitle {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-:global(.leaflet-popup .leaflet-popup-tip) {
+.popupTitle strong {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.popupTitle span {
+  font-size: 1.2rem;
+  color: var(--color-light--1);
+}
+
+.popupDate {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-brand--1);
+}
+
+/* Notes: first three lines only; the details page shows the rest. Two
+   classes so it beats Leaflet's ".leaflet-popup-content p" margin. */
+.popup .popupNotes {
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--color-light--3);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.popupLink:link,
+.popupLink:visited {
+  align-self: flex-start;
+  margin-top: 0.2rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-brand--2);
+  text-decoration: none;
+}
+
+.popupLink:hover {
+  text-decoration: underline;
+}
+
+.popupSelected {
+  font-size: 1.4rem;
+  padding-right: 1.6rem;
+}
+
+/* --- Controls --- */
+
+.map :global(.leaflet-bar) {
+  border: none;
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.35);
+}
+
+.map :global(.leaflet-bar a) {
+  width: 3.4rem;
+  height: 3.4rem;
+  line-height: 3.4rem;
   background-color: var(--color-dark--1);
+  color: var(--color-light--2);
+  border-bottom: 1px solid var(--color-dark--2);
+  font-size: 1.8rem;
+  transition: background-color 0.15s, color 0.15s;
 }
 
-:global(.leaflet-popup-content-wrapper) {
-  border-left: 5px solid var(--color-brand--2);
+.map :global(.leaflet-bar a:last-child) {
+  border-bottom: none;
+}
+
+.map :global(.leaflet-bar a:hover),
+.map :global(.leaflet-bar a:focus-visible) {
+  background-color: var(--color-brand--2);
+  color: var(--color-dark--1);
+  outline: none;
+}
+
+.map :global(.leaflet-bar a.leaflet-disabled) {
+  background-color: var(--color-dark--1);
+  color: var(--color-dark--2);
+}
+
+.map :global(.leaflet-control-zoom) {
+  margin: 0 1.2rem 1.2rem 0;
+}
+
+.map :global(.leaflet-control-attribution) {
+  background-color: rgba(255, 255, 255, 0.85);
+  color: #4a4f53;
+  font-size: 1rem;
+  border-top-left-radius: 5px;
+}
+
+.map :global(.leaflet-control-attribution a) {
+  color: #1f6f43;
+}
+
+/* --- Current location ("Use your position") --- */
+
+.userDot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #1a73e8;
+  border: 3px solid #fff;
+  box-shadow:
+    0 0 0 4px rgba(26, 115, 232, 0.25),
+    0 0.2rem 0.6rem rgba(0, 0, 0, 0.35);
+}
+
+/* Geolocation error, just above the "Use your position" button. */
+.geoError {
+  position: absolute;
+  z-index: 1000;
+  bottom: 9.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(42rem, calc(100% - 3rem));
+
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1rem 1rem 1.4rem;
+
+  background-color: var(--color-dark--1);
+  color: var(--color-light--2);
+  border-left: 4px solid var(--color-danger);
+  border-radius: 7px;
+  box-shadow: 0 0.6rem 1.6rem rgba(0, 0, 0, 0.35);
+  font-size: 1.3rem;
+  line-height: 1.4;
+}
+
+.geoError button {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--color-light--1);
+  font-family: inherit;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.geoError button:hover,
+.geoError button:focus-visible {
+  color: var(--color-light--2);
 }

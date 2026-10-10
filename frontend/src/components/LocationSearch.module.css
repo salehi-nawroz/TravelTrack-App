@@ -61,11 +61,12 @@
   z-index: 1000;
   top: 1.5rem;
   left: 1.5rem;
-  width: clamp(15rem, 22vw, 24rem);
-  /* Leaves clearance on the right (sidebar width + app padding + a
-     reserved gap for the User/profile widget pinned to the top-right of
-     this same area) so the box never grows underneath it. */
-  max-width: min(calc(100% - 3rem), calc(100vw - 93rem));
+  width: clamp(20rem, 40cqw, 30rem);
+  /* Leaves clearance on the right for the User/profile widget pinned to the
+     top-right of the map, so the box never grows underneath it. 100cqw is
+     the map's own width (Map.module.css makes it the container), which
+     follows the resizable sidebar. */
+  max-width: max(15rem, min(calc(100% - 3rem), calc(100cqw - 35rem)));
 }
 
 .map .label {
@@ -73,22 +74,63 @@
   display: none;
 }
 
+/* Map search: like the sidebar's GlobalSearch (green focus ring, dark
+   results panel), but a white field so it stands out on the light map. */
 .map input {
   width: 100%;
-  padding: clamp(0.6rem, 0.4rem + 0.5vw, 0.9rem) 1.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 0.6rem;
-  background-color: rgba(255, 255, 255, 0.96);
+  height: 4rem;
+  padding: 0 1.2rem 0 3.8rem;
+  border: 2px solid transparent;
+  border-radius: 7px;
+  background: #fff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232d3439' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m16 16 4.5 4.5'/%3E%3C/svg%3E")
+    no-repeat 1.2rem center / 1.6rem;
   color: var(--color-dark--1);
-  font-size: clamp(1.2rem, 1rem + 0.3vw, 1.4rem);
+  font-size: 1.4rem;
   font-family: inherit;
-  box-shadow: 0 0.3rem 1.2rem rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.35);
   outline: none;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
 }
 
 .map input:focus {
-  border-color: #52c956;
-  box-shadow:
-    0 0 0 2px rgba(139, 213, 141, 0.45),
-    0 0.3rem 1.2rem rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  border-color: var(--color-brand--2);
+}
+
+.map .results {
+  top: calc(100% + 0.6rem);
+  padding: 0.6rem 0;
+  border-radius: 7px;
+  background-color: var(--color-dark--2);
+  box-shadow: 0 0.6rem 1.6rem rgba(0, 0, 0, 0.35);
+}
+
+.map .results p {
+  padding: 0.8rem 1.6rem;
+  color: var(--color-light--1);
+  font-size: 1.3rem;
+}
+
+.map .result {
+  padding: 0.8rem 1.6rem;
+  border-bottom: none;
+  color: var(--color-light--2);
+}
+
+.map .result:hover,
+.map .result:focus-visible {
+  background-color: var(--color-dark--1);
+}
+
+.map .result span {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.map .result small {
+  font-size: 1.2rem;
+  color: var(--color-light--1);
 }

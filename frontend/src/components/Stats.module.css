@@ -1,0 +1,220 @@
+.stats {
+  /* Bar colour (also used for visited countries in StatsMap): the brand
+     green one step darker, so large filled areas aren't brighter than the
+     text around them on the dark surface. */
+  --stats-mark: #00b060;
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+/* --- Summary cards --- */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background-color: var(--color-dark--2);
+  border-radius: 7px;
+  border-left: 5px solid var(--color-brand--2);
+  padding: 1.2rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.value {
+  font-size: 2.8rem;
+  font-weight: 800;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-light--1);
+}
+
+.note {
+  font-size: 1.2rem;
+  color: var(--color-light--1);
+}
+
+.note a:link,
+.note a:visited {
+  color: var(--color-brand--2);
+}
+
+/* --- Sections --- */
+
+.section {
+  background-color: var(--color-dark--2);
+  border-radius: 7px;
+  padding: 1.4rem 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* --- Visits per year chart --- */
+
+.chart {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 16rem;
+  border-bottom: 1px solid var(--color-light--1);
+  padding-top: 2rem; /* room for the value label above the tallest bar */
+}
+
+.column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.barArea {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  outline: none;
+  border-radius: 4px 4px 0 0;
+}
+
+.bar {
+  width: 100%;
+  max-width: 4.8rem;
+  background-color: var(--stats-mark);
+  border-radius: 4px 4px 0 0;
+}
+
+.barArea:hover .bar,
+.barArea:focus-visible .bar {
+  opacity: 0.8;
+}
+
+.barArea:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-light--2);
+}
+
+.barValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tooltip, shown on hover and keyboard focus. */
+.barArea::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 0.6rem);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background-color: var(--color-dark--1);
+  color: var(--color-light--2);
+  border-left: 4px solid var(--color-brand--2);
+  border-radius: 5px;
+  padding: 0.4rem 0.8rem;
+  font-size: 1.2rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 1;
+}
+
+.barArea:hover::after,
+.barArea:focus-visible::after {
+  opacity: 1;
+}
+
+.year {
+  margin-top: 0.4rem;
+  height: 1.8rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--color-light--1);
+  white-space: nowrap;
+}
+
+.tableToggle summary {
+  font-size: 1.2rem;
+  color: var(--color-light--1);
+  cursor: pointer;
+}
+
+.table {
+  margin-top: 0.6rem;
+  border-collapse: collapse;
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.2rem 1.6rem 0.2rem 0;
+}
+
+.table th {
+  color: var(--color-light--1);
+  font-weight: 600;
+}
+
+/* --- Longest trip --- */
+
+.trip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tripHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.6rem;
+}
+
+.tripDays {
+  font-size: 2.2rem;
+  font-weight: 800;
+}
+
+.tripDates {
+  font-size: 1.3rem;
+}
+
+.tripPlaces {
+  font-size: 1.4rem;
+}
+
+@media (max-width: 600px) {
+  .value {
+    font-size: 2.2rem;
+  }
+
+  .section {
+    padding: 1.2rem;
+  }
+
+  .chart {
+    height: 12rem;
+  }
+}

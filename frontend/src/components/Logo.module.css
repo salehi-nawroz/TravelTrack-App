@@ -21,3 +21,7 @@
   letter-spacing: -0.08rem;
   text-transform: none;
 }
+
+.accent {
+  color: var(--color-brand--2);
+}

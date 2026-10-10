@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- TravelTrack mark: a green globe with an amber location pin dropped on
+       it. Transparent background, for the dark app surfaces. The mask cuts a
+       gap in the globe around the pin so the two stay distinct on any
+       background without a fill colour behind the pin. -->
+  <defs>
+    <mask id="pin-gap" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <rect width="64" height="64" fill="#fff" />
+      <path
+        d="M45 40 34.75 23.25A12 12 0 1 1 55.25 23.25Z"
+        fill="#000"
+        stroke="#000"
+        stroke-width="7"
+        stroke-linejoin="round"
+      />
+    </mask>
+  </defs>
+
+  <g
+    mask="url(#pin-gap)"
+    stroke="#00c46a"
+    stroke-linecap="round"
+  >
+    <circle cx="27" cy="37" r="21" stroke-width="4" />
+    <ellipse cx="27" cy="37" rx="9" ry="21" stroke-width="3" />
+    <path d="M6 37h42" stroke-width="3" />
+  </g>
+
+  <path
+    d="M45 40 34.75 23.25A12 12 0 1 1 55.25 23.25ZM40.5 17a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0Z"
+    fill="#ffb545"
+    fill-rule="evenodd"
+    stroke="#ffb545"
+    stroke-width="1.5"
+    stroke-linejoin="round"
+  />
+</svg>
