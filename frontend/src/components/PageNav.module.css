@@ -30,5 +30,5 @@ a.ctaLink:visited {
   background-color: var(--color-brand--2);
   color: var(--color-dark--0);
   padding: 0.8rem 2rem;
-  border-radius: 7px;
+  border-radius: var(--radius-md);
 }

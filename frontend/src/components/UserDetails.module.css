@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
 
-  background-color: rgba(0, 0, 0, 0.65);
+  background-color: var(--color-overlay);
   backdrop-filter: blur(3px);
 }
 
@@ -16,15 +16,15 @@
   width: min(90%, 52rem);
   max-height: 80vh;
   overflow-y: auto;
-  padding: 3rem;
+  padding: var(--space-8);
 
-  background-color: var(--color-dark--2);
-  border: 1px solid var(--color-dark--1);
-  border-radius: 1rem;
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
 
-  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-lg);
 
-  animation: dialogIn 0.2s ease-out;
+  animation: dialogIn var(--duration-base) var(--ease-out);
 }
 
 .closeButton {
@@ -116,7 +116,7 @@
 
   padding: 0.8rem 1rem;
   background-color: var(--color-dark--1);
-  border-radius: 0.6rem;
+  border-radius: var(--radius-sm);
 
   font-size: 1.4rem;
 }
@@ -162,5 +162,10 @@
 @media (max-width: 600px) {
   .cityRow {
     flex-wrap: wrap;
+  }
+
+  /* Phones: less padding so content gets the room. */
+  .dialog {
+    padding: var(--space-6) var(--space-5);
   }
 }

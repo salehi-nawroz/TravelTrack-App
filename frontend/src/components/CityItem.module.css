@@ -6,7 +6,7 @@
   align-items: center;
 
   background-color: var(--color-dark--2);
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   padding: 1rem 2rem;
   border: 1px solid transparent;
   cursor: pointer;
@@ -16,9 +16,9 @@
   position: relative;
 
   transition:
-    background-color 0.2s ease,
-    transform 0.2s ease,
-    border-color 0.2s ease;
+    background-color var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard);
 }
 
 .cityItem:hover {
@@ -38,7 +38,7 @@
 .flag {
   height: 1.6rem;
   width: 2rem;
-  border-radius: 0.2rem;
+  border-radius: var(--radius-xs);
 }
 
 .name {
@@ -61,7 +61,7 @@
   font-size: 1.6rem;
   font-weight: 400;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--duration-base) var(--ease-standard);
 }
 
 .deleteBtn:hover {

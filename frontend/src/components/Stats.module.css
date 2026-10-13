@@ -2,7 +2,7 @@
   /* Bar colour (also used for visited countries in StatsMap): the brand
      green one step darker, so large filled areas aren't brighter than the
      text around them on the dark surface. */
-  --stats-mark: #00b060;
+  --stats-mark: var(--color-brand-dark);
 
   width: 100%;
   display: flex;
@@ -20,7 +20,7 @@
 
 .card {
   background-color: var(--color-dark--2);
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   border-left: 5px solid var(--color-brand--2);
   padding: 1.2rem 1.4rem;
   display: flex;
@@ -55,7 +55,7 @@
 
 .section {
   background-color: var(--color-dark--2);
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   padding: 1.4rem 1.6rem;
   display: flex;
   flex-direction: column;
@@ -129,12 +129,12 @@
   background-color: var(--color-dark--1);
   color: var(--color-light--2);
   border-left: 4px solid var(--color-brand--2);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   padding: 0.4rem 0.8rem;
   font-size: 1.2rem;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.15s;
+  transition: opacity var(--duration-fast) var(--ease-standard);
   z-index: 1;
 }
 

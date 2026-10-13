@@ -4,9 +4,9 @@
   right: 4.2rem;
   background-color: var(--color-dark--1);
   padding: 1rem 1.4rem;
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   z-index: 999;
-  box-shadow: 0 0.8rem 2.4rem rgba(36, 42, 46, 0.5);
+  box-shadow: var(--shadow-md);
   font-size: 1.6rem;
   font-weight: 600;
 
@@ -16,7 +16,7 @@
 }
 
 .user img {
-  border-radius: 100px;
+  border-radius: var(--radius-pill);
   height: 4rem;
 }
 
@@ -30,7 +30,7 @@
 
 .logoutBtn {
   background-color: var(--color-dark--2);
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   border: none;
   padding: 0.6rem 1.2rem;
   color: inherit;

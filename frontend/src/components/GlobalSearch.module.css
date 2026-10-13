@@ -24,14 +24,14 @@
   background-color: var(--color-light--3);
 
   border: 2px solid transparent;
-  border-radius: 7px;
+  border-radius: var(--radius-md);
 
   outline: none;
-  transition: all 0.2s;
+  transition: all var(--duration-base) var(--ease-standard);
 }
 
 .searchBox input:focus {
-  background-color: #fff;
+  background-color: var(--color-input-bg-focus);
   border-color: var(--color-brand--2);
 }
 
@@ -66,7 +66,7 @@
   line-height: 1;
 
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color var(--duration-base) var(--ease-standard);
 }
 
 .clearButton:hover {
@@ -84,8 +84,8 @@
   overflow-y: auto;
 
   background-color: var(--color-dark--2);
-  border-radius: 7px;
-  box-shadow: 0 0.6rem 1.6rem rgba(0, 0, 0, 0.35);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
 
   padding: 0.8rem 0;
 }

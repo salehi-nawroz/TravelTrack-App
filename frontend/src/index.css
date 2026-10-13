@@ -2,19 +2,115 @@
 @import "https://unpkg.com/leaflet@1.9.3/dist/leaflet.css";
 @import "https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap";
 
-/* These CSS variables are global, so they are available in all CSS modules */
+/* =====================================================================
+   TravelTrack design tokens
+   Global, so every CSS Module can use them. 1rem = 10px (html font-size
+   62.5%). New code should use these semantic names; the legacy names
+   further down are kept as aliases so existing modules keep working.
+   ===================================================================== */
 :root {
-  --color-brand--1: #ffb545;
-  --color-brand--2: #00c46a;
+  /* --- Brand --- */
+  --color-brand: #00c46a; /* emerald: primary actions, active states */
+  --color-brand-hover: #00d473; /* hover on brand fills with dark text */
+  --color-brand-dark: #00b060; /* large fills, hover behind white text */
+  --color-accent: #ffb545; /* travel amber: highlights, selection */
+  --color-accent-soft: rgba(255, 181, 69, 0.14);
 
-  --color-dark--0: #242a2e;
-  --color-dark--1: #2d3439;
-  --color-dark--2: #42484d;
-  --color-light--1: #aaa;
-  --color-light--2: #ececec;
-  --color-light--3: #d6dee0;
+  /* --- Surfaces (darkest to lightest) --- */
+  --color-surface-0: #242a2e; /* page backdrop */
+  --color-surface-1: #2d3439; /* sidebar, popovers, dialogs' inner panels */
+  --color-surface-2: #42484d; /* cards, dialogs, tab bar */
+  --color-surface-3: #5a6166; /* neutral fills (e.g. unvisited countries) */
+  --color-overlay: rgba(0, 0, 0, 0.65); /* behind dialogs */
+
+  /* --- Borders --- */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+
+  /* --- Text (contrast measured on surface-2, the lightest dark surface) --- */
+  --color-text-primary: #ececec; /* 7.9:1 */
+  --color-text-secondary: #b8bfc4; /* 5.0:1 (was #aaa at 4.0:1) */
+  --color-text-muted: #9aa1a6; /* 4.8:1 on surface-1 only: hints, captions */
+  --color-text-inverse: #2d3439; /* on brand, accent and light inputs */
+
+  /* --- Status --- */
+  --color-danger: #e03131; /* fills/borders; white text on it is 4.5:1 */
+  --color-danger-hover: #c92a2a; /* white text on it is 5.5:1 */
+  --color-danger-text: #ff6b6b; /* error text on dark surfaces, 4.5:1 */
+
+  /* --- Form fields --- */
+  --color-input-bg: #d6dee0;
+  --color-input-bg-focus: #fff;
+
+  /* --- Light Leaflet map (Map.module.css) --- */
+  --color-map-bg: #f2efe9; /* behind tiles while they load */
+  --color-map-text: #4a4f53;
+  --color-map-link: #1f6f43;
+  --color-map-user: #1a73e8; /* "you are here" dot */
+
+  /* --- Focus --- */
+  --color-focus: #ececec;
+  --focus-ring: 2px solid var(--color-focus);
+  --focus-offset: 2px;
+
+  /* --- Typography --- */
+  --font-family: "Manrope", sans-serif;
+  --font-size-xs: 1.2rem;
+  --font-size-sm: 1.3rem;
+  --font-size-base: 1.4rem;
+  --font-size-md: 1.6rem;
+  --font-size-lg: 1.8rem;
+  --font-size-xl: 2.2rem;
+  --font-size-2xl: 2.8rem;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --line-height-tight: 1.25;
+  --line-height-base: 1.6;
+
+  /* --- Spacing (4px steps) --- */
+  --space-1: 0.4rem;
+  --space-2: 0.8rem;
+  --space-3: 1.2rem;
+  --space-4: 1.6rem;
+  --space-5: 2rem;
+  --space-6: 2.4rem;
+  --space-8: 3.2rem;
+
+  /* --- Radii --- */
+  --radius-xs: 3px; /* flags, tiny chips */
+  --radius-sm: 5px; /* buttons, inputs, tabs */
+  --radius-md: 7px; /* cards, panels, popovers */
+  --radius-lg: 10px; /* dialogs */
+  --radius-pill: 999px;
+
+  /* --- Shadows --- */
+  --shadow-sm: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.3); /* controls, hover lift */
+  --shadow-md: 0 0.8rem 2.4rem rgba(0, 0, 0, 0.4); /* popovers, dropdowns */
+  --shadow-lg: 0 2rem 5rem rgba(0, 0, 0, 0.45); /* dialogs */
+
+  /* --- Motion --- */
+  --duration-fast: 0.15s;
+  --duration-base: 0.2s;
+  --ease-standard: ease;
+  --ease-out: ease-out;
+
+  /* --- Controls --- */
+  --control-height: 4rem;
+  --control-height-sm: 3.2rem;
+
+  /* --- Legacy names (aliases; prefer the semantic tokens above) --- */
+  --color-brand--1: var(--color-accent);
+  --color-brand--2: var(--color-brand);
+  --color-dark--0: var(--color-surface-0);
+  --color-dark--1: var(--color-surface-1);
+  --color-dark--2: var(--color-surface-2);
+  --color-dark--3: var(--color-border-strong); /* was used but undefined */
+  --color-light--1: var(--color-text-secondary);
+  --color-light--2: var(--color-text-primary);
+  --color-light--3: var(--color-input-bg);
   --color-blue--1: #838884;
-  --color-danger: #e03131;
 }
 
 * {
@@ -29,45 +125,92 @@ html {
 }
 
 body {
-  font-family: "Manrope", sans-serif;
-  color: var(--color-light--2);
-  font-weight: 400;
-  line-height: 1.6;
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-base);
+}
+
+::selection {
+  background-color: var(--color-brand);
+  color: var(--color-text-inverse);
 }
 
 label {
-  font-size: 1.6rem;
-  font-weight: 600;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
 }
 
+button,
+select {
+  font-family: inherit;
+}
+
+/* --- Inputs: light field --- */
+/* 1.6rem (16px) text also stops iOS Safari zooming in on focus. */
 input,
 textarea {
   width: 100%;
-  padding: 0.8rem 1.2rem;
+  padding: var(--space-2) var(--space-3);
   font-family: inherit;
-  font-size: 1.6rem;
+  font-size: var(--font-size-md);
+  color: var(--color-text-inverse);
   border: none;
-  border-radius: 5px;
-  background-color: var(--color-light--3);
-  transition: all 0.2s;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-input-bg);
+  transition: background-color var(--duration-base) var(--ease-standard);
 }
 
-input:focus {
-  outline: none;
-  background-color: #fff;
+/* Focus rules below use :where() (zero specificity) on purpose: this file
+   is imported after App in main.jsx, so it loads after most CSS Modules
+   and would otherwise win specificity ties against components that style
+   their own focus state (search boxes, toolbar filters, map controls).
+   Any component rule now takes precedence; elements without one still get
+   a visible indicator. */
+
+/* Keyboard focus: one visible ring everywhere (not shown on mouse click). */
+:where(:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* Text fields: white background and a green outline while focused. An
+   outline takes no space, so focusing doesn't shift the layout. Declared
+   after the ring above so it replaces it on inputs. */
+:where(input, textarea):where(:focus) {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 0;
+  background-color: var(--color-input-bg-focus);
 }
 
 .cta:link,
 .cta:visited {
   display: inline-block;
-  background-color: var(--color-brand--2);
-  color: var(--color-dark--1);
+  background-color: var(--color-brand);
+  color: var(--color-text-inverse);
   text-transform: uppercase;
   text-decoration: none;
-  font-size: 1.6rem;
-  font-weight: 600;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
   padding: 1rem 3rem;
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.cta:hover {
+  background-color: var(--color-brand-hover);
+}
+
+/* --- Reduced motion: honour the OS setting app-wide --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .flag2 {

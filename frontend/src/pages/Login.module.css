@@ -7,7 +7,7 @@
 
 .form {
   background-color: var(--color-dark--2);
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   padding: 2rem 3rem;
   width: 100%;
   display: flex;

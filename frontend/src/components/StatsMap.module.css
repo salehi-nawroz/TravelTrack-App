@@ -6,7 +6,7 @@
 
 .mapContainer {
   height: 24rem;
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   /* Same reason as Map.module.css: keep Leaflet's z-indexes local. */
   isolation: isolate;
@@ -35,15 +35,15 @@
   display: inline-block;
   width: 1.2rem;
   height: 1.2rem;
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
 }
 
 .visited {
-  background-color: #00b060;
+  background-color: var(--color-brand-dark);
 }
 
 .notVisited {
-  background-color: #5a6166;
+  background-color: var(--color-surface-3);
 }
 
 .note,

@@ -26,6 +26,9 @@ function loadCountries() {
   return countriesPromise;
 }
 
+// Leaflet path styles need literal colours. These mirror the design tokens
+// in index.css: --color-brand-dark (visited), --color-surface-3 (not
+// visited), --color-surface-1 (borders), --color-text-primary (hover).
 const VISITED_STYLE = {
   fillColor: "#00b060",
   fillOpacity: 1,

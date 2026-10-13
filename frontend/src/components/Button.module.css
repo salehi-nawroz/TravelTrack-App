@@ -1,54 +1,89 @@
+/* Shared button: one base (size, type, radius, motion, disabled state) and
+   a colour per variant. Keyboard focus uses the global :focus-visible ring
+   from index.css. */
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height-sm);
+  padding: var(--space-2) var(--space-4);
+
   color: inherit;
-  text-transform: uppercase;
-  padding: 0.8rem 1.6rem;
   font-family: inherit;
   font-size: 1.5rem;
-  border: none;
-  border-radius: 5px;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  text-transform: uppercase;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
 }
 
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Primary: brand green, dark text (5.5:1). */
 .primary {
-  font-weight: 700;
-  background-color: var(--color-brand--2);
-  color: var(--color-dark--1);
+  background-color: var(--color-brand);
+  color: var(--color-text-inverse);
 }
 
+.primary:hover:not(:disabled) {
+  background-color: var(--color-brand-hover);
+}
+
+/* Secondary / back: outlined, inherits the surrounding text colour. */
 .back {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   background: none;
-  border: 1px solid currentColor;
+  border-color: currentColor;
 }
 
+.back:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Destructive: white on red (4.5:1). */
 .danger {
-  font-weight: 700;
   background-color: var(--color-danger);
   color: #fff;
 }
 
+.danger:hover:not(:disabled) {
+  background-color: var(--color-danger-hover);
+}
+
+/* Floating "Use your position" button over the map. */
 .position {
-  font-weight: 700;
   position: absolute;
   z-index: 1000;
-  font-size: 1.4rem;
   bottom: 4rem;
   left: 50%;
   transform: translateX(-50%);
-  background-color: var(--color-brand--2);
-  color: var(--color-dark--1);
-  border-radius: 7px;
+
   padding: 1rem 2rem;
+  font-size: var(--font-size-base);
   white-space: nowrap;
-  box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.35);
-  transition: opacity 0.15s;
+
+  background-color: var(--color-brand);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
-.position:hover {
-  opacity: 0.9;
+.position:hover:not(:disabled) {
+  background-color: var(--color-brand-hover);
 }
 
-.position:focus-visible {
-  outline: 2px solid var(--color-light--2);
-  outline-offset: 2px;
+.position:disabled {
+  cursor: progress;
 }

@@ -38,13 +38,13 @@
 
   background: none;
   border: none;
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
 
   font-family: inherit;
   text-align: left;
   color: inherit;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color var(--duration-base) var(--ease-standard);
 }
 
 .rowButton:hover {

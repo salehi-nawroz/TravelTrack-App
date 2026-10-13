@@ -7,18 +7,22 @@
   padding: 1.2rem 1.5rem;
 
   background-color: var(--color-dark--2);
-  border-radius: 0.8rem;
+  /* Transparent border reserved up front, so the hover border doesn't
+     shift the card's content by 1px. */
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
   cursor: pointer;
 
   transition:
-    background-color 0.2s ease,
-    transform 0.2s ease;
+    background-color var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-standard);
 }
 
 .countryItem:hover {
   background-color: var(--color-dark--1);
   transform: translateY(-1px);
-  border: 1px solid var(--color-brand--2);
+  border-color: var(--color-brand--2);
 }
 
 .countryHeader {
@@ -60,7 +64,7 @@
   font-size: 1.4rem;
   text-decoration: none;
 
-  transition: color 0.2s ease;
+  transition: color var(--duration-base) var(--ease-standard);
 }
 
 .cityList a:hover {

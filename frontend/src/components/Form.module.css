@@ -1,6 +1,6 @@
 .form {
   background-color: var(--color-dark--2);
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   padding: 2rem 3rem;
   width: 100%;
   display: flex;
@@ -29,18 +29,23 @@
   font-family: inherit;
   font-size: 1.6rem;
   text-align: left;
-  border: none;
-  border-radius: 5px;
-  background-color: var(--color-light--3);
-  color: var(--color-dark--1);
+  /* Same field look as the global inputs (index.css). */
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-input-bg);
+  color: var(--color-text-inverse);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--duration-base) var(--ease-standard);
 }
 
-.citySelector:hover,
+.citySelector:hover {
+  background-color: var(--color-input-bg-focus);
+}
+
 .citySelector:focus-visible {
   outline: none;
-  background-color: #fff;
+  background-color: var(--color-input-bg-focus);
+  border-color: var(--color-brand);
 }
 
 .citySelector span:last-child {
@@ -62,7 +67,7 @@
   right: 1rem;
   top: 3.5rem;
   font-size: 2.8rem;
-  border-radius: 0.3rem;
+  border-radius: var(--radius-xs);
 }
 
 .form.loading {
