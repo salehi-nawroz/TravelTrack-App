@@ -1,0 +1,80 @@
+/* Fixed bottom bar for phones; hidden from 768px up, where AppNav's tabs
+   take over. Height and safe-area inset come from the layout tokens in
+   index.css. */
+.mobileNav {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .mobileNav {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-mobile-nav);
+
+    padding-bottom: var(--safe-area-bottom);
+    background-color: var(--color-surface-0);
+    /* A shadow line rather than a border: it takes no height, so the bar is
+       exactly --mobile-nav-height and meets the sheet without overlap. */
+    box-shadow: 0 -1px 0 var(--color-border-strong);
+  }
+
+  .mobileNav ul {
+    list-style: none;
+    display: flex;
+    height: var(--mobile-nav-height);
+  }
+
+  .mobileNav li {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .item:link,
+  .item:visited {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    height: 100%;
+    min-width: 4.4rem; /* touch target */
+
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .item:hover,
+  .active:link,
+  .active:visited {
+    color: var(--color-brand);
+  }
+
+  .item:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: -4px;
+    border-radius: var(--radius-md);
+  }
+
+  .icon {
+    width: 2.4rem;
+    height: 2.4rem;
+    flex-shrink: 0;
+  }
+
+  .label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .active .label {
+    font-weight: var(--font-weight-bold);
+  }
+}

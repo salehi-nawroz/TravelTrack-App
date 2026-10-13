@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import FlagBox from "./FlagBox";
 import Button from "./Button";
 import styles from "./UserDetails.module.css";
@@ -33,7 +34,9 @@ function UserDetails({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  return (
+  // Portaled to <body> (like CityImport and ConfirmDialog) so the overlay
+  // covers the whole screen rather than just the sidebar it's opened from.
+  return createPortal(
     <div className={styles.overlay} onClick={onClose}>
       <div
         className={styles.dialog}
@@ -107,7 +110,8 @@ function UserDetails({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -359,3 +359,13 @@
     flex-wrap: wrap;
   }
 }
+
+/* Phones: filter fields (also used by the Cities list) get a 4.4rem touch
+   height and 16px text so iOS doesn't zoom in on focus. */
+@media (max-width: 767.98px) {
+  .toolbarInput,
+  .toolbarSelect {
+    height: var(--touch-target);
+    font-size: var(--font-size-md);
+  }
+}

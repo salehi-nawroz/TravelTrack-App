@@ -87,3 +87,10 @@
 .position:disabled {
   cursor: progress;
 }
+
+/* Phones: comfortable touch target for the floating button. */
+@media (max-width: 767.98px) {
+  .position {
+    min-height: var(--touch-target);
+  }
+}

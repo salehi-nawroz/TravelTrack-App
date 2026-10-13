@@ -167,3 +167,11 @@
     margin-bottom: 1.2rem;
   }
 }
+
+/* Phones: 4.4rem tall for touch and 16px text so iOS doesn't zoom in. */
+@media (max-width: 767.98px) {
+  .searchBox input {
+    height: var(--touch-target);
+    font-size: var(--font-size-md);
+  }
+}

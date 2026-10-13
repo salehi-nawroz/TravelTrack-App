@@ -134,3 +134,56 @@
   font-size: 1.2rem;
   color: var(--color-light--1);
 }
+
+/* Phones: the floating user card is hidden there (its actions move into the
+   bottom sheet), so the search can span the map; 4.4rem tall for touch and
+   16px text so iOS doesn't zoom in on focus. */
+@media (max-width: 767.98px) {
+  .map {
+    left: 1.2rem;
+    right: 1.2rem;
+    width: auto;
+    max-width: none;
+  }
+
+  .map input {
+    height: var(--touch-target);
+    font-size: var(--font-size-md);
+  }
+}
+
+/* Tablet: the user card shrinks to avatar + Logout (User.module.css), so
+   less room needs reserving for it. */
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  .map {
+    max-width: max(15rem, min(calc(100% - 3rem), calc(100cqw - 20rem)));
+  }
+}
+
+/* Narrow map (small window or a wide sidebar): when the map is too narrow
+   for the search box and the floating user card side by side, the search
+   drops below the card and takes the map's full width. Measured against the
+   map's own width (it's the size container), so this also follows sidebar
+   resizing. Card bottoms: ~7.8rem (desktop), ~6.8rem (tablet) from the
+   map's top. */
+@media (min-width: 1100px) {
+  @container (max-width: 56rem) {
+    .map {
+      top: 9rem;
+      width: auto;
+      right: 1.5rem;
+      max-width: none;
+    }
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  @container (max-width: 40rem) {
+    .map {
+      top: 8rem;
+      width: auto;
+      right: 1.5rem;
+      max-width: none;
+    }
+  }
+}

@@ -1,7 +1,10 @@
+/* The padding is the frame around sidebar and map; it gets the app's
+   darkest surface so the page's default white body never shows through. */
 .app {
   height: 100vh;
   height: 100dvh;
   padding: 2.4rem;
+  background-color: var(--color-surface-0);
   overscroll-behavior-y: none;
   display: flex;
   position: relative;
@@ -14,7 +17,10 @@
    ends; the ::before gives it a wider invisible hit area over both. */
 .resizeHandle {
   position: relative;
-  z-index: 1001; /* above Leaflet controls (1000) at the map's edge */
+  /* Just above the map: Leaflet's own z-indexes (up to 1000) stay inside the
+     isolated map container, so 1 is enough here - and it stays below
+     dialogs (1000), which a higher value used to cover. */
+  z-index: 1;
   width: 0;
   flex-shrink: 0;
   cursor: col-resize;
@@ -47,14 +53,82 @@
   opacity: 1;
 }
 
-/* Narrow screens: sidebar on top, map below; no dragging. */
-@media (max-width: 768px) {
+/* --- Floating Add city button: phones only --- */
+
+.fab {
+  display: none;
+}
+
+/* --- Tablet (768-1099px): tighter frame around sidebar and map --- */
+@media (min-width: 768px) and (max-width: 1099.98px) {
   .app {
-    flex-direction: column;
-    padding: 1rem;
+    padding: 1.2rem;
+  }
+}
+
+/* --- Phones (< 768px) ---
+   The map fills the screen down to the collapsed sheet's header; the sheet
+   (Sidebar) and the bottom nav (MobileNav) are fixed below it, so the
+   map's own bottom controls (zoom, "Use your position", attribution) are
+   never covered. No resizing on phones. */
+@media (max-width: 767.98px) {
+  .app {
+    padding: 0 0
+      calc(
+        var(--mobile-nav-height) + var(--sheet-peek-height) +
+          var(--safe-area-bottom)
+      );
   }
 
   .resizeHandle {
+    display: none;
+  }
+
+  /* Sheet collapsed: right edge of the map, stacked above the zoom buttons
+     (2 x 4.4rem plus their margin and the attribution line under them,
+     ~11.5rem), so it stays clear of them and of the centred "Use your
+     position" button even on 320px-wide screens. 5.2rem = 52px target. */
+  .fab {
+    position: fixed;
+    right: 0.8rem;
+    bottom: calc(
+      var(--mobile-nav-height) + var(--sheet-peek-height) +
+        var(--safe-area-bottom) + 12.8rem
+    );
+    z-index: var(--z-fab);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5.2rem;
+    height: 5.2rem;
+
+    background-color: var(--color-brand);
+    color: var(--color-text-inverse);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm);
+    transition: background-color var(--duration-fast) var(--ease-standard);
+  }
+
+  /* Sheet open: bottom-right of the sheet, just above the bottom nav and
+     safe area. The sheet's content keeps matching bottom padding
+     (Sidebar.module.css) so its last item can scroll clear of it. */
+  .fabOverSheet {
+    bottom: calc(
+      var(--mobile-nav-height) + var(--safe-area-bottom) + var(--space-4)
+    );
+  }
+
+  .fab:hover {
+    background-color: var(--color-brand-hover);
+  }
+
+  .fab svg {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  .fabHidden {
     display: none;
   }
 }

@@ -100,11 +100,151 @@
   }
 }
 
-/* Narrow screens: full-width sidebar above the map. */
-@media (max-width: 768px) {
+/* --- Bottom-sheet pieces: phones only --- */
+
+.sheetHeader {
+  display: none;
+}
+
+/* Wraps desktop-only children; display: contents keeps them laid out as
+   direct children of .inner, exactly as before. */
+.desktopOnly {
+  display: contents;
+}
+
+/* --- Tablet (768-1099px): narrower panel so the map keeps more room ---
+   Still resizable; the default 560px is capped at half the window. */
+@media (min-width: 768px) and (max-width: 1099.98px) {
   .sidebar {
+    width: clamp(
+      32rem,
+      var(--sidebar-width, 56rem),
+      min(50vw, calc(100vw - 2.4rem - 36rem))
+    );
+  }
+
+  .inner {
+    padding: 2.4rem;
+  }
+}
+
+/* --- Phones (< 768px): bottom sheet above the bottom nav ---
+   Collapsed it shows just its header (--sheet-peek-height) and the map
+   above it is free to use; expanded it covers most of the map. The width
+   set by the resize hook is ignored here. */
+@media (max-width: 767.98px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom));
+    z-index: var(--z-sheet);
+
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    height: var(--sheet-peek-height);
+
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -0.6rem 2rem rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    transition: height var(--duration-base) var(--ease-out);
+  }
+
+  .sheetExpanded {
+    /* Leaves a strip of map visible above the sheet. */
+    height: min(
+      72dvh,
+      calc(100dvh - var(--mobile-nav-height) - var(--safe-area-bottom) - 8rem)
+    );
+  }
+
+  .sheetHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
+    position: relative;
     width: 100%;
-    height: 60%;
-    flex: 0 0 auto;
+    min-height: var(--sheet-peek-height);
+    padding: var(--space-3) var(--space-4) 0;
+
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .sheetHeader:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: -3px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .grabber {
+    position: absolute;
+    top: 0.6rem;
+    left: 50%;
+    width: 4rem;
+    height: 0.4rem;
+    margin-left: -2rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-surface-3);
+  }
+
+  .sheetTitle {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .sheetHint {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex-shrink: 0;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+  }
+
+  .chevron {
+    width: 1.8rem;
+    height: 1.8rem;
+    transition: transform var(--duration-base) var(--ease-standard);
+  }
+
+  .sheetExpanded .chevron {
+    transform: rotate(180deg);
+  }
+
+  .inner {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    padding: var(--space-2) var(--space-4) var(--space-4);
+  }
+
+  /* Collapsed: content is hidden (also from screen readers) but stays
+     mounted, so e.g. a half-filled form keeps its values. */
+  .sheetCollapsed .inner {
+    display: none;
+  }
+
+  .desktopOnly {
+    display: none;
+  }
+
+  /* Bottom room so the last item can scroll clear of the floating Add city
+     button that sits over the open sheet (5.2rem + 1.6rem gap, AppLayout). */
+  .outlet {
+    margin-bottom: 0;
+    padding-bottom: 7.2rem;
   }
 }

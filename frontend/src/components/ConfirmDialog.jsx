@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import Button from "./Button";
 import styles from "./ConfirmDialog.module.css";
 
@@ -25,7 +26,10 @@ function ConfirmDialog({
     };
   }, [onCancel]);
 
-  return (
+  // Portaled to <body> (like CityImport): rendered inside the sidebar, the
+  // overlay would be confined to it (the sidebar is a size container) and,
+  // on phones, layered under the bottom nav.
+  return createPortal(
     <div className={styles.overlay} onClick={onCancel}>
       <div
         className={styles.dialog}
@@ -58,7 +62,8 @@ function ConfirmDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

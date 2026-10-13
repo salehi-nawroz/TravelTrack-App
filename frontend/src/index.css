@@ -99,6 +99,21 @@
   /* --- Controls --- */
   --control-height: 4rem;
   --control-height-sm: 3.2rem;
+  --touch-target: 4.4rem; /* minimum tap size on touch screens */
+
+  /* --- Layout (breakpoints: mobile < 768px, tablet 768-1099px,
+     desktop >= 1100px; media queries can't read variables, so these
+     numbers are repeated in the @media rules) --- */
+  --mobile-nav-height: 6rem;
+  --sheet-peek-height: 5.6rem; /* collapsed bottom sheet: header only */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Stacking order of the app shell. Leaflet's own z-indexes stay inside
+     the map (its container is isolated); dialogs sit above all of these at
+     1000. */
+  --z-sheet: 900;
+  --z-fab: 910;
+  --z-mobile-nav: 920;
 
   /* --- Legacy names (aliases; prefer the semantic tokens above) --- */
   --color-brand--1: var(--color-accent);

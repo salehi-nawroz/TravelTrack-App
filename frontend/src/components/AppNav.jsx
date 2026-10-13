@@ -1,42 +1,30 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { getNavItems, isItemActive } from "./navItems";
 import styles from "./AppNav.module.css";
+
+// Desktop/tablet section tabs. On phones the same sections are offered by
+// MobileNav instead (see navItems.js for the shared list).
 function AppNav() {
   const { isAdmin, isSuperAdmin } = useAuth();
-  const location = useLocation();
-  // Adding a city lives on its own "form" route (not under /app/cities), but
-  // it's conceptually part of the Cities section, so that tab should still
-  // read as selected while the add-city flow is open.
-  const isAddCityFlow = location.pathname.startsWith("/app/form");
+  const { pathname } = useLocation();
+  const items = getNavItems({ showAdmin: isAdmin || isSuperAdmin });
 
   return (
-    <nav className={styles.nav}>
+    <nav className={styles.nav} aria-label="Sections">
       <ul>
-        <li>
-          <NavLink to="countries"> Countries</NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="cities"
-            className={({ isActive }) =>
-              isActive || isAddCityFlow ? "active" : ""
-            }
-          >
-            {" "}
-            Cities
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="trips"> Trips</NavLink>
-        </li>
-        <li>
-          <NavLink to="stats"> Stats</NavLink>
-        </li>
-        {(isAdmin || isSuperAdmin) && (
-          <li>
-            <NavLink to="admin"> Admin</NavLink>
+        {items.map((item) => (
+          <li key={item.id}>
+            <NavLink
+              to={item.to}
+              className={({ isActive }) =>
+                isItemActive(item, isActive, pathname) ? "active" : ""
+              }
+            >
+              {item.label}
+            </NavLink>
           </li>
-        )}
+        ))}
       </ul>
 
       {/* Primary action: outside the scrolling content area, so it stays in
