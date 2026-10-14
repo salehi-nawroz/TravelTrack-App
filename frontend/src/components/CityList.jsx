@@ -14,6 +14,10 @@ import CityImport from "./CityImport";
 import Button from "./Button";
 import { buttonClassName } from "./buttonClassName";
 import Field from "./Field";
+import PageHeader from "./PageHeader";
+
+const plural = (count, word, words = `${word}s`) =>
+  `${count} ${count === 1 ? word : words}`;
 
 const CITY_LIST_PAGE_SIZE = 10;
 
@@ -120,7 +124,7 @@ function CityList() {
     setSortOption("default");
   }
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <Spinner label="Loading cities…" />;
 
   if (!cities.length || isEmptyStateImportOpen) {
     return (
@@ -149,6 +153,15 @@ function CityList() {
 
   return (
     <>
+      <PageHeader
+        title="Your cities"
+        summary={`${plural(cities.length, "city", "cities")} in ${plural(
+          countryOptions.length,
+          "country",
+          "countries",
+        )}`}
+      />
+
       <div className={`${adminStyles.toolbar} ${styles.toolbar}`}>
         <Field variant="toolbar" id="citySearch" label="Search">
           <input

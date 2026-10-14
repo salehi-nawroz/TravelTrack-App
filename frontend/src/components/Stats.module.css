@@ -10,6 +10,11 @@
   gap: 1.6rem;
 }
 
+/* PageHeader brings its own bottom margin; the flex gap already spaces it. */
+.stats > header {
+  margin-bottom: 0;
+}
+
 /* --- Summary cards --- */
 
 .cards {
@@ -18,9 +23,9 @@
   gap: 1rem;
 }
 
-.card {
-  background-color: var(--color-dark--2);
-  border-radius: var(--radius-md);
+/* Surface and radius come from Card; the tighter padding keeps three
+   tiles side by side in the default sidebar width. */
+.cards .card {
   border-left: 5px solid var(--color-brand--2);
   padding: 1.2rem 1.4rem;
   display: flex;
@@ -53,10 +58,8 @@
 
 /* --- Sections --- */
 
+/* Surface, radius and padding come from Card. */
 .section {
-  background-color: var(--color-dark--2);
-  border-radius: var(--radius-md);
-  padding: 1.4rem 1.6rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -168,12 +171,22 @@
 .table th,
 .table td {
   text-align: left;
-  padding: 0.2rem 1.6rem 0.2rem 0;
+  padding: 0.4rem 2.4rem 0.4rem 0;
 }
 
+.table td {
+  border-bottom: 1px solid var(--color-dark--1);
+}
+
+/* Same column-header style as the Admin users list (AdminUsers
+   .listHeaderRow). */
 .table th {
   color: var(--color-light--1);
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--color-dark--1);
 }
 
 /* --- Longest trip --- */
@@ -210,7 +223,7 @@
     font-size: 2.2rem;
   }
 
-  .section {
+  .stats .section {
     padding: 1.2rem;
   }
 

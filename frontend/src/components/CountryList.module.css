@@ -10,20 +10,27 @@
   padding: 0.5rem 0 2rem 0;
 }
 
+/* PageHeader brings its own bottom margin; the list gap already spaces it. */
+.countryList > header {
+  margin-bottom: 0;
+}
+
 .countryList section {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.countryList section h2 {
+/* Continent heading. The divider uses the strong border token: the old
+   surface-1 line was the sidebar's own colour, so it never showed. */
+.countryList section h3 {
   margin: 0;
   padding-bottom: 0.8rem;
 
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
 
-  color: var(--color-light--1);
+  color: var(--color-text-secondary);
 
-  border-bottom: 1px solid var(--color-dark--1);
+  border-bottom: 1px solid var(--color-border-strong);
 }

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import styles from "./Stats.module.css";
 import Spinner from "./Spinner";
 import EmptyState from "./EmptyState";
+import Card from "./Card";
+import PageHeader from "./PageHeader";
 import StatsMap from "./StatsMap";
 import { useCities } from "../contexts/CitiesContext";
 import { getTravelStats, WORLD_COUNTRY_COUNT } from "../utils/travelStats";
@@ -24,7 +26,7 @@ const plural = (count, word, words = `${word}s`) =>
 function Stats() {
   const { cities, isLoading } = useCities();
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <Spinner label="Loading stats…" />;
 
   if (!cities.length) {
     return (
@@ -40,21 +42,23 @@ function Stats() {
 
   return (
     <div className={styles.stats}>
+      <PageHeader title="Your stats" />
+
       <section className={styles.cards} aria-label="Summary">
-        <div className={styles.card}>
+        <Card padding="md" className={styles.card}>
           <span className={styles.value}>{stats.countriesVisited}</span>
           <span className={styles.label}>Countries visited</span>
-        </div>
-        <div className={styles.card}>
+        </Card>
+        <Card padding="md" className={styles.card}>
           <span className={styles.value}>{stats.citiesVisited}</span>
           <span className={styles.label}>Cities visited</span>
-        </div>
-        <div className={styles.card}>
+        </Card>
+        <Card padding="md" className={styles.card}>
           <span className={styles.value}>
             {stats.worldPercent.toFixed(1)}%
           </span>
           <span className={styles.label}>Of the world</span>
-        </div>
+        </Card>
       </section>
       <p className={styles.note}>
         World explored = countries visited out of {WORLD_COUNTRY_COUNT} (193
@@ -62,23 +66,23 @@ function Stats() {
         Hong Kong count as their own country here.
       </p>
 
-      <section className={styles.section}>
+      <Card as="section" padding="md" className={styles.section}>
         <h3 className={styles.heading}>Visits per year</h3>
         <VisitsChart visitsPerYear={stats.visitsPerYear} />
-      </section>
+      </Card>
 
-      <section className={styles.section}>
+      <Card as="section" padding="md" className={styles.section}>
         <h3 className={styles.heading}>Longest trip</h3>
         <LongestTrip trip={stats.longestTrip} />
-      </section>
+      </Card>
 
-      <section className={styles.section}>
+      <Card as="section" padding="md" className={styles.section}>
         <h3 className={styles.heading}>Countries on the map</h3>
         <StatsMap
           countryCodes={stats.countryCodes}
           cityCountByCode={stats.cityCountByCode}
         />
-      </section>
+      </Card>
     </div>
   );
 }

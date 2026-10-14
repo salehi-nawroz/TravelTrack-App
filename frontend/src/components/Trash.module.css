@@ -5,20 +5,9 @@
   gap: 1.4rem;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.header h2 {
-  font-size: 2rem;
-}
-
-.error {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: var(--color-danger-text);
+/* PageHeader brings its own bottom margin; the flex gap already spaces it. */
+.trash > header {
+  margin-bottom: 0;
 }
 
 .list {
@@ -28,14 +17,13 @@
   gap: 1.4rem;
 }
 
-/* Same card look as CityItem. */
-.item {
+/* Shared Card surface (same colour and radius as the CityItem rows); the
+   row keeps CityItem's tighter padding. .list raises it over Card's own
+   padding regardless of stylesheet order. */
+.list .item {
   display: flex;
   align-items: center;
   gap: 1.6rem;
-
-  background-color: var(--color-dark--2);
-  border-radius: var(--radius-md);
   padding: 1rem 2rem;
 }
 
@@ -51,8 +39,8 @@
 }
 
 .info p {
-  font-size: 1.3rem;
-  color: var(--color-light--1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 }
 
 .actions {
@@ -62,14 +50,29 @@
   gap: 0.8rem;
 }
 
-.actions button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* Red hover on top of the shared outline button; .actions makes it win over
    the button's own green hover regardless of stylesheet order. */
 .actions .danger:hover:not(:disabled) {
   border-color: var(--color-danger);
   color: var(--color-danger-text);
+}
+
+/* Narrow sidebar: the actions move onto their own row under the name. */
+@container (max-width: 40rem) {
+  .list .item {
+    flex-wrap: wrap;
+    padding: 1.2rem 1.4rem;
+  }
+
+  .actions {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Phones: 44px touch targets. */
+@media (max-width: 767.98px) {
+  .actions > button {
+    min-height: var(--touch-target);
+  }
 }

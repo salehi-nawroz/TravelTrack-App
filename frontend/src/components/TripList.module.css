@@ -2,30 +2,7 @@
   width: 100%;
 }
 
-/* --- Page header --- */
-
-.pageHeader {
-  margin-bottom: 1.8rem;
-}
-
-.pageTitle {
-  font-size: 2.2rem;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.pageSummary {
-  margin-top: 0.2rem;
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: var(--color-brand--2);
-}
-
-.note {
-  margin-top: 0.4rem;
-  font-size: 1.2rem;
-  color: var(--color-light--1);
-}
+/* Page header: shared PageHeader component. */
 
 /* --- Trip cards --- */
 

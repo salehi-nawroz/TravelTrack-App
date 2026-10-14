@@ -17,6 +17,10 @@ function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState(null);
+  // The user id whose profile request has settled (success or failure).
+  // Derived below into isProfileLoading, so there is no render where a new
+  // user's profile counts as loaded before its request has even started.
+  const [profileSettledFor, setProfileSettledFor] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
 
   useEffect(function () {
@@ -75,6 +79,9 @@ function AuthProvider({ children }) {
         })
         .catch((error) => {
           console.error("Failed to load profile:", error.message);
+        })
+        .finally(() => {
+          if (isMounted) setProfileSettledFor(userId);
         });
 
       return function () {
@@ -220,6 +227,7 @@ function AuthProvider({ children }) {
         isAuthenticated: !!user,
         isLoading,
         profile,
+        isProfileLoading: Boolean(userId) && profileSettledFor !== userId,
         isAdmin: profile?.role === "admin",
         isSuperAdmin: profile?.role === "super_admin",
         avatarUrl,

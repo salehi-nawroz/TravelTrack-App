@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Button from "./Button";
+import { buttonClassName } from "./buttonClassName";
 import Card from "./Card";
 import Field, { FormMessage } from "./Field";
 import Spinner from "./Spinner";
+import PageHeader from "./PageHeader";
 import ConfirmDialog from "./ConfirmDialog";
 import styles from "./Profile.module.css";
 
@@ -159,8 +161,10 @@ function Profile() {
 
   return (
     <div className={styles.profile}>
+      <PageHeader title="Your profile" />
+
       <Card as="form" className={styles.form} onSubmit={handleSubmit}>
-        <h2>Your profile</h2>
+        <h3 className={styles.cardTitle}>Details</h3>
 
         <div className={styles.avatarRow}>
           <img
@@ -172,19 +176,32 @@ function Profile() {
             <p className={styles.name}>{displayName}</p>
             <p className={styles.email}>{user.email}</p>
             <div className={styles.avatarActions}>
-              <label className={styles.avatarUpload}>
-                {isUploadingAvatar ? "Uploading..." : "Change photo"}
+              {/* The file input is visually hidden but still focusable,
+                  so the label (styled as a button) works from the keyboard
+                  too. */}
+              <label
+                className={buttonClassName({
+                  variant: "secondary",
+                  size: "sm",
+                  className: `${styles.avatarUpload} ${
+                    isUploadingAvatar ? styles.avatarUploadBusy : ""
+                  }`,
+                })}
+              >
+                {isUploadingAvatar ? "Uploading…" : "Change photo"}
                 <input
                   type="file"
+                  className={styles.srOnly}
                   accept="image/png,image/jpeg,image/webp"
                   onChange={handleAvatarChange}
                   disabled={isUploadingAvatar}
-                  hidden
                 />
               </label>
               {avatarUrl && (
                 <Button
-                  type="back"
+                  variant="secondary"
+                  size="sm"
+                  htmlType="button"
                   onClick={handleRemoveAvatar}
                   disabled={isUploadingAvatar}
                 >
@@ -200,12 +217,12 @@ function Profile() {
         )}
 
         {!profile ? (
-          <Spinner />
+          <Spinner label="Loading profile…" />
         ) : (
           <Field
             id="fullName"
             label="Full name"
-            className={styles.row}
+           
             hint={
               isAdmin ? "Contact your super admin for change of name." : null
             }
@@ -229,7 +246,7 @@ function Profile() {
             type="primary"
             disabled={isSaving || !!successMessage || isAdmin}
           >
-            {isSaving ? "Saving..." : "Save"}
+            {isSaving ? "Saving…" : "Save"}
           </Button>
           <Button
             type="back"
@@ -243,14 +260,16 @@ function Profile() {
 
       {profile?.role === "admin" ? (
         <Card className={styles.form}>
-          <h2>Change password</h2>
-          <p>Contact your super admin for change of password.</p>
+          <h3 className={styles.cardTitle}>Change password</h3>
+          <p className={styles.note}>
+            Contact your super admin for change of password.
+          </p>
         </Card>
       ) : (
         <Card as="form" className={styles.form} onSubmit={handleChangePassword}>
-          <h2>Change password</h2>
+          <h3 className={styles.cardTitle}>Change password</h3>
 
-          <Field id="currentPassword" label="Current password" className={styles.row}>
+          <Field id="currentPassword" label="Current password">
             <input
               type="password"
               id="currentPassword"
@@ -260,7 +279,7 @@ function Profile() {
             />
           </Field>
 
-          <Field id="newPassword" label="New password" className={styles.row}>
+          <Field id="newPassword" label="New password">
             <input
               type="password"
               id="newPassword"
@@ -270,7 +289,7 @@ function Profile() {
             />
           </Field>
 
-          <Field id="confirmPassword" label="Confirm new password" className={styles.row}>
+          <Field id="confirmPassword" label="Confirm new password">
             <input
               type="password"
               id="confirmPassword"
@@ -292,7 +311,7 @@ function Profile() {
               type="primary"
               disabled={isChangingPassword || !!passwordSuccess}
             >
-              {isChangingPassword ? "Updating..." : "Update password"}
+              {isChangingPassword ? "Updating…" : "Update password"}
             </Button>
           </div>
         </Card>
@@ -300,18 +319,20 @@ function Profile() {
 
       {isAdmin ? (
         <Card className={`${styles.form} ${styles.dangerZone}`}>
-          <h2>Danger zone</h2>
-          <p>Contact your super admin to delete this account.</p>
+          <h3 className={styles.cardTitle}>Danger zone</h3>
+          <p className={styles.note}>
+            Contact your super admin to delete this account.
+          </p>
         </Card>
       ) : (
         <Card className={`${styles.form} ${styles.dangerZone}`}>
-          <h2>Danger zone</h2>
-          <p className={styles.dangerText}>
+          <h3 className={styles.cardTitle}>Danger zone</h3>
+          <p className={styles.note}>
             Permanently delete your account, including your cities and
             profile data. This cannot be undone.
           </p>
 
-          <Field id="deletePassword" label="Confirm your password" className={styles.row}>
+          <Field id="deletePassword" label="Confirm your password">
             <input
               type="password"
               id="deletePassword"
@@ -328,11 +349,12 @@ function Profile() {
 
           <div>
             <Button
-              type="back"
+              variant="danger"
+              htmlType="button"
               onClick={handleDeleteAccountClick}
               disabled={isDeletingAccount}
             >
-              {isDeletingAccount ? "Deleting..." : "Delete my account"}
+              {isDeletingAccount ? "Deleting…" : "Delete my account"}
             </Button>
           </div>
         </Card>

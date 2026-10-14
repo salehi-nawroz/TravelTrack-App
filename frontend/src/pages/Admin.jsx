@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { getAllProfiles, getAdminUsers } from "../services/profileService";
@@ -15,7 +15,9 @@ import AdminUsers from "../components/AdminUsers";
 import styles from "./Admin.module.css";
 import Button from "../components/Button";
 import Card from "../components/Card";
-import Field from "../components/Field";
+import Field, { FormMessage } from "../components/Field";
+import PageHeader from "../components/PageHeader";
+import { buttonClassName } from "../components/buttonClassName";
 
 const CITIES_PAGE_SIZE = 10;
 
@@ -37,6 +39,11 @@ const ROLE_LABELS = {
   super_admin: "Super Admin",
 };
 
+const TABS = [
+  { id: "users", label: "Users" },
+  { id: "cities", label: "Cities" },
+];
+
 function groupByCountry(cities) {
   return cities.reduce((acc, city) => {
     (acc[city.country] ??= []).push(city);
@@ -45,7 +52,7 @@ function groupByCountry(cities) {
 }
 
 function Admin() {
-  const { isAdmin, isSuperAdmin } = useAuth();
+  const { isLoading, isProfileLoading, isAdmin, isSuperAdmin } = useAuth();
 
   // Used only to derive name/role lookups for the Cities tab below - its own
   // loading/error state is never displayed, so it isn't tracked here.
@@ -62,7 +69,12 @@ function Admin() {
   const [cityPendingDelete, setCityPendingDelete] = useState(null);
   const [deleteError, setDeleteError] = useState("");
 
+  // Bumped by "Try again" to re-run the matching (read-only) load below.
+  const [usersReloadKey, setUsersReloadKey] = useState(0);
+  const [citiesReloadKey, setCitiesReloadKey] = useState(0);
+
   const [activeTab, setActiveTab] = useState("users");
+  const tabRefs = useRef({});
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCountry, setFilterCountry] = useState("");
@@ -118,7 +130,7 @@ function Admin() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [usersReloadKey]);
 
   useEffect(() => {
     let isMounted = true;
@@ -144,7 +156,7 @@ function Admin() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [citiesReloadKey]);
 
   const nameById = Object.fromEntries(
     profiles.map((profile) => [profile.id, profile.full_name]),
@@ -320,9 +332,38 @@ function Admin() {
     resetPage,
   ]);
 
+  // Wait until the role is known: redirecting on the still-empty profile
+  // bounced real admins away on a direct reload. A failed profile load ends
+  // the wait with no role, so it still redirects (unknown never counts as
+  // admin).
+  if (isLoading || isProfileLoading)
+    return <Spinner label="Loading admin access…" />;
   if (!isAdmin && !isSuperAdmin) return <Navigate replace to="/app" />;
 
   const paginatedUserIds = userIdsWithCities.slice(startIndex, endIndex);
+
+  // Tabs follow the WAI-ARIA tabs pattern: only the selected tab is in the
+  // Tab order, and the arrow keys (plus Home/End) move between tabs.
+  function handleTabKeyDown(e) {
+    const index = TABS.findIndex((tab) => tab.id === activeTab);
+    const nextIndex = {
+      ArrowRight: (index + 1) % TABS.length,
+      ArrowLeft: (index - 1 + TABS.length) % TABS.length,
+      Home: 0,
+      End: TABS.length - 1,
+    }[e.key];
+
+    if (nextIndex === undefined) return;
+    e.preventDefault();
+    const nextId = TABS[nextIndex].id;
+    setActiveTab(nextId);
+    tabRefs.current[nextId]?.focus();
+  }
+
+  const tabCounts = {
+    users: !isLoadingUsers && !usersError ? users.length : null,
+    cities: !isLoadingCities && !citiesError ? cities.length : null,
+  };
 
   async function handleConfirmDeleteCity() {
     const city = cityPendingDelete;
@@ -339,23 +380,35 @@ function Admin() {
 
   return (
     <div className={styles.admin}>
-      <h1 className={styles.title}>Admin Dashboard</h1>
+      <PageHeader
+        title="Admin dashboard"
+        summary={isSuperAdmin ? "Super admin" : "Admin · read and edit only"}
+      />
 
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tabButton} ${activeTab === "users" ? styles.tabButtonActive : ""}`}
-          onClick={() => setActiveTab("users")}
-        >
-          Users
-          {!isLoadingUsers && !usersError && ` (${users.length})`}
-        </button>
-        <button
-          className={`${styles.tabButton} ${activeTab === "cities" ? styles.tabButtonActive : ""}`}
-          onClick={() => setActiveTab("cities")}
-        >
-          Cities
-          {!isLoadingCities && !citiesError && ` (${cities.length})`}
-        </button>
+      <div className={styles.tabs} role="tablist" aria-label="Admin sections">
+        {TABS.map((tab) => {
+          const isSelected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              ref={(el) => (tabRefs.current[tab.id] = el)}
+              type="button"
+              role="tab"
+              id={`admin-tab-${tab.id}`}
+              aria-selected={isSelected}
+              aria-controls={`admin-panel-${tab.id}`}
+              tabIndex={isSelected ? 0 : -1}
+              className={`${styles.tabButton} ${isSelected ? styles.tabButtonActive : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+              onKeyDown={handleTabKeyDown}
+            >
+              {tab.label}
+              {tabCounts[tab.id] !== null && (
+                <span className={styles.tabCount}>{tabCounts[tab.id]}</span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === "users" && (
@@ -363,25 +416,46 @@ function Admin() {
           users={users}
           isLoadingUsers={isLoadingUsers}
           usersError={usersError}
+          onRetry={() => setUsersReloadKey((key) => key + 1)}
           cities={cities}
         />
       )}
 
       {activeTab === "cities" && (
-        <Card className={styles.section}>
-          <h2 className={styles.sectionTitle}>
+        <Card
+          as="section"
+          className={styles.section}
+          id="admin-panel-cities"
+          role="tabpanel"
+          aria-labelledby="admin-tab-cities"
+        >
+          <h3 className={styles.sectionTitle}>
             Cities
-            {!isLoadingCities && !citiesError && (
+            {tabCounts.cities !== null && (
               <span className={styles.count}>({cities.length})</span>
             )}
-          </h2>
+          </h3>
 
-          {deleteError && <p className={styles.error}>{deleteError}</p>}
+          {deleteError && <FormMessage>{deleteError}</FormMessage>}
 
           {isLoadingCities ? (
-            <Spinner />
+            <Spinner label="Loading cities…" />
           ) : citiesError ? (
-            <p className={styles.error}>{citiesError}</p>
+            <EmptyState
+              tone="error"
+              title="Couldn't load cities"
+              message={citiesError}
+              action={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  htmlType="button"
+                  onClick={() => setCitiesReloadKey((key) => key + 1)}
+                >
+                  Try again
+                </Button>
+              }
+            />
           ) : !cities.length ? (
             <EmptyState title="No cities found" />
           ) : (
@@ -532,19 +606,31 @@ function Admin() {
                                       {city.cityName}
                                     </Link>
                                     <span className={styles.actions}>
-                                      <Link to={`/app/cities/${city.id}/edit`}>
+                                      <Link
+                                        to={`/app/cities/${city.id}/edit`}
+                                        className={buttonClassName({
+                                          variant: "ghost",
+                                          size: "sm",
+                                        })}
+                                        aria-label={`Edit ${city.cityName}`}
+                                      >
                                         Edit
                                       </Link>
                                       {isSuperAdmin && (
-                                        <button
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          iconOnly
+                                          htmlType="button"
                                           className={styles.deleteBtn}
                                           onClick={() =>
                                             setCityPendingDelete(city)
                                           }
-                                          aria-label={`Delete ${city.cityName}`}
+                                          aria-label={`Delete ${city.cityName} permanently`}
+                                          title="Delete permanently"
                                         >
                                           &times;
-                                        </button>
+                                        </Button>
                                       )}
                                     </span>
                                   </li>
@@ -579,8 +665,19 @@ function Admin() {
 
       {cityPendingDelete && (
         <ConfirmDialog
-          title="Delete city?"
-          message={`Are you sure you want to delete ${cityPendingDelete.cityName}?`}
+          title="Delete city permanently?"
+          message={
+            <>
+              Permanently delete <strong>{cityPendingDelete.cityName}</strong>
+              {cityPendingDelete.country && `, ${cityPendingDelete.country}`},
+              owned by{" "}
+              <strong>
+                {nameById[cityPendingDelete.userId] || "Unknown user"}
+              </strong>
+              ? It won&apos;t go to their Trash.
+            </>
+          }
+          confirmLabel="Delete forever"
           onConfirm={handleConfirmDeleteCity}
           onCancel={() => setCityPendingDelete(null)}
         />

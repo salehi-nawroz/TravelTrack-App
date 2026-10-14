@@ -1,3 +1,10 @@
+/* The row positions the delete button over the link's right edge, so the
+   button can sit visually inside the card without being nested in the
+   link. */
+.row {
+  position: relative;
+}
+
 .cityItem,
 .cityItem:link,
 .cityItem:visited {
@@ -7,13 +14,13 @@
 
   background-color: var(--color-dark--2);
   border-radius: var(--radius-md);
-  padding: 1rem 2rem;
+  /* Right padding leaves room for the delete button. */
+  padding: 1rem 5.2rem 1rem 2rem;
   border: 1px solid transparent;
   cursor: pointer;
 
   color: inherit;
   text-decoration: none;
-  position: relative;
 
   transition:
     background-color var(--duration-base) var(--ease-standard),
@@ -31,40 +38,65 @@
   border-color: var(--color-brand--1);
 }
 
-.emoji {
-  font-size: 1.6rem;
-  line-height: 1;
-}
-.flag {
-  height: 1.6rem;
-  width: 2rem;
-  border-radius: var(--radius-xs);
-}
-
 .name {
   font-size: 1.7rem;
   font-weight: 600;
   margin-right: auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .date {
-  font-size: 1.5rem;
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
+/* Shared Button (ghost, icon-only); placed over the card's right edge. */
 .deleteBtn {
-  height: 2rem;
-  aspect-ratio: 1;
+  position: absolute;
+  top: 50%;
+  right: 1.2rem;
+  transform: translateY(-50%);
   border-radius: 50%;
-  border: none;
-  background-color: var(--color-dark--1);
-  color: var(--color-light--2);
-  font-size: 1.6rem;
-  font-weight: 400;
-  cursor: pointer;
-  transition: all var(--duration-base) var(--ease-standard);
 }
 
-.deleteBtn:hover {
+/* Amber hover, as before. */
+.row .deleteBtn:hover:not(:disabled) {
   background-color: var(--color-brand--1);
   color: var(--color-dark--1);
+}
+
+/* Narrow sidebar: the date moves under the city name. */
+@container (max-width: 40rem) {
+  .cityItem,
+  .cityItem:link,
+  .cityItem:visited {
+    flex-wrap: wrap;
+    gap: 0.2rem 1.2rem;
+    padding-left: 1.4rem;
+  }
+
+  .date {
+    flex-basis: 100%;
+    padding-left: 4.6rem; /* lines up with the name, past the flag */
+  }
+}
+
+/* Phones: 44px touch target for the delete button. min-* rather than
+   width/height, so Button's own icon-only size can't win on load order. */
+@media (max-width: 767.98px) {
+  .row .deleteBtn {
+    min-width: var(--touch-target);
+    min-height: var(--touch-target);
+    right: 0.4rem;
+  }
+
+  .cityItem,
+  .cityItem:link,
+  .cityItem:visited {
+    padding-right: 5.2rem;
+  }
 }

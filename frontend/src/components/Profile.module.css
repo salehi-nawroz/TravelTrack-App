@@ -5,6 +5,18 @@
   width: 100%;
 }
 
+/* PageHeader brings its own bottom margin; the flex gap already spaces it. */
+.profile > header {
+  margin-bottom: 0;
+}
+
+/* One heading style for every card on the page. */
+.cardTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
 /* Surface, radius and padding come from Card. */
 .form {
   display: flex;
@@ -40,25 +52,32 @@
 
 .avatarActions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 1rem;
   margin-top: 0.8rem;
 }
 
-.avatarUpload {
-  font-weight: 600;
-  font-size: 1.2rem;
-  text-transform: uppercase;
-  padding: 0.6rem 1.2rem;
-  border: 1px solid currentColor;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
+/* "Change photo": a label styled by buttonClassName. The file input inside
+   it is visually hidden, so show its keyboard focus on the label. */
+.avatarUpload:focus-within {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
-.row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.avatarUploadBusy {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+/* Visually hidden, still focusable and read by screen readers. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .buttons {
@@ -70,8 +89,9 @@
   border: 1px solid var(--color-danger);
 }
 
-.dangerText {
-  font-size: 1.4rem;
+/* Explanatory text in a card (admin notes, the danger-zone warning). */
+.note {
+  font-size: var(--font-size-base);
   line-height: 1.5;
-  color: var(--color-light--1);
+  color: var(--color-text-secondary);
 }

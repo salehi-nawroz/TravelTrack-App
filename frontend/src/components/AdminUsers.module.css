@@ -9,9 +9,11 @@
   border-bottom: 1px solid var(--color-dark--1);
 }
 
+/* minmax(0, ...) lets the name/email columns shrink (email ellipsises)
+   instead of forcing the row wider than the card. */
 .listHeaderRow {
   display: grid;
-  grid-template-columns: 4rem 1fr 1.4fr 10rem 9rem;
+  grid-template-columns: 4rem minmax(0, 1fr) minmax(0, 1.4fr) 10rem 9rem;
   align-items: center;
   gap: 1rem;
   padding: 0.6rem 1rem;
@@ -30,7 +32,7 @@
 
 .rowButton {
   display: grid;
-  grid-template-columns: 4rem 1fr 1.4fr 10rem 9rem;
+  grid-template-columns: 4rem minmax(0, 1fr) minmax(0, 1.4fr) 10rem 9rem;
   align-items: center;
   gap: 1rem;
   width: 100%;
@@ -78,7 +80,10 @@
   color: var(--color-light--1);
 }
 
-@media (max-width: 600px) {
+/* Narrow sidebar (tablet, phones, or resized): stacked rows. A container
+   query on the sidebar rather than a viewport media query, because on
+   tablets the sidebar is narrow while the window is not. */
+@container (max-width: 50rem) {
   .listHeaderRow {
     display: none;
   }

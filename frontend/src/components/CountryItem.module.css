@@ -11,28 +11,53 @@
      shift the card's content by 1px. */
   border: 1px solid transparent;
   border-radius: var(--radius-md);
-  cursor: pointer;
 
-  transition:
-    background-color var(--duration-base) var(--ease-standard),
-    border-color var(--duration-base) var(--ease-standard),
-    transform var(--duration-base) var(--ease-standard);
+  transition: border-color var(--duration-base) var(--ease-standard);
 }
 
-.countryItem:hover {
-  background-color: var(--color-dark--1);
-  transform: translateY(-1px);
+/* The card isn't a control itself any more; its border just echoes the
+   hover/focus of the controls inside it. */
+.countryItem:hover,
+.countryItem:focus-within {
   border-color: var(--color-brand--2);
 }
 
+/* Country name: a full-width button that moves the map to the country. */
 .countryHeader {
   display: flex;
   align-items: center;
   gap: 1rem;
+  width: 100%;
+  padding: 0.2rem 0;
 
+  font-family: inherit;
   font-size: 1.7rem;
   font-weight: 600;
+  text-align: left;
   color: var(--color-light--1);
+
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color var(--duration-base) var(--ease-standard);
+}
+
+.countryHeader:hover {
+  color: var(--color-brand--2);
+}
+
+.countryName {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cityCount {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
 }
 
 .cityList {
@@ -82,6 +107,7 @@
 
   color: var(--color-brand--2);
 
+  font-family: inherit;
   font-size: 1.3rem;
   font-weight: 600;
 

@@ -6,8 +6,11 @@ import EmptyState from "./EmptyState";
 import FlagBox from "./FlagBox";
 import BackButton from "./BackButton";
 import ConfirmDialog from "./ConfirmDialog";
+import PageHeader from "./PageHeader";
+import { FormMessage } from "./Field";
 import { useCities } from "../contexts/CitiesContext";
 import Button from "./Button";
+import Card from "./Card";
 import {
   getMyTrashedCities,
   deleteTrashedCity,
@@ -28,12 +31,21 @@ function Trash() {
 
   const [trashedCities, setTrashedCities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [busyId, setBusyId] = useState(null);
+  // A failed load (replaces the list) vs. a failed restore/delete (shown
+  // above the list, which stays usable).
+  const [loadError, setLoadError] = useState("");
+  const [actionError, setActionError] = useState("");
+  // Bumped by "Try again" to repeat the (read-only) load.
+  const [reloadKey, setReloadKey] = useState(0);
+  // { id, action: "restore" | "delete" } while a request is running.
+  const [busy, setBusy] = useState(null);
   const [cityPendingDelete, setCityPendingDelete] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
+
+    setIsLoading(true);
+    setLoadError("");
 
     getMyTrashedCities()
       .then((data) => {
@@ -41,7 +53,7 @@ function Trash() {
       })
       .catch((err) => {
         console.error("Failed to load trash:", err.message);
-        if (isMounted) setError("Could not load the Trash. Please try again.");
+        if (isMounted) setLoadError("Please check your connection and try again.");
       })
       .finally(() => {
         if (isMounted) setIsLoading(false);
@@ -50,62 +62,97 @@ function Trash() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   function removeFromList(id) {
     setTrashedCities((current) => current.filter((city) => city.id !== id));
   }
 
   async function handleRestore(city) {
-    setBusyId(city.id);
-    setError("");
+    setBusy({ id: city.id, action: "restore" });
+    setActionError("");
     try {
       await restoreCity(city.id);
       removeFromList(city.id);
     } catch (err) {
       console.error("Failed to restore city:", err.message);
-      setError(`Could not restore ${city.cityName}. Please try again.`);
+      setActionError(`Could not restore ${city.cityName}. Please try again.`);
     } finally {
-      setBusyId(null);
+      setBusy(null);
     }
   }
 
   async function handleConfirmDelete() {
     const city = cityPendingDelete;
     setCityPendingDelete(null);
-    setBusyId(city.id);
-    setError("");
+    setBusy({ id: city.id, action: "delete" });
+    setActionError("");
     try {
       await deleteTrashedCity(city.id);
       removeFromList(city.id);
     } catch (err) {
       console.error("Failed to permanently delete city:", err.message);
-      setError(`Could not delete ${city.cityName}: ${err.message}`);
+      setActionError(`Could not delete ${city.cityName}: ${err.message}`);
     } finally {
-      setBusyId(null);
+      setBusy(null);
     }
   }
 
-  if (isLoading) return <Spinner />;
+  const header = (
+    <PageHeader
+      title="Trash"
+      summary={
+        !isLoading && !loadError && trashedCities.length
+          ? `${trashedCities.length} ${
+              trashedCities.length === 1 ? "city" : "cities"
+            }`
+          : null
+      }
+      note="Restore a city to put it back on your map, or delete it for good."
+      actions={<BackButton />}
+    />
+  );
 
-  return (
-    <div className={styles.trash}>
-      <div className={styles.header}>
-        <h2>Trash</h2>
-        <BackButton />
-      </div>
+  function renderContent() {
+    if (isLoading) return <Spinner label="Loading trash…" />;
 
-      {error && <p className={styles.error}>{error}</p>}
-
-      {!trashedCities.length ? (
+    if (loadError) {
+      return (
         <EmptyState
+          tone="error"
+          title="Couldn't load the Trash"
+          message={loadError}
+          action={
+            <Button
+              variant="outline"
+              size="sm"
+              htmlType="button"
+              onClick={() => setReloadKey((key) => key + 1)}
+            >
+              Try again
+            </Button>
+          }
+        />
+      );
+    }
+
+    if (!trashedCities.length) {
+      return (
+        <EmptyState
+          icon="trash"
           title="The Trash is empty"
           message="Cities you delete stay here until you restore them or delete them for good."
         />
-      ) : (
-        <ul className={styles.list}>
-          {trashedCities.map((city) => (
-            <li key={city.id} className={styles.item}>
+      );
+    }
+
+    return (
+      <ul className={styles.list}>
+        {trashedCities.map((city) => {
+          const isBusy = busy?.id === city.id;
+
+          return (
+            <Card as="li" key={city.id} className={styles.item}>
               <FlagBox
                 countryCode={city.countryCode}
                 country={city.country}
@@ -113,7 +160,12 @@ function Trash() {
               />
               <div className={styles.info}>
                 <h3>{city.cityName}</h3>
-                <p>Deleted {formatDate(city.deletedAt)}</p>
+                <p>
+                  Deleted{" "}
+                  <time dateTime={city.deletedAt}>
+                    {formatDate(city.deletedAt)}
+                  </time>
+                </p>
               </div>
               <div className={styles.actions}>
                 <Button
@@ -121,9 +173,11 @@ function Trash() {
                   size="sm"
                   htmlType="button"
                   onClick={() => handleRestore(city)}
-                  disabled={busyId === city.id}
+                  disabled={isBusy}
                 >
-                  Restore
+                  {isBusy && busy.action === "restore"
+                    ? "Restoring…"
+                    : "Restore"}
                 </Button>
                 <Button
                   variant="outline"
@@ -131,15 +185,27 @@ function Trash() {
                   htmlType="button"
                   className={styles.danger}
                   onClick={() => setCityPendingDelete(city)}
-                  disabled={busyId === city.id}
+                  disabled={isBusy}
                 >
-                  Delete forever
+                  {isBusy && busy.action === "delete"
+                    ? "Deleting…"
+                    : "Delete forever"}
                 </Button>
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
+            </Card>
+          );
+        })}
+      </ul>
+    );
+  }
+
+  return (
+    <div className={styles.trash}>
+      {header}
+
+      {actionError && <FormMessage>{actionError}</FormMessage>}
+
+      {renderContent()}
 
       {cityPendingDelete && (
         <ConfirmDialog

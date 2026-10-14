@@ -63,3 +63,12 @@
 .compact .actions {
   margin-top: var(--space-3);
 }
+
+/* Error tone: a load failed. Solid red border instead of the dashed one. */
+.error {
+  border: 1px solid var(--color-danger);
+}
+
+.error .icon {
+  color: var(--color-danger-text);
+}

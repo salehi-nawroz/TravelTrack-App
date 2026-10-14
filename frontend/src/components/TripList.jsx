@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import styles from "./TripList.module.css";
 import FlagBox from "./FlagBox";
 import EmptyState from "./EmptyState";
+import PageHeader from "./PageHeader";
 import { buttonClassName } from "./buttonClassName";
 import { useCities } from "../contexts/CitiesContext";
 import {
@@ -97,17 +98,15 @@ function TripList() {
 
   return (
     <div className={styles.tripListWrapper}>
-      <header className={styles.pageHeader}>
-        <h2 className={styles.pageTitle}>Your trips</h2>
-        <p className={styles.pageSummary}>
-          {plural(trips.length, "trip")} across{" "}
-          {plural(countryCount, "country", "countries")}
-        </p>
-        <p className={styles.note}>
-          Grouped automatically: visits within {TRIP_GAP_DAYS} days of each
-          other count as one trip.
-        </p>
-      </header>
+      <PageHeader
+        title="Your trips"
+        summary={`${plural(trips.length, "trip")} across ${plural(
+          countryCount,
+          "country",
+          "countries",
+        )}`}
+        note={`Grouped automatically: visits within ${TRIP_GAP_DAYS} days of each other count as one trip.`}
+      />
 
       <ul className={styles.tripList}>
         {trips.map((trip) => (

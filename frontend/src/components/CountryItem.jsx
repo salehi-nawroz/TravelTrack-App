@@ -4,6 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import styles from "./CountryItem.module.css";
 import FlagBox from "./FlagBox";
 
+// One country card. The card itself is a plain container: the country name
+// is a real button (moves the map to the country), and each city is its own
+// link, so no control is nested inside another one.
 function CountryItem({ country, cities }) {
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -18,33 +21,28 @@ function CountryItem({ country, cities }) {
     navigate(`/app/countries?lat=${countryLat}&lng=${countryLng}`);
   }
 
-  function handleKeyDown(e) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      handleCountryClick();
-    }
-  }
-
   return (
-    <div
-      className={styles.countryItem}
-      onClick={handleCountryClick}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={0}
-    >
-      <div className={styles.countryHeader}>
+    <div className={styles.countryItem}>
+      <button
+        type="button"
+        className={styles.countryHeader}
+        onClick={handleCountryClick}
+        aria-label={`Show ${country} on the map`}
+      >
         <FlagBox countryCode={countryCode} country={country} position="left" />
 
-        <span>{country}</span>
-      </div>
+        <span className={styles.countryName}>{country}</span>
+
+        <span className={styles.cityCount}>
+          {cities.length} {cities.length === 1 ? "city" : "cities"}
+        </span>
+      </button>
 
       <ul className={styles.cityList}>
         {visibleCities.map((city) => (
           <li key={city.id}>
             <Link
               to={`/app/cities/${city.id}?lat=${city.position.lat}&lng=${city.position.lng}`}
-              onClick={(e) => e.stopPropagation()}
             >
               {city.cityName}
             </Link>
@@ -54,11 +52,10 @@ function CountryItem({ country, cities }) {
 
       {cities.length > 3 && (
         <button
+          type="button"
           className={styles.moreButton}
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsExpanded((expanded) => !expanded);
-          }}
+          onClick={() => setIsExpanded((expanded) => !expanded)}
+          aria-expanded={isExpanded}
         >
           {isExpanded ? "Show less" : `+ ${remainingCount} more`}
         </button>

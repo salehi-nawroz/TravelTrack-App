@@ -8,6 +8,7 @@ import UserDetails from "./UserDetails";
 import { usePagination } from "../hooks/usePagination";
 import { compareDates } from "../utils/compareDates";
 import Button from "./Button";
+import Card from "./Card";
 import Field from "./Field";
 import {
   getAvatarSignedUrl,
@@ -35,7 +36,7 @@ const SORT_OPTIONS = [
 // `users` comes from profileService.getAdminUsers() (loaded by Admin.jsx);
 // `cities` is the same already-loaded array the Cities tab uses - reused
 // here only to derive a per-user city count/list, never refetched.
-function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
+function AdminUsers({ users, isLoadingUsers, usersError, onRetry, cities }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [sortOption, setSortOption] = useState("default");
@@ -191,18 +192,38 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
   }, [pageAvatarPathsKey]);
 
   return (
-    <div className={adminStyles.section}>
-      <h2 className={adminStyles.sectionTitle}>
+    <Card
+      as="section"
+      className={adminStyles.section}
+      id="admin-panel-users"
+      role="tabpanel"
+      aria-labelledby="admin-tab-users"
+    >
+      <h3 className={adminStyles.sectionTitle}>
         Users
         {!isLoadingUsers && !usersError && (
           <span className={adminStyles.count}>({users.length})</span>
         )}
-      </h2>
+      </h3>
 
       {isLoadingUsers ? (
-        <Spinner />
+        <Spinner label="Loading users…" />
       ) : usersError ? (
-        <p className={adminStyles.error}>{usersError}</p>
+        <EmptyState
+          tone="error"
+          title="Couldn't load users"
+          message={usersError}
+          action={
+            <Button
+              variant="outline"
+              size="sm"
+              htmlType="button"
+              onClick={onRetry}
+            >
+              Try again
+            </Button>
+          }
+        />
       ) : !users.length ? (
         <EmptyState icon="profile" title="No users found" />
       ) : (
@@ -364,7 +385,7 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
           onClose={handleCloseDetails}
         />
       )}
-    </div>
+    </Card>
   );
 }
 
