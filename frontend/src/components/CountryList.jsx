@@ -1,7 +1,7 @@
 import Spinner from "./Spinner";
 import styles from "./CountryList.module.css";
 import CountryItem from "./CountryItem";
-import Message from "./Message";
+import EmptyState from "./EmptyState";
 import { useCities } from "../contexts/CitiesContext";
 import { getContinent } from "../utils/continent";
 
@@ -12,7 +12,11 @@ function CountryList() {
 
   if (!cities.length)
     return (
-      <Message message="Enter your first Country by clicking on a Country on the map" />
+      <EmptyState
+        icon="countries"
+        title="No countries yet"
+        message="Click a city on the map to add your first country."
+      />
     );
 
   const countriesByContinent = cities.reduce((acc, city) => {

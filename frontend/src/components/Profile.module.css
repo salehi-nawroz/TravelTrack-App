@@ -5,10 +5,8 @@
   width: 100%;
 }
 
+/* Surface, radius and padding come from Card. */
 .form {
-  background-color: var(--color-dark--2);
-  border-radius: var(--radius-md);
-  padding: 2rem 3rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;

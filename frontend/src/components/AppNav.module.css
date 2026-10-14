@@ -1,40 +1,228 @@
+/* Vertical sidebar navigation (desktop/tablet; hidden on phones by
+   Sidebar's .desktopOnly). Spans the sidebar's content width, so it follows
+   resizing; labels shorten with "…" rather than overflow. */
 .nav {
-  margin-top: 3rem;
+  width: 100%;
+  margin-top: var(--space-6);
   margin-bottom: 0.8rem; /* 8px gap below the Add city button */
 }
 
-.nav ul {
+.list {
   list-style: none;
   display: flex;
-  background-color: var(--color-dark--2);
-  border-radius: var(--radius-md);
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
-.nav a:link,
-.nav a:visited {
-  display: block;
-  color: inherit;
+/* 42px rows, 18px icons, 11px icon-to-label gap, 10px radius. */
+.link:link,
+.link:visited {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  min-width: 0;
+  height: 4.2rem;
+  padding: 0 var(--space-3);
+
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   text-decoration: none;
-  text-transform: uppercase;
-  font-size: 1.2rem;
-  font-weight: 700;
-  padding: 0.5rem 2rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
 }
 
-/* CSS Modules feature */
-.nav a:global(.active) {
-  background-color: var(--color-brand--2);
-  color: var(--color-dark--1);
+.link:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+}
+
+/* Active section: green tint + green text (5.5:1 on the sidebar). NavLink
+   sets the global "active" class (see AppNav.jsx). */
+.link:global(.active) {
+  background-color: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+
+.link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Admin-only group, set apart by a divider and a small label. */
+.group {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--color-border-strong);
+}
+
+.groupLabel {
+  padding: 0 var(--space-3) 0.2rem;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* --- Collapse toggle ("Sections ⌄") --- */
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 2.8rem;
+  margin-bottom: 0.4rem;
+  padding: 0 var(--space-3);
+
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.toggle:hover {
+  color: var(--color-text-primary);
+}
+
+.toggle:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 0;
+}
+
+.chevron {
+  width: 1.4rem;
+  height: 1.4rem;
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+
+.collapsed .chevron {
+  transform: rotate(-90deg);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* --- Collapsed: one centred row of 40px icon-only links ---
+   Labels turn into tooltips under the icons (shown on hover and keyboard
+   focus) and remain the links' accessible names. The active section keeps
+   its green tint plus a short green bar. Wraps rather than overflowing if
+   the sidebar is ever too narrow for one row. */
+
+.collapsed .sections {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.collapsed .list {
+  flex-direction: row;
+  gap: 0.4rem;
+}
+
+.collapsed .link:link,
+.collapsed .link:visited {
+  position: relative;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  padding: 0;
+}
+
+.collapsed .link:global(.active)::after {
+  content: "";
+  position: absolute;
+  bottom: 0.4rem;
+  left: 50%;
+  width: 1.6rem;
+  height: 2px;
+  margin-left: -0.8rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-brand);
+}
+
+.collapsed .label {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  left: 50%;
+  z-index: 10;
+  transform: translateX(-50%);
+
+  padding: 0.3rem 0.8rem;
+  overflow: visible;
+  background-color: var(--color-surface-0);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-xs);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.collapsed .link:hover .label,
+.collapsed .link:focus-visible .label {
+  opacity: 1;
+}
+
+/* Admin keeps its own group: a short vertical divider instead of the
+   horizontal one; the "Management" heading stays for screen readers. */
+.collapsed .group {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 0 0 0.4rem;
+  border-top: none;
+  border-left: 1px solid var(--color-border-strong);
+}
+
+.collapsed .groupLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 /* --- Add city: the sidebar's primary action --- */
 
 /* Compact, fixed-size button (110 x 30px; 1rem = 10px here), centred under
-   the tabs. The nav is itself centred in the sidebar, so auto side margins
-   keep the button centred at any sidebar width. ".nav a.addCity" outranks the
-   generic ".nav a:link" tab rule above (and its narrow-sidebar override),
-   which would otherwise set the padding. */
+   the navigation by auto side margins, at any sidebar width. The
+   ".nav a.addCity" selectors keep it independent of the .link rows above. */
 .nav a.addCity:link,
 .nav a.addCity:visited {
   display: flex;
@@ -102,23 +290,30 @@
   }
 }
 
-/* Narrow (resized) sidebar: tighter tabs, wrapping onto a second row
-   instead of overflowing when they still don't fit. */
-@container (max-width: 46rem) {
-  .nav ul {
-    flex-wrap: wrap;
-  }
-
-  .nav a:link,
-  .nav a:visited {
-    padding: 0.5rem 1.2rem;
-  }
-}
-
-/* Short windows: less vertical spacing around the nav. */
+/* Short windows (700px tall or less): 38px rows and tighter spacing, so the
+   navigation leaves more room for the content area below it. */
 @media (max-height: 700px) {
   .nav {
-    margin-top: 1.2rem;
-    margin-bottom: 0.8rem;
+    margin-top: 0.8rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .list {
+    gap: 0;
+  }
+
+  .link:link,
+  .link:visited {
+    height: 3.8rem;
+  }
+
+  .group {
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+  }
+
+  .nav a.addCity:link,
+  .nav a.addCity:visited {
+    margin-top: 0.6rem;
   }
 }

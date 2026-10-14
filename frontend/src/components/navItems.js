@@ -10,7 +10,13 @@ export function getNavItems({ showAdmin = false, includeProfile = false }) {
     { id: "cities", to: "cities", label: "Cities", alsoActiveOn: ["/app/form"] },
     { id: "trips", to: "trips", label: "Trips" },
     { id: "stats", to: "stats", label: "Stats" },
-    showAdmin && { id: "admin", to: "admin", label: "Admin" },
+    // group "management": shown apart from the main sections on desktop/tablet.
+    showAdmin && {
+      id: "admin",
+      to: "admin",
+      label: "Admin",
+      group: "management",
+    },
     includeProfile && { id: "profile", to: "profile", label: "Profile" },
   ].filter(Boolean);
 }

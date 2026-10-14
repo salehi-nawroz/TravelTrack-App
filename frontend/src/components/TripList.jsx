@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 
 import styles from "./TripList.module.css";
 import FlagBox from "./FlagBox";
+import EmptyState from "./EmptyState";
+import { buttonClassName } from "./buttonClassName";
 import { useCities } from "../contexts/CitiesContext";
 import {
   groupCitiesIntoTrips,
@@ -43,22 +45,6 @@ const tripDays = (trip) =>
 const plural = (count, word, words = `${word}s`) =>
   `${count} ${count === 1 ? word : words}`;
 
-function PinIcon({ className }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
-
 function RouteIcon({ className }) {
   return (
     <svg
@@ -89,17 +75,19 @@ function TripList() {
 
   if (!trips.length) {
     return (
-      <div className={styles.empty}>
-        <PinIcon className={styles.emptyIcon} />
-        <h2 className={styles.emptyTitle}>No trips yet</h2>
-        <p className={styles.emptyText}>
-          Add the cities you&apos;ve visited and they&apos;ll be grouped into
-          trips here automatically.
-        </p>
-        <Link to="/app/form" className={styles.emptyAction}>
-          + Add a city
-        </Link>
-      </div>
+      <EmptyState
+        icon="trips"
+        title="No trips yet"
+        message="Add the cities you've visited and they'll be grouped into trips here automatically."
+        action={
+          <Link
+            to="/app/form"
+            className={buttonClassName({ variant: "primary", size: "sm" })}
+          >
+            + Add a city
+          </Link>
+        }
+      />
     );
   }
 

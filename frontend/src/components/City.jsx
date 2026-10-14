@@ -3,7 +3,8 @@ import styles from "./City.module.css";
 import { useParams, Link } from "react-router-dom";
 import { useCities } from "../contexts/CitiesContext";
 import { useEffect } from "react";
-import Button from "./Button";
+import { buttonClassName } from "./buttonClassName";
+import Card from "./Card";
 import Spinner from "./Spinner";
 //import BackButton from "./BackButton";
 import FlagBox from "./FlagBox";
@@ -31,7 +32,7 @@ function City() {
   if (isLoading) return <Spinner />;
 
   return (
-    <div className={styles.city}>
+    <Card className={styles.city}>
       <div className={styles.row}>
         <h6>City name</h6>
 
@@ -64,16 +65,21 @@ function City() {
         </a>
       </div>
 
+      {/* Links styled as buttons: one control each, instead of a button
+          nested inside a link. */}
       <div className={styles.actions}>
-        <Link to="edit">
-          <Button type="primary">Edit</Button>
+        <Link to="edit" className={buttonClassName({ variant: "primary" })}>
+          Edit
         </Link>
 
-        <Link to="/app/cities">
-          <Button type="back">Close</Button>
+        <Link
+          to="/app/cities"
+          className={buttonClassName({ variant: "secondary" })}
+        >
+          Close
         </Link>
       </div>
-    </div>
+    </Card>
   );
 }
 

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Button from "./Button";
+import Card from "./Card";
+import Field, { FormMessage } from "./Field";
 import Spinner from "./Spinner";
 import ConfirmDialog from "./ConfirmDialog";
 import styles from "./Profile.module.css";
@@ -157,7 +159,7 @@ function Profile() {
 
   return (
     <div className={styles.profile}>
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <Card as="form" className={styles.form} onSubmit={handleSubmit}>
         <h2>Your profile</h2>
 
         <div className={styles.avatarRow}>
@@ -194,27 +196,32 @@ function Profile() {
         </div>
 
         {avatarError && (
-          <p style={{ color: "var(--color-danger)" }}>{avatarError}</p>
+          <FormMessage>{avatarError}</FormMessage>
         )}
 
         {!profile ? (
           <Spinner />
         ) : (
-          <div className={styles.row}>
-            <label htmlFor="fullName">Full name</label>
+          <Field
+            id="fullName"
+            label="Full name"
+            className={styles.row}
+            hint={
+              isAdmin ? "Contact your super admin for change of name." : null
+            }
+          >
             <input
               id="fullName"
               onChange={(e) => setFullName(e.target.value)}
               value={fullName}
               disabled={isAdmin}
             />
-            {isAdmin && <p>Contact your super admin for change of name.</p>}
-          </div>
+          </Field>
         )}
 
-        {error && <p style={{ color: "var(--color-danger)" }}>{error}</p>}
+        {error && <FormMessage>{error}</FormMessage>}
         {successMessage && (
-          <p style={{ color: "var(--color-brand--2)" }}>{successMessage}</p>
+          <FormMessage tone="success">{successMessage}</FormMessage>
         )}
 
         <div className={styles.buttons}>
@@ -232,19 +239,18 @@ function Profile() {
             Cancel
           </Button>
         </div>
-      </form>
+      </Card>
 
       {profile?.role === "admin" ? (
-        <div className={styles.form}>
+        <Card className={styles.form}>
           <h2>Change password</h2>
           <p>Contact your super admin for change of password.</p>
-        </div>
+        </Card>
       ) : (
-        <form className={styles.form} onSubmit={handleChangePassword}>
+        <Card as="form" className={styles.form} onSubmit={handleChangePassword}>
           <h2>Change password</h2>
 
-          <div className={styles.row}>
-            <label htmlFor="currentPassword">Current password</label>
+          <Field id="currentPassword" label="Current password" className={styles.row}>
             <input
               type="password"
               id="currentPassword"
@@ -252,10 +258,9 @@ function Profile() {
               onChange={(e) => setCurrentPassword(e.target.value)}
               value={currentPassword}
             />
-          </div>
+          </Field>
 
-          <div className={styles.row}>
-            <label htmlFor="newPassword">New password</label>
+          <Field id="newPassword" label="New password" className={styles.row}>
             <input
               type="password"
               id="newPassword"
@@ -263,10 +268,9 @@ function Profile() {
               onChange={(e) => setNewPassword(e.target.value)}
               value={newPassword}
             />
-          </div>
+          </Field>
 
-          <div className={styles.row}>
-            <label htmlFor="confirmPassword">Confirm new password</label>
+          <Field id="confirmPassword" label="Confirm new password" className={styles.row}>
             <input
               type="password"
               id="confirmPassword"
@@ -274,13 +278,13 @@ function Profile() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               value={confirmPassword}
             />
-          </div>
+          </Field>
 
           {passwordError && (
-            <p style={{ color: "var(--color-danger)" }}>{passwordError}</p>
+            <FormMessage>{passwordError}</FormMessage>
           )}
           {passwordSuccess && (
-            <p style={{ color: "var(--color-brand--2)" }}>{passwordSuccess}</p>
+            <FormMessage tone="success">{passwordSuccess}</FormMessage>
           )}
 
           <div className={styles.buttons}>
@@ -291,24 +295,23 @@ function Profile() {
               {isChangingPassword ? "Updating..." : "Update password"}
             </Button>
           </div>
-        </form>
+        </Card>
       )}
 
       {isAdmin ? (
-        <div className={`${styles.form} ${styles.dangerZone}`}>
+        <Card className={`${styles.form} ${styles.dangerZone}`}>
           <h2>Danger zone</h2>
           <p>Contact your super admin to delete this account.</p>
-        </div>
+        </Card>
       ) : (
-        <div className={`${styles.form} ${styles.dangerZone}`}>
+        <Card className={`${styles.form} ${styles.dangerZone}`}>
           <h2>Danger zone</h2>
           <p className={styles.dangerText}>
             Permanently delete your account, including your cities and
             profile data. This cannot be undone.
           </p>
 
-          <div className={styles.row}>
-            <label htmlFor="deletePassword">Confirm your password</label>
+          <Field id="deletePassword" label="Confirm your password" className={styles.row}>
             <input
               type="password"
               id="deletePassword"
@@ -317,12 +320,10 @@ function Profile() {
               value={deletePassword}
               disabled={isDeletingAccount}
             />
-          </div>
+          </Field>
 
           {deleteAccountError && (
-            <p style={{ color: "var(--color-danger)" }}>
-              {deleteAccountError}
-            </p>
+            <FormMessage>{deleteAccountError}</FormMessage>
           )}
 
           <div>
@@ -334,7 +335,7 @@ function Profile() {
               {isDeletingAccount ? "Deleting..." : "Delete my account"}
             </Button>
           </div>
-        </div>
+        </Card>
       )}
 
       {showDeleteConfirm && (

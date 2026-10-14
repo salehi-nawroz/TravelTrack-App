@@ -7,6 +7,8 @@ import Message from "./Message";
 import Spinner from "./Spinner";
 import Button from "./Button";
 import BackButton from "./BackButton";
+import Card from "./Card";
+import Field from "./Field";
 import { useUrlPosition } from "../hooks/useUrlPosition";
 import FlagBox from "./FlagBox";
 import LocationSearch from "./LocationSearch";
@@ -177,7 +179,8 @@ function Form() {
       <Message message="Click a city on the map or search on the map to add a city" />
     );
   return (
-    <form
+    <Card
+      as="form"
       className={`${styles.form} ${isLoading ? styles.loading : ""}`}
       onSubmit={handleSubmit}
     >
@@ -191,15 +194,18 @@ function Form() {
         <Message message="Click on the map to select a new city." />
       )}
 
-      <div className={styles.row}>
-        <label htmlFor="cityName">City name</label>
+      <Field
+        id="cityName"
+        label="City name"
+        className={styles.row}
+        hint={isEditMode ? "Select a new city from the map" : null}
+      >
         {isEditMode ? (
           <button
             id="cityName"
             type="button"
             className={styles.citySelector}
             onClick={handleSelectLocation}
-            aria-describedby="cityNameHelp"
           >
             <span>{cityName}</span>
             <span aria-hidden="true">&rsaquo;</span>
@@ -211,14 +217,9 @@ function Form() {
             value={cityName}
           />
         )}
-        {isEditMode && (
-          <span id="cityNameHelp" className={styles.fieldHint}>
-            Select a new city from the map
-          </span>
-        )}
         <FlagBox countryCode={countryCode} country={country} />
         <input type="hidden" id="countryCode" value={countryCode}></input>
-      </div>
+      </Field>
 
       <LocationSearch onSelect={handleSearchSelect} />
 
@@ -226,24 +227,30 @@ function Form() {
         Select from map
       </Button>
 
-      <div className={styles.row}>
-        <label htmlFor="date">When did you go to {cityName}?</label>
+      <Field
+        id="date"
+        label={`When did you go to ${cityName}?`}
+        className={styles.row}
+      >
         <DatePicker
           id="date"
           onChange={(date) => setDate(date)}
           selected={date}
           dateFormat="dd/MM/yyyy"
         />
-      </div>
+      </Field>
 
-      <div className={styles.row}>
-        <label htmlFor="notes">Notes about your trip to {cityName}</label>
+      <Field
+        id="notes"
+        label={`Notes about your trip to ${cityName}`}
+        className={styles.row}
+      >
         <textarea
           id="notes"
           onChange={(e) => setNotes(e.target.value)}
           value={notes}
         />
-      </div>
+      </Field>
 
       <div className={styles.buttons}>
         <Button type="primary" disabled={isLoading}>
@@ -257,7 +264,7 @@ function Form() {
           <BackButton />
         )}
       </div>
-    </form>
+    </Card>
   );
 }
 

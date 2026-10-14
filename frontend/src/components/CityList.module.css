@@ -5,19 +5,6 @@
   margin-bottom: 1.4rem;
 }
 
-.emptyActions {
-  display: flex;
-  justify-content: center;
-  gap: 0.8rem;
-  margin-top: 1.4rem;
-}
-
-/* The Trash link reuses the toolbar button style. */
-.emptyActions a,
-.toolbarActions a {
-  text-decoration: none;
-}
-
 .toolbarActions {
   display: flex;
   gap: 0.8rem;

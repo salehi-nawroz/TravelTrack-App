@@ -13,6 +13,7 @@
   --color-brand: #00c46a; /* emerald: primary actions, active states */
   --color-brand-hover: #00d473; /* hover on brand fills with dark text */
   --color-brand-dark: #00b060; /* large fills, hover behind white text */
+  --color-brand-soft: rgba(0, 196, 106, 0.14); /* tinted active states */
   --color-accent: #ffb545; /* travel amber: highlights, selection */
   --color-accent-soft: rgba(255, 181, 69, 0.14);
 

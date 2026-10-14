@@ -1,8 +1,11 @@
-import { useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useId } from "react";
 import Button from "./Button";
+import Dialog from "./Dialog";
 import styles from "./ConfirmDialog.module.css";
 
+// Confirmation for destructive actions, on the shared Dialog shell (which
+// handles Escape, overlay click, focus and the portal). Focus starts on
+// Cancel, the safe choice.
 function ConfirmDialog({
   title = "Delete city?",
   message,
@@ -12,58 +15,41 @@ function ConfirmDialog({
   onConfirm,
   onCancel,
 }) {
-  useEffect(() => {
-    function handleKeyDown(e) {
-      if (e.key === "Escape") {
-        onCancel();
-      }
-    }
+  const titleId = useId();
 
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onCancel]);
-
-  // Portaled to <body> (like CityImport): rendered inside the sidebar, the
-  // overlay would be confined to it (the sidebar is a size container) and,
-  // on phones, layered under the bottom nav.
-  return createPortal(
-    <div className={styles.overlay} onClick={onCancel}>
-      <div
-        className={styles.dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="dialog-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className={styles.icon}>!</div>
-
-        <h2 id="dialog-title">{title}</h2>
-
-        <p>
-          {message ?? (
-            <>
-              Are you sure you want to delete <strong>{cityName}</strong>?
-            </>
-          )}
-        </p>
-
-        <p className={styles.warning}>{warning}</p>
-
-        <div className={styles.actions}>
-          <Button type="back" onClick={onCancel}>
-            Cancel
-          </Button>
-
-          <Button type="danger" onClick={onConfirm}>
-            {confirmLabel}
-          </Button>
-        </div>
+  return (
+    <Dialog
+      labelledBy={titleId}
+      onClose={onCancel}
+      size="sm"
+      className={styles.confirm}
+    >
+      <div className={styles.icon} aria-hidden="true">
+        !
       </div>
-    </div>,
-    document.body,
+
+      <h2 id={titleId}>{title}</h2>
+
+      <p>
+        {message ?? (
+          <>
+            Are you sure you want to delete <strong>{cityName}</strong>?
+          </>
+        )}
+      </p>
+
+      <p className={styles.warning}>{warning}</p>
+
+      <div className={styles.actions}>
+        <Button variant="secondary" htmlType="button" onClick={onCancel}>
+          Cancel
+        </Button>
+
+        <Button variant="danger" htmlType="button" onClick={onConfirm}>
+          {confirmLabel}
+        </Button>
+      </div>
+    </Dialog>
   );
 }
 

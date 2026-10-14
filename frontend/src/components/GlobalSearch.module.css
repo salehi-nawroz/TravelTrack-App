@@ -168,6 +168,14 @@
   }
 }
 
+/* Short windows on tablet/desktop: a little tighter still (the phone bottom
+   sheet keeps the spacing above). */
+@media (max-height: 700px) and (min-width: 768px) {
+  .container {
+    margin-bottom: 0.8rem;
+  }
+}
+
 /* Phones: 4.4rem tall for touch and 16px text so iOS doesn't zoom in. */
 @media (max-width: 767.98px) {
   .searchBox input {

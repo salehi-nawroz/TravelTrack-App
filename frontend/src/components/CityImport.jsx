@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
 import Button from "./Button";
+import Dialog from "./Dialog";
 import styles from "./CityImport.module.css";
 import { useCities } from "../contexts/CitiesContext";
 import {
@@ -45,20 +45,6 @@ function CityImport({ buttonClassName, onDialogOpenChange }) {
   useEffect(() => {
     onDialogOpenChange?.(isDialogOpen);
   }, [isDialogOpen, onDialogOpenChange]);
-
-  useEffect(() => {
-    if (!preview) return;
-
-    function handleKeyDown(e) {
-      if (e.key === "Escape" && !isImporting) {
-        setPreview(null);
-        setResult(null);
-      }
-    }
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [preview, isImporting]);
 
   async function handleFileChange(e) {
     const file = e.target.files?.[0];
@@ -125,107 +111,104 @@ function CityImport({ buttonClassName, onDialogOpenChange }) {
         onChange={handleFileChange}
       />
 
-      {/* Portaled to <body>: the button lives inside the sticky toolbar,
-          whose z-index creates a stacking context that would otherwise cap
-          the overlay below the map and other UI. */}
-      {preview &&
-        createPortal(
-          <div className={styles.overlay} onClick={handleClose}>
-            <div
-              className={styles.dialog}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="city-import-title"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 id="city-import-title">Import cities</h2>
-              <p className={styles.fileName}>{preview.fileName}</p>
+      {/* Shared Dialog shell (portaled to <body>, so the sticky toolbar's
+          stacking context can't cap it). handleClose ignores Escape /
+          overlay clicks while an import is running. */}
+      {preview && (
+        <Dialog
+          labelledBy="city-import-title"
+          onClose={handleClose}
+          size="lg"
+          className={styles.dialog}
+        >
+          <h2 id="city-import-title">Import cities</h2>
+          <p className={styles.fileName}>{preview.fileName}</p>
 
-              {preview.fileError ? (
-                <p className={styles.error}>{preview.fileError}</p>
-              ) : result ? (
-                <div className={styles.result}>
-                  <p>
-                    Imported <strong>{result.imported}</strong>{" "}
-                    {result.imported === 1 ? "city" : "cities"}.
-                  </p>
-                  {result.failed > 0 && (
-                    <p className={styles.error}>
-                      {result.failed} could not be saved. Please try again later.
-                    </p>
-                  )}
-                  {result.skipped > 0 && (
-                    <p>{result.skipped} skipped (duplicates or invalid rows).</p>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <p className={styles.summary}>
-                    <span className={styles.ready}>{readyEntries.length} ready</span>
-                    {" · "}
-                    <span>{duplicateCount} already in your cities</span>
-                    {" · "}
-                    <span className={invalidCount ? styles.invalid : ""}>
-                      {invalidCount} with errors
-                    </span>
-                  </p>
-
-                  <ul className={styles.rows}>
-                    {entries.map((entry) => (
-                      <li
-                        key={entry.row}
-                        className={
-                          entry.errors.length
-                            ? styles.rowInvalid
-                            : entry.isDuplicate
-                              ? styles.rowDuplicate
-                              : styles.rowReady
-                        }
-                      >
-                        <span className={styles.rowNumber}>#{entry.row}</span>
-                        <span className={styles.rowCity}>
-                          {entry.city.cityName || "(no city)"}
-                          {entry.city.country && `, ${entry.city.country}`}
-                        </span>
-                        <span className={styles.rowDate}>
-                          {formatDate(entry.city.date)}
-                        </span>
-                        <span className={styles.rowStatus}>
-                          {entry.errors.length
-                            ? entry.errors.join("; ")
-                            : entry.isDuplicate
-                              ? "Duplicate - skipped"
-                              : "Ready"}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
+          {preview.fileError ? (
+            <p className={styles.error}>{preview.fileError}</p>
+          ) : result ? (
+            <div className={styles.result}>
+              <p>
+                Imported <strong>{result.imported}</strong>{" "}
+                {result.imported === 1 ? "city" : "cities"}.
+              </p>
+              {result.failed > 0 && (
+                <p className={styles.error}>
+                  {result.failed} could not be saved. Please try again later.
+                </p>
               )}
-
-              <div className={styles.actions}>
-                <Button type="back" onClick={handleClose} disabled={isImporting}>
-                  {result || preview.fileError ? "Close" : "Cancel"}
-                </Button>
-
-                {!result && !preview.fileError && (
-                  <Button
-                    type="primary"
-                    onClick={handleImport}
-                    disabled={!readyEntries.length || isImporting}
-                  >
-                    {isImporting
-                      ? "Importing..."
-                      : `Import ${readyEntries.length} ${
-                          readyEntries.length === 1 ? "city" : "cities"
-                        }`}
-                  </Button>
-                )}
-              </div>
+              {result.skipped > 0 && (
+                <p>{result.skipped} skipped (duplicates or invalid rows).</p>
+              )}
             </div>
-          </div>,
-          document.body,
-        )}
+          ) : (
+            <>
+              <p className={styles.summary}>
+                <span className={styles.ready}>
+                  {readyEntries.length} ready
+                </span>
+                {" · "}
+                <span>{duplicateCount} already in your cities</span>
+                {" · "}
+                <span className={invalidCount ? styles.invalid : ""}>
+                  {invalidCount} with errors
+                </span>
+              </p>
+
+              <ul className={styles.rows}>
+                {entries.map((entry) => (
+                  <li
+                    key={entry.row}
+                    className={
+                      entry.errors.length
+                        ? styles.rowInvalid
+                        : entry.isDuplicate
+                          ? styles.rowDuplicate
+                          : styles.rowReady
+                    }
+                  >
+                    <span className={styles.rowNumber}>#{entry.row}</span>
+                    <span className={styles.rowCity}>
+                      {entry.city.cityName || "(no city)"}
+                      {entry.city.country && `, ${entry.city.country}`}
+                    </span>
+                    <span className={styles.rowDate}>
+                      {formatDate(entry.city.date)}
+                    </span>
+                    <span className={styles.rowStatus}>
+                      {entry.errors.length
+                        ? entry.errors.join("; ")
+                        : entry.isDuplicate
+                          ? "Duplicate - skipped"
+                          : "Ready"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          <div className={styles.actions}>
+            <Button type="back" onClick={handleClose} disabled={isImporting}>
+              {result || preview.fileError ? "Close" : "Cancel"}
+            </Button>
+
+            {!result && !preview.fileError && (
+              <Button
+                type="primary"
+                onClick={handleImport}
+                disabled={!readyEntries.length || isImporting}
+              >
+                {isImporting
+                  ? "Importing..."
+                  : `Import ${readyEntries.length} ${
+                      readyEntries.length === 1 ? "city" : "cities"
+                    }`}
+              </Button>
+            )}
+          </div>
+        </Dialog>
+      )}
     </>
   );
 }

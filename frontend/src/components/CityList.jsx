@@ -4,13 +4,16 @@ import Spinner from "./Spinner";
 import adminStyles from "../pages/Admin.module.css";
 import styles from "./CityList.module.css";
 import CityItem from "./CityItem";
-import Message from "./Message";
+import EmptyState from "./EmptyState";
 import Pagination from "./Pagination";
 import { useCities } from "../contexts/CitiesContext";
 import { usePagination } from "../hooks/usePagination";
 import { compareDates } from "../utils/compareDates";
 import { downloadCitiesCsv } from "../utils/exportCitiesCsv";
 import CityImport from "./CityImport";
+import Button from "./Button";
+import { buttonClassName } from "./buttonClassName";
+import Field from "./Field";
 
 const CITY_LIST_PAGE_SIZE = 10;
 
@@ -121,18 +124,24 @@ function CityList() {
 
   if (!cities.length || isEmptyStateImportOpen) {
     return (
-      <>
-        <Message message="Enter your first city by clicking on a city on the map" />
-        <div className={styles.emptyActions}>
-          <CityImport
-            buttonClassName={adminStyles.toolbarClear}
-            onDialogOpenChange={setIsEmptyStateImportOpen}
-          />
-          <Link to="/app/trash" className={adminStyles.toolbarClear}>
-            Trash
-          </Link>
-        </div>
-      </>
+      <EmptyState
+        title="No cities yet"
+        message="Click a city on the map to add it, or import a CSV file."
+        action={
+          <>
+            <CityImport
+              buttonClassName={buttonClassName({ variant: "outline", size: "sm" })}
+              onDialogOpenChange={setIsEmptyStateImportOpen}
+            />
+            <Link
+              to="/app/trash"
+              className={buttonClassName({ variant: "outline", size: "sm" })}
+            >
+              Trash
+            </Link>
+          </>
+        }
+      />
     );
   }
 
@@ -141,27 +150,19 @@ function CityList() {
   return (
     <>
       <div className={`${adminStyles.toolbar} ${styles.toolbar}`}>
-        <div className={adminStyles.toolbarField}>
-          <label htmlFor="citySearch" className={adminStyles.toolbarLabel}>
-            Search
-          </label>
+        <Field variant="toolbar" id="citySearch" label="Search">
           <input
             id="citySearch"
             type="text"
-            className={adminStyles.toolbarInput}
             placeholder="Search by city or country..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
+        </Field>
 
-        <div className={adminStyles.toolbarField}>
-          <label htmlFor="cityCountryFilter" className={adminStyles.toolbarLabel}>
-            Country
-          </label>
+        <Field variant="toolbar" id="cityCountryFilter" label="Country">
           <select
             id="cityCountryFilter"
-            className={adminStyles.toolbarSelect}
             value={filterCountry}
             onChange={(e) => setFilterCountry(e.target.value)}
           >
@@ -172,15 +173,11 @@ function CityList() {
               </option>
             ))}
           </select>
-        </div>
+        </Field>
 
-        <div className={adminStyles.toolbarField}>
-          <label htmlFor="cityYearFilter" className={adminStyles.toolbarLabel}>
-            Visited
-          </label>
+        <Field variant="toolbar" id="cityYearFilter" label="Visited">
           <select
             id="cityYearFilter"
-            className={adminStyles.toolbarSelect}
             value={filterYear}
             onChange={(e) => setFilterYear(e.target.value)}
           >
@@ -191,15 +188,11 @@ function CityList() {
               </option>
             ))}
           </select>
-        </div>
+        </Field>
 
-        <div className={adminStyles.toolbarField}>
-          <label htmlFor="citySort" className={adminStyles.toolbarLabel}>
-            Sort
-          </label>
+        <Field variant="toolbar" id="citySort" label="Sort">
           <select
             id="citySort"
-            className={adminStyles.toolbarSelect}
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value)}
           >
@@ -209,7 +202,7 @@ function CityList() {
               </option>
             ))}
           </select>
-        </div>
+        </Field>
 
         <div className={adminStyles.toolbarResult}>
           <span className={adminStyles.toolbarCount}>
@@ -220,28 +213,35 @@ function CityList() {
 
           <div className={styles.toolbarActions}>
             {hasActiveControls && (
-              <button
-                type="button"
-                className={adminStyles.toolbarClear}
+              <Button
+                variant="outline"
+                size="sm"
+                htmlType="button"
                 onClick={handleClearFilters}
               >
                 Clear
-              </button>
+              </Button>
             )}
 
-            <CityImport buttonClassName={adminStyles.toolbarClear} />
+            <CityImport
+              buttonClassName={buttonClassName({ variant: "outline", size: "sm" })}
+            />
 
             {/* Always the full list of the user's own cities (from
                 CitiesContext / getMyCities), regardless of filters. */}
-            <button
-              type="button"
-              className={adminStyles.toolbarClear}
+            <Button
+              variant="outline"
+              size="sm"
+              htmlType="button"
               onClick={() => downloadCitiesCsv(cities)}
             >
               Export CSV
-            </button>
+            </Button>
 
-            <Link to="/app/trash" className={adminStyles.toolbarClear}>
+            <Link
+              to="/app/trash"
+              className={buttonClassName({ variant: "outline", size: "sm" })}
+            >
               Trash
             </Link>
           </div>
@@ -249,16 +249,20 @@ function CityList() {
       </div>
 
       {!processedCities.length ? (
-        <div className={adminStyles.filteredEmpty}>
-          <Message message="No cities match your filters." />
-          <button
-            type="button"
-            className={adminStyles.toolbarClear}
-            onClick={handleClearFilters}
-          >
-            Clear filters
-          </button>
-        </div>
+        <EmptyState
+          compact
+          title="No cities match your filters."
+          action={
+            <Button
+              variant="outline"
+              size="sm"
+              htmlType="button"
+              onClick={handleClearFilters}
+            >
+              Clear filters
+            </Button>
+          }
+        />
       ) : (
         <ul className={styles.cityList}>
           {paginatedCities.map((city) => (

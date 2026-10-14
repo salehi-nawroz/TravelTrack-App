@@ -1,0 +1,65 @@
+/* Shared empty-state panel (see EmptyState.jsx). */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 36rem;
+  margin: var(--space-5) auto 0;
+  padding: 3rem var(--space-6);
+
+  text-align: center;
+  background-color: var(--color-surface-2);
+  border: 1px dashed var(--color-text-secondary);
+  border-radius: var(--radius-md);
+}
+
+.icon {
+  width: 4rem;
+  height: 4rem;
+  color: var(--color-accent);
+}
+
+.title {
+  margin-top: var(--space-2);
+  font-size: 1.9rem;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.message {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+/* Inline version (e.g. no results for the current filters). */
+.compact {
+  max-width: none;
+  margin-top: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  background: none;
+  border: none;
+}
+
+.compact .icon {
+  width: 3.2rem;
+  height: 3.2rem;
+  color: var(--color-text-secondary);
+}
+
+.compact .title {
+  font-size: var(--font-size-md);
+}
+
+.compact .actions {
+  margin-top: var(--space-3);
+}

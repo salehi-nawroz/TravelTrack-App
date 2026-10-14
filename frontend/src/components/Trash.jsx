@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 
 import styles from "./Trash.module.css";
-import adminStyles from "../pages/Admin.module.css";
 import Spinner from "./Spinner";
-import Message from "./Message";
+import EmptyState from "./EmptyState";
 import FlagBox from "./FlagBox";
 import BackButton from "./BackButton";
 import ConfirmDialog from "./ConfirmDialog";
 import { useCities } from "../contexts/CitiesContext";
+import Button from "./Button";
 import {
   getMyTrashedCities,
   deleteTrashedCity,
@@ -98,7 +98,10 @@ function Trash() {
       {error && <p className={styles.error}>{error}</p>}
 
       {!trashedCities.length ? (
-        <Message message="The Trash is empty." />
+        <EmptyState
+          title="The Trash is empty"
+          message="Cities you delete stay here until you restore them or delete them for good."
+        />
       ) : (
         <ul className={styles.list}>
           {trashedCities.map((city) => (
@@ -113,22 +116,25 @@ function Trash() {
                 <p>Deleted {formatDate(city.deletedAt)}</p>
               </div>
               <div className={styles.actions}>
-                <button
-                  type="button"
-                  className={adminStyles.toolbarClear}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  htmlType="button"
                   onClick={() => handleRestore(city)}
                   disabled={busyId === city.id}
                 >
                   Restore
-                </button>
-                <button
-                  type="button"
-                  className={`${adminStyles.toolbarClear} ${styles.danger}`}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  htmlType="button"
+                  className={styles.danger}
                   onClick={() => setCityPendingDelete(city)}
                   disabled={busyId === city.id}
                 >
                   Delete forever
-                </button>
+                </Button>
               </div>
             </li>
           ))}

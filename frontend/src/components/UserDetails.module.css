@@ -1,50 +1,5 @@
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background-color: var(--color-overlay);
-  backdrop-filter: blur(3px);
-}
-
-.dialog {
-  position: relative;
-  width: min(90%, 52rem);
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: var(--space-8);
-
-  background-color: var(--color-surface-2);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
-
-  box-shadow: var(--shadow-lg);
-
-  animation: dialogIn var(--duration-base) var(--ease-out);
-}
-
-.closeButton {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-
-  background: none;
-  border: none;
-
-  font-size: 2rem;
-  line-height: 1;
-  color: var(--color-light--1);
-  cursor: pointer;
-}
-
-.closeButton:hover {
-  color: var(--color-light--2);
-}
-
+/* Content of the user-details dialog; the panel, overlay and × button come
+   from Dialog. */
 .header {
   display: flex;
   align-items: center;
@@ -147,25 +102,8 @@
   justify-content: flex-end;
 }
 
-@keyframes dialogIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 @media (max-width: 600px) {
   .cityRow {
     flex-wrap: wrap;
-  }
-
-  /* Phones: less padding so content gets the room. */
-  .dialog {
-    padding: var(--space-6) var(--space-5);
   }
 }

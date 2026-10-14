@@ -67,7 +67,9 @@
   cursor: not-allowed;
 }
 
-.danger:hover:not(:disabled) {
+/* Red hover on top of the shared outline button; .actions makes it win over
+   the button's own green hover regardless of stylesheet order. */
+.actions .danger:hover:not(:disabled) {
   border-color: var(--color-danger);
   color: var(--color-danger-text);
 }

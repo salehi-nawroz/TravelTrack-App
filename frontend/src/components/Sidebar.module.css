@@ -79,8 +79,12 @@
    usable height. */
 @media (max-height: 700px) {
   .inner {
-    padding-top: 1.6rem;
-    padding-bottom: 1.6rem;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+  }
+
+  .outlet {
+    margin-bottom: 0.8rem;
   }
 }
 

@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import adminStyles from "../pages/Admin.module.css";
 import styles from "./AdminUsers.module.css";
 import Spinner from "./Spinner";
-import Message from "./Message";
+import EmptyState from "./EmptyState";
 import Pagination from "./Pagination";
 import UserDetails from "./UserDetails";
 import { usePagination } from "../hooks/usePagination";
 import { compareDates } from "../utils/compareDates";
+import Button from "./Button";
+import Field from "./Field";
 import {
   getAvatarSignedUrl,
   getAvatarSignedUrls,
@@ -202,21 +204,15 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
       ) : usersError ? (
         <p className={adminStyles.error}>{usersError}</p>
       ) : !users.length ? (
-        <Message message="No users found." />
+        <EmptyState icon="profile" title="No users found" />
       ) : (
         <>
           <div className={`${adminStyles.toolbar} ${adminStyles.userToolbar}`}>
-            <div className={adminStyles.toolbarField}>
-              <label
-                htmlFor="adminUserSearch"
-                className={adminStyles.toolbarLabel}
-              >
-                Search
-              </label>
+            <Field variant="toolbar" id="adminUserSearch" label="Search">
               <input
                 id="adminUserSearch"
                 type="text"
-                className={`${adminStyles.toolbarInput} ${adminStyles.toolbarCombo}`}
+                className={adminStyles.toolbarCombo}
                 placeholder="Search by name or email..."
                 list="adminUserNames"
                 value={searchQuery}
@@ -227,18 +223,12 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
                   <option key={name} value={name} />
                 ))}
               </datalist>
-            </div>
+            </Field>
 
-            <div className={adminStyles.toolbarField}>
-              <label
-                htmlFor="adminRoleFilter"
-                className={adminStyles.toolbarLabel}
-              >
-                Role
-              </label>
+            <Field variant="toolbar" id="adminRoleFilter" label="Role">
               <select
                 id="adminRoleFilter"
-                className={adminStyles.toolbarSelect}
+                className={adminStyles.toolbarCombo}
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
               >
@@ -249,15 +239,12 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
                   </option>
                 ))}
               </select>
-            </div>
+            </Field>
 
-            <div className={adminStyles.toolbarField}>
-              <label htmlFor="adminUserSort" className={adminStyles.toolbarLabel}>
-                Sort
-              </label>
+            <Field variant="toolbar" id="adminUserSort" label="Sort">
               <select
                 id="adminUserSort"
-                className={adminStyles.toolbarSelect}
+                className={adminStyles.toolbarCombo}
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
               >
@@ -267,7 +254,7 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
                   </option>
                 ))}
               </select>
-            </div>
+            </Field>
 
             <div className={adminStyles.toolbarResult}>
               <span className={adminStyles.toolbarCount}>
@@ -277,28 +264,34 @@ function AdminUsers({ users, isLoadingUsers, usersError, cities }) {
               </span>
 
               {hasActiveControls && (
-                <button
-                  type="button"
-                  className={adminStyles.toolbarClear}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  htmlType="button"
                   onClick={handleClearFilters}
                 >
                   Clear
-                </button>
+                </Button>
               )}
             </div>
           </div>
 
           {!processedUsers.length ? (
-            <div className={adminStyles.filteredEmpty}>
-              <Message message="No users match your filters." />
-              <button
-                type="button"
-                className={adminStyles.toolbarClear}
-                onClick={handleClearFilters}
-              >
-                Clear filters
-              </button>
-            </div>
+            <EmptyState
+              compact
+              icon="profile"
+              title="No users match your filters."
+              action={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  htmlType="button"
+                  onClick={handleClearFilters}
+                >
+                  Clear filters
+                </Button>
+              }
+            />
           ) : (
             <ul className={styles.list}>
               <li className={styles.listHeaderRow}>

@@ -1,0 +1,72 @@
+/* Shared dialog shell (see Dialog.jsx). Content layout stays in each
+   dialog's own module and is added through Dialog's className. To adjust the panel, a
+   dialog's class needs more than one class of specificity (e.g.
+   ".dialog[role='dialog']"), so it wins regardless of stylesheet order. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: var(--color-overlay);
+  backdrop-filter: blur(3px);
+}
+
+.dialog {
+  position: relative;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: var(--space-8);
+
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+
+  animation: dialogIn var(--duration-base) var(--ease-out);
+}
+
+/* The panel itself takes focus only when it has no focusable content. */
+.dialog:focus {
+  outline: none;
+}
+
+.sm {
+  width: min(90%, 42rem);
+}
+
+.md {
+  width: min(90%, 52rem);
+}
+
+.lg {
+  width: min(92%, 64rem);
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Phones: less padding so content gets the room. */
+@media (max-width: 600px) {
+  .dialog {
+    padding: var(--space-6) var(--space-5);
+  }
+}

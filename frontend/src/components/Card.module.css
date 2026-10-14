@@ -1,0 +1,12 @@
+.card {
+  background-color: var(--color-surface-2);
+  border-radius: var(--radius-md);
+}
+
+.lg {
+  padding: 2rem 3rem;
+}
+
+.md {
+  padding: var(--space-4);
+}

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 import styles from "./Stats.module.css";
 import Spinner from "./Spinner";
-import Message from "./Message";
+import EmptyState from "./EmptyState";
 import StatsMap from "./StatsMap";
 import { useCities } from "../contexts/CitiesContext";
 import { getTravelStats, WORLD_COUNTRY_COUNT } from "../utils/travelStats";
@@ -27,7 +27,13 @@ function Stats() {
   if (isLoading) return <Spinner />;
 
   if (!cities.length) {
-    return <Message message="Add your first city to see your travel stats" />;
+    return (
+      <EmptyState
+        icon="stats"
+        title="No stats yet"
+        message="Add your first city to see your travel stats."
+      />
+    );
   }
 
   const stats = getTravelStats(cities);

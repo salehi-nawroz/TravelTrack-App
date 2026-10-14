@@ -7,12 +7,15 @@ import { getContinent } from "../utils/continent";
 import { compareDates } from "../utils/compareDates";
 import { usePagination } from "../hooks/usePagination";
 import Spinner from "../components/Spinner";
-import Message from "../components/Message";
+import EmptyState from "../components/EmptyState";
 import ConfirmDialog from "../components/ConfirmDialog";
 import FlagBox from "../components/FlagBox";
 import Pagination from "../components/Pagination";
 import AdminUsers from "../components/AdminUsers";
 import styles from "./Admin.module.css";
+import Button from "../components/Button";
+import Card from "../components/Card";
+import Field from "../components/Field";
 
 const CITIES_PAGE_SIZE = 10;
 
@@ -365,7 +368,7 @@ function Admin() {
       )}
 
       {activeTab === "cities" && (
-        <div className={styles.section}>
+        <Card className={styles.section}>
           <h2 className={styles.sectionTitle}>
             Cities
             {!isLoadingCities && !citiesError && (
@@ -380,31 +383,23 @@ function Admin() {
           ) : citiesError ? (
             <p className={styles.error}>{citiesError}</p>
           ) : !cities.length ? (
-            <Message message="No cities found." />
+            <EmptyState title="No cities found" />
           ) : (
             <>
               <div className={styles.toolbar}>
-                <div className={styles.toolbarField}>
-                  <label htmlFor="adminCitySearch" className={styles.toolbarLabel}>
-                    Search
-                  </label>
+                <Field variant="toolbar" id="adminCitySearch" label="Search">
                   <input
                     id="adminCitySearch"
                     type="text"
-                    className={styles.toolbarInput}
                     placeholder="Search cities, countries, continents, or users..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
-                </div>
+                </Field>
 
-                <div className={styles.toolbarField}>
-                  <label htmlFor="adminCountryFilter" className={styles.toolbarLabel}>
-                    Country
-                  </label>
+                <Field variant="toolbar" id="adminCountryFilter" label="Country">
                   <select
                     id="adminCountryFilter"
-                    className={styles.toolbarSelect}
                     value={filterCountry}
                     onChange={(e) => setFilterCountry(e.target.value)}
                   >
@@ -415,15 +410,11 @@ function Admin() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </Field>
 
-                <div className={styles.toolbarField}>
-                  <label htmlFor="adminContinentFilter" className={styles.toolbarLabel}>
-                    Continent
-                  </label>
+                <Field variant="toolbar" id="adminContinentFilter" label="Continent">
                   <select
                     id="adminContinentFilter"
-                    className={styles.toolbarSelect}
                     value={filterContinent}
                     onChange={(e) => setFilterContinent(e.target.value)}
                   >
@@ -434,15 +425,11 @@ function Admin() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </Field>
 
-                <div className={styles.toolbarField}>
-                  <label htmlFor="adminUserFilter" className={styles.toolbarLabel}>
-                    User
-                  </label>
+                <Field variant="toolbar" id="adminUserFilter" label="User">
                   <select
                     id="adminUserFilter"
-                    className={styles.toolbarSelect}
                     value={filterUserId}
                     onChange={(e) => setFilterUserId(e.target.value)}
                   >
@@ -453,15 +440,11 @@ function Admin() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </Field>
 
-                <div className={styles.toolbarField}>
-                  <label htmlFor="adminCitySort" className={styles.toolbarLabel}>
-                    Sort
-                  </label>
+                <Field variant="toolbar" id="adminCitySort" label="Sort">
                   <select
                     id="adminCitySort"
-                    className={styles.toolbarSelect}
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
                   >
@@ -471,7 +454,7 @@ function Admin() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </Field>
 
                 <div className={styles.toolbarResult}>
                   <span className={styles.toolbarCount}>
@@ -481,28 +464,33 @@ function Admin() {
                   </span>
 
                   {hasActiveControls && (
-                    <button
-                      type="button"
-                      className={styles.toolbarClear}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      htmlType="button"
                       onClick={handleClearFilters}
                     >
                       Clear
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
 
               {!processedCities.length ? (
-                <div className={styles.filteredEmpty}>
-                  <Message message="No cities match your filters." />
-                  <button
-                    type="button"
-                    className={styles.toolbarClear}
-                    onClick={handleClearFilters}
-                  >
-                    Clear filters
-                  </button>
-                </div>
+                <EmptyState
+                  compact
+                  title="No cities match your filters."
+                  action={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      htmlType="button"
+                      onClick={handleClearFilters}
+                    >
+                      Clear filters
+                    </Button>
+                  }
+                />
               ) : (
                 <ul className={styles.userGroups}>
                   {paginatedUserIds.map((userId) => {
@@ -586,7 +574,7 @@ function Admin() {
               )}
             </>
           )}
-        </div>
+        </Card>
       )}
 
       {cityPendingDelete && (
