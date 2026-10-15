@@ -1,0 +1,177 @@
+.itinerary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.count {
+  min-width: 2.2rem;
+  padding: 0 0.6rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-1);
+  font-size: var(--font-size-xs);
+  line-height: 1.8rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Stops on a dotted route line --- */
+
+.stops {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.stop {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  padding: 0.8rem 0;
+}
+
+/* Dotted line down to the next stop's marker. */
+.stop:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: calc(1.3rem - 1px);
+  top: 3.4rem;
+  bottom: -0.8rem;
+  border-left: 2px dotted var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+.marker {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  border: 2px solid var(--color-brand);
+  background-color: var(--color-surface-2);
+  color: var(--color-brand-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.stop:first-child .marker,
+.stop:last-child .marker {
+  background-color: var(--color-brand);
+  color: var(--color-text-inverse);
+}
+
+.stopBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.place {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.place img {
+  width: 2.4rem;
+  height: 1.7rem;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+}
+
+.placeText {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.6rem;
+  min-width: 0;
+}
+
+.cityName {
+  font-size: var(--font-size-md);
+  overflow-wrap: anywhere;
+}
+
+.country {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.stay {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.notes {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.actions .remove:hover:not(:disabled) {
+  color: var(--color-danger-text);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Narrow sidebar: actions move under the place details. */
+@container (max-width: 44rem) {
+  .stop {
+    flex-wrap: wrap;
+  }
+
+  .actions {
+    flex-basis: 100%;
+    justify-content: flex-start;
+    padding-left: 3.8rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .actions > button {
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+}

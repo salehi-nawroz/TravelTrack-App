@@ -31,6 +31,20 @@ export async function getAllProfiles() {
   return data;
 }
 
+// Name and role of one user, or null when RLS hides their profile (e.g. an
+// admin asking about a super_admin).
+export async function getProfileSummary(userId) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+
+  return data;
+}
+
 // Admin/super_admin only - backed by the get_admin_users() SECURITY DEFINER
 // RPC (scripts/get-admin-users-function.sql), the one controlled path to
 // email, which lives in auth.users and is never queried directly from the

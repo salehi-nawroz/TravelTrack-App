@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { getAllProfiles, getAdminUsers } from "../services/profileService";
 import { getCities, deleteCity as deleteCityApi } from "../services/cityService";
+import { getAllTrips } from "../services/tripService";
+import { TRIPS_ENABLED } from "../config/features";
 import { getContinent } from "../utils/continent";
 import { compareDates } from "../utils/compareDates";
 import { usePagination } from "../hooks/usePagination";
@@ -12,6 +14,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import FlagBox from "../components/FlagBox";
 import Pagination from "../components/Pagination";
 import AdminUsers from "../components/AdminUsers";
+import AdminTrips from "../components/AdminTrips";
 import styles from "./Admin.module.css";
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -42,6 +45,7 @@ const ROLE_LABELS = {
 const TABS = [
   { id: "users", label: "Users" },
   { id: "cities", label: "Cities" },
+  ...(TRIPS_ENABLED ? [{ id: "trips", label: "Trips" }] : []),
 ];
 
 function groupByCountry(cities) {
@@ -52,7 +56,8 @@ function groupByCountry(cities) {
 }
 
 function Admin() {
-  const { isLoading, isProfileLoading, isAdmin, isSuperAdmin } = useAuth();
+  const { user, profile, isLoading, isProfileLoading, isAdmin, isSuperAdmin } =
+    useAuth();
 
   // Used only to derive name/role lookups for the Cities tab below - its own
   // loading/error state is never displayed, so it isn't tracked here.
@@ -69,11 +74,23 @@ function Admin() {
   const [cityPendingDelete, setCityPendingDelete] = useState(null);
   const [deleteError, setDeleteError] = useState("");
 
+  const [trips, setTrips] = useState([]);
+  const [isLoadingTrips, setIsLoadingTrips] = useState(TRIPS_ENABLED);
+  const [tripsError, setTripsError] = useState("");
+
   // Bumped by "Try again" to re-run the matching (read-only) load below.
   const [usersReloadKey, setUsersReloadKey] = useState(0);
   const [citiesReloadKey, setCitiesReloadKey] = useState(0);
+  const [tripsReloadKey, setTripsReloadKey] = useState(0);
 
-  const [activeTab, setActiveTab] = useState("users");
+  // The selected tab lives in the URL (?tab=), so returning from a trip
+  // opened here lands back on the Trips tab.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = TABS.some((tab) => tab.id === searchParams.get("tab"))
+    ? searchParams.get("tab")
+    : "users";
+  const setActiveTab = (id) =>
+    setSearchParams(id === "users" ? {} : { tab: id }, { replace: true });
   const tabRefs = useRef({});
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -157,6 +174,32 @@ function Admin() {
       isMounted = false;
     };
   }, [citiesReloadKey]);
+
+  // Every trip RLS lets this admin see (never a super admin's, for a plain
+  // admin). Skipped entirely until the trips schema is live.
+  useEffect(() => {
+    if (!TRIPS_ENABLED) return;
+    let isMounted = true;
+
+    async function loadTrips() {
+      setIsLoadingTrips(true);
+      setTripsError("");
+      try {
+        const data = await getAllTrips();
+        if (isMounted) setTrips(data);
+      } catch (err) {
+        if (isMounted) setTripsError(err.message);
+      } finally {
+        if (isMounted) setIsLoadingTrips(false);
+      }
+    }
+
+    loadTrips();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [tripsReloadKey]);
 
   const nameById = Object.fromEntries(
     profiles.map((profile) => [profile.id, profile.full_name]),
@@ -363,6 +406,7 @@ function Admin() {
   const tabCounts = {
     users: !isLoadingUsers && !usersError ? users.length : null,
     cities: !isLoadingCities && !citiesError ? cities.length : null,
+    trips: !isLoadingTrips && !tripsError ? trips.length : null,
   };
 
   async function handleConfirmDeleteCity() {
@@ -382,7 +426,13 @@ function Admin() {
     <div className={styles.admin}>
       <PageHeader
         title="Admin dashboard"
-        summary={isSuperAdmin ? "Super admin" : "Admin · read and edit only"}
+        summary={
+          isSuperAdmin
+            ? "Super admin"
+            : TRIPS_ENABLED
+              ? "Admin · read and edit; can also delete trips"
+              : "Admin · read and edit only"
+        }
       />
 
       <div className={styles.tabs} role="tablist" aria-label="Admin sections">
@@ -661,6 +711,20 @@ function Admin() {
             </>
           )}
         </Card>
+      )}
+
+      {activeTab === "trips" && (
+        <AdminTrips
+          trips={trips}
+          isLoading={isLoadingTrips}
+          error={tripsError}
+          onRetry={() => setTripsReloadKey((key) => key + 1)}
+          onTripDeleted={(id) =>
+            setTrips((current) => current.filter((trip) => trip.id !== id))
+          }
+          profiles={profiles}
+          viewer={{ id: user?.id, role: profile?.role }}
+        />
       )}
 
       {cityPendingDelete && (

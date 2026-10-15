@@ -2,6 +2,11 @@
 --
 -- Run once, manually, in the Supabase Dashboard -> SQL Editor.
 --
+-- Superseded once scripts/trips-schema.sql has been applied: that file
+-- redefines this function to also remove the user's trips first. Don't
+-- re-run this file after that (scripts/trips-rollback.sql restores this
+-- version when the trip feature is removed).
+--
 -- public.delete_own_account() lets the currently authenticated user
 -- permanently delete their own account: their `cities` rows, their
 -- `profiles` row, and finally their `auth.users` row. It only ever acts on

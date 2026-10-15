@@ -1,0 +1,36 @@
+/* The place picker brings its own styles (DestinationPlacePicker). */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  padding-right: 3rem; /* clear the close button */
+}
+
+.dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.6rem;
+}
+
+.form textarea {
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+@media (max-width: 767.98px) {
+  .actions > button {
+    min-height: var(--touch-target);
+  }
+}

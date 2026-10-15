@@ -16,6 +16,10 @@
   --color-brand-soft: rgba(0, 196, 106, 0.14); /* tinted active states */
   --color-accent: #ffb545; /* travel amber: highlights, selection */
   --color-accent-soft: rgba(255, 181, 69, 0.14);
+  /* Small text on the -soft tints above (pills, badges): the plain brand and
+     accent colours fall under 4.5:1 there. Both reach it on surface-1/2. */
+  --color-brand-text: #5fe3a1;
+  --color-accent-text: #ffcf80;
 
   /* --- Surfaces (darkest to lightest) --- */
   --color-surface-0: #242a2e; /* page backdrop */

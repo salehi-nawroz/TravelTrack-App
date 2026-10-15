@@ -9,6 +9,12 @@ import Spinner from "./Spinner";
 import PageHeader from "./PageHeader";
 import ConfirmDialog from "./ConfirmDialog";
 import styles from "./Profile.module.css";
+import { TRIPS_ENABLED } from "../config/features";
+
+// What account deletion removes, for the warning texts below.
+const DELETED_DATA = TRIPS_ENABLED
+  ? "cities, trips, trip photos and profile data"
+  : "cities and profile data";
 
 function Profile() {
   const {
@@ -328,8 +334,8 @@ function Profile() {
         <Card className={`${styles.form} ${styles.dangerZone}`}>
           <h3 className={styles.cardTitle}>Danger zone</h3>
           <p className={styles.note}>
-            Permanently delete your account, including your cities and
-            profile data. This cannot be undone.
+            Permanently delete your account, including your {DELETED_DATA}.
+            This cannot be undone.
           </p>
 
           <Field id="deletePassword" label="Confirm your password">
@@ -363,7 +369,7 @@ function Profile() {
       {showDeleteConfirm && (
         <ConfirmDialog
           title="Delete your account?"
-          message="Are you sure you want to permanently delete your account? All your cities and profile data will be deleted."
+          message={`Are you sure you want to permanently delete your account? All your ${DELETED_DATA} will be deleted.`}
           confirmLabel="Delete account"
           onConfirm={handleConfirmDeleteAccount}
           onCancel={() => setShowDeleteConfirm(false)}

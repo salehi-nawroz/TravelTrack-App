@@ -1,0 +1,67 @@
+/* Fields use the shared Field component and the global input styles. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  width: 100%;
+}
+
+.form textarea {
+  resize: vertical;
+  min-height: 9rem;
+}
+
+.dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.6rem;
+}
+
+.firstPlace {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.firstPlaceHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* The global input look doesn't suit a file picker. */
+.fileInput {
+  padding: 0.8rem;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+.coverPreview {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.coverPreview img {
+  width: 12rem;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
+.status {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+@media (max-width: 767.98px) {
+  .actions > button {
+    min-height: var(--touch-target);
+  }
+}
