@@ -1,45 +1,30 @@
 # =========================
-# React / Vite
+# Dependencies and builds
 # =========================
-frontend/node_modules/
+node_modules/
 frontend/dist/
-frontend/.env
-frontend/.env.local
-frontend/.env.*.local
-
-# =========================
-# Spring Boot / Maven
-# =========================
-backend/target/
-backend/.mvn/
-backend/*.log
-backend/.env
-
-# =========================
-# Java
-# =========================
-*.class
-
-# =========================
-# IntelliJ IDEA
-# =========================
-backend/.idea/
-*.iml
-
-# =========================
-# VS Code
-# =========================
-.vscode/
-
-# =========================
-# OS files
-# =========================
-.DS_Store
-Thumbs.db
+coverage/
 
 # =========================
 # Environment / secrets
+# (frontend/.env.local, scripts/.env, ...) - only the examples are tracked
 # =========================
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+
+# =========================
+# Editors and OS files
+# =========================
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# =========================
+# Vercel CLI (local project link)
+# =========================
+.vercel

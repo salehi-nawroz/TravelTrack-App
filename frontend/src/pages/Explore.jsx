@@ -10,6 +10,7 @@ import { buttonClassName } from "../components/buttonClassName";
 import { SAMPLE_CITIES, SAMPLE_TRAVELLER, SAMPLE_TRIPS, getSampleStats } from "../data/exploreSample";
 import { formatStay, formatTripRange, tripLengthDays } from "../utils/tripDates";
 import styles from "./Explore.module.css";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 const plural = (count, word, words = `${word}s`) => `${count} ${count === 1 ? word : words}`;
 const ALL = "all";
@@ -21,6 +22,7 @@ const prefersReducedMotion = () => window.matchMedia?.("(prefers-reduced-motion:
 // traveller's sample data (data/exploreSample.js). Nothing here talks to
 // Supabase - there's no account, and nothing a visitor does is saved.
 export default function Explore() {
+  useDocumentTitle("Explore");
   const stats = useMemo(getSampleStats, []);
   const [selectedId, setSelectedId] = useState(SAMPLE_TRIPS[0].id);
   const [activeDestinationId, setActiveDestinationId] = useState(null);
@@ -253,7 +255,7 @@ export default function Explore() {
         </div>
       </section>
 
-      <Footer />
+      <Footer showCredits />
     </main>
   );
 }

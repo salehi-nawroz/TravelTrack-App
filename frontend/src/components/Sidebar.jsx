@@ -7,6 +7,7 @@ import GlobalSearch from "./GlobalSearch";
 import Logo from "./Logo";
 import User from "./User";
 import { getSectionTitle } from "./navItems";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 // Desktop/tablet: the resizable panel beside the map (width from AppLayout).
 // Phones (< 768px, Sidebar.module.css): the same panel becomes a bottom
@@ -19,6 +20,8 @@ const Sidebar = forwardRef(function Sidebar(
 ) {
   const { pathname } = useLocation();
   const isProfile = pathname.startsWith("/app/profile");
+  const sectionTitle = getSectionTitle(pathname);
+  useDocumentTitle(sectionTitle);
 
   return (
     <div
@@ -30,6 +33,11 @@ const Sidebar = forwardRef(function Sidebar(
       ].join(" ")}
       style={{ "--sidebar-width": `${width}px` }}
     >
+      {/* The page's one h1, for screen-reader navigation; the visible
+          section names are in the nav and the phone sheet header. Outside
+          #sidebar-content so a collapsed sheet doesn't hide it. */}
+      <h1 className={styles.srOnly}>{sectionTitle}</h1>
+
       {/* Phones only (hidden by CSS on larger screens). */}
       <button
         type="button"
@@ -39,7 +47,7 @@ const Sidebar = forwardRef(function Sidebar(
         aria-controls="sidebar-content"
       >
         <span className={styles.grabber} aria-hidden="true" />
-        <span className={styles.sheetTitle}>{getSectionTitle(pathname)}</span>
+        <span className={styles.sheetTitle}>{sectionTitle}</span>
         <span className={styles.sheetHint}>
           {isSheetExpanded ? "Hide" : "Show"}
           <svg

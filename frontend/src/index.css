@@ -1,6 +1,8 @@
-/* Taken from getting started guide at: https://leafletjs.com/examples/quick-start/ */
-@import "https://unpkg.com/leaflet@1.9.3/dist/leaflet.css";
+/* The remote font import stays first: the local one below is inlined at
+   build time, and an @import after other rules would be ignored. */
 @import "https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap";
+/* Leaflet styles from the installed package (bundled, same version as the JS). */
+@import "leaflet/dist/leaflet.css";
 
 /* =====================================================================
    TravelTrack design tokens
@@ -142,9 +144,13 @@
 html {
   font-size: 62.5%;
   box-sizing: border-box;
+  /* The page backdrop behind every screen's rounded panels, and on
+     overscroll - never the browser's default white. */
+  background-color: var(--color-surface-0);
 }
 
 body {
+  background-color: var(--color-surface-0);
   font-family: var(--font-family);
   color: var(--color-text-primary);
   font-weight: var(--font-weight-regular);

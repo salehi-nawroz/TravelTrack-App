@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PageNav from "../components/PageNav";
 import { useAuth } from "../contexts/AuthContext";
 import styles from "./Auth.module.css";
@@ -6,8 +6,11 @@ import { useEffect, useState } from "react";
 import Button from "../components/Button";
 import Field, { FormMessage } from "../components/Field";
 import PasswordInput from "../components/PasswordInput";
+import { getLoginErrorMessage } from "../utils/authErrors";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export default function Login() {
+  useDocumentTitle("Log in");
   const { isAuthenticated, login } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -16,6 +19,7 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -39,15 +43,21 @@ export default function Login() {
         }
       }
     } catch (err) {
-      setError("Invalid email or password.");
+      setError(getLoginErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  // Back to the page that sent the visitor here (ProtectRoute), but only
+  // ever to a page inside the app - never an outside or arbitrary URL.
+  const from = location.state?.from;
+  const returnTo =
+    typeof from === "string" && /^\/app(\/|\?|$)/.test(from) ? from : "/app";
+
   useEffect(() => {
-    if (isAuthenticated) navigate("/app", { replace: true });
-  }, [isAuthenticated, navigate]);
+    if (isAuthenticated) navigate(returnTo, { replace: true });
+  }, [isAuthenticated, navigate, returnTo]);
 
   return (
     <main className={styles.page}>

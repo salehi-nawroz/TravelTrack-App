@@ -6,6 +6,7 @@ import Field, { FormMessage } from "../components/Field";
 import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../contexts/AuthContext";
 import styles from "./Auth.module.css";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 function getSignupErrorMessage(error) {
   switch (error?.code) {
@@ -22,6 +23,7 @@ function getSignupErrorMessage(error) {
 }
 
 export default function Signup() {
+  useDocumentTitle("Sign up");
   const { isAuthenticated, signup } = useAuth();
   const navigate = useNavigate();
 

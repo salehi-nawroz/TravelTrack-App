@@ -4,8 +4,7 @@
 // Storage RLS policies apply exactly as they would to any other upload.
 // x-upsert is false: an existing object is never overwritten.
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "../config/env";
 
 const encodePath = (path) => path.split("/").map(encodeURIComponent).join("/");
 

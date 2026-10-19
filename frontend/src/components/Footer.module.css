@@ -6,3 +6,9 @@
   font-size: 1.2rem;
   color: var(--color-light--1);
 }
+
+.credits {
+  margin-top: 0.4rem;
+  font-size: 1.2rem;
+  color: var(--color-text-secondary);
+}

@@ -9,6 +9,7 @@ import TripStatusBadge from "../components/TripStatusBadge";
 import { buttonClassName } from "../components/buttonClassName";
 import { SAMPLE_CITIES, SAMPLE_TRIPS, getSampleStats } from "../data/exploreSample";
 import { formatTripDate, formatTripRange, toIsoDate, tripLengthDays } from "../utils/tripDates";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 const FEATURES = [
   {
@@ -45,6 +46,7 @@ const stats = getSampleStats();
 const maxYearVisits = Math.max(...stats.visitsPerYear.map((y) => y.visits));
 
 export default function Homepage() {
+  useDocumentTitle("TravelTrack");
   return (
     <main className={styles.homepage}>
       <section className={styles.hero}>
@@ -216,7 +218,7 @@ export default function Homepage() {
       </section>
 
       <div className={styles.footer}>
-        <Footer />
+        <Footer showCredits />
       </div>
     </main>
   );

@@ -91,6 +91,11 @@ function reducer(state, action) {
         currentCity: {},
       };
 
+    // Signed out (or a different user signed in): nothing of the previous
+    // user's data may survive in memory.
+    case "reset":
+      return initialState;
+
     case "rejected":
       return {
         ...state,
@@ -113,19 +118,25 @@ function CitiesProvider({ children }) {
 
   // GET ALL CITIES
   useEffect(() => {
+    dispatch({ type: "reset" });
     if (!user?.id) return;
+
+    // Ignore a response that arrives after the user changed.
+    let isCurrent = true;
 
     async function fetchCities() {
       dispatch({ type: "loading" });
 
       try {
         const data = await getMyCities();
+        if (!isCurrent) return;
 
         dispatch({
           type: "cities/loaded",
           payload: data,
         });
       } catch {
+        if (!isCurrent) return;
         dispatch({
           type: "rejected",
           payload: "There was an error loading data...",
@@ -134,6 +145,10 @@ function CitiesProvider({ children }) {
     }
 
     fetchCities();
+
+    return () => {
+      isCurrent = false;
+    };
   }, [user?.id]);
 
   // GET ONE CITY
@@ -289,4 +304,7 @@ function useCities() {
   return context;
 }
 
+// The provider and its hook live together on purpose (tests mock this module
+// as a whole); in development this costs a full reload instead of a hot one.
+// eslint-disable-next-line react-refresh/only-export-components
 export { CitiesProvider, useCities };

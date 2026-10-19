@@ -260,4 +260,7 @@ function useAuth() {
   return context;
 }
 
+// The provider and its hook live together on purpose (tests mock this module
+// as a whole); in development this costs a full reload instead of a hot one.
+// eslint-disable-next-line react-refresh/only-export-components
 export { AuthProvider, useAuth };

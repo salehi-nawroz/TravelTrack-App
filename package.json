@@ -1,8 +1,5 @@
 {
   "scripts": {
     "migrate:cities": "node --env-file=scripts/.env scripts/migrate-cities.mjs"
-  },
-  "dependencies": {
-    "@brixtol/country-continent": "^1.0.0"
   }
 }

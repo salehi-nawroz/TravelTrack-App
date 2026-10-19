@@ -14,7 +14,6 @@ import City from "./components/City";
 import CountryList from "./components/CountryList";
 import TripList from "./components/TripList";
 import Trash from "./components/Trash";
-import Form from "./components/Form";
 import SpinnerFullPage from "./components/SpinnerFullPage";
 import Spinner from "./components/Spinner";
 
@@ -31,6 +30,8 @@ const Stats = lazy(() => import("./components/Stats"));
 const Trips = lazy(() => import("./components/Trips"));
 const TripDetail = lazy(() => import("./components/TripDetail"));
 const TripForm = lazy(() => import("./components/TripForm"));
+// The city form brings the date picker; only load it when a city is edited.
+const Form = lazy(() => import("./components/Form"));
 
 function App() {
   return (
@@ -100,7 +101,14 @@ function App() {
                 <Route path="cities/:id" element={<City />} />
 
                 {/* /app/cities/:id/edit */}
-                <Route path="cities/:id/edit" element={<Form />} />
+                <Route
+                  path="cities/:id/edit"
+                  element={
+                    <Suspense fallback={<Spinner />}>
+                      <Form />
+                    </Suspense>
+                  }
+                />
 
                 {/* /app/trash */}
                 <Route path="trash" element={<Trash />} />
@@ -161,7 +169,14 @@ function App() {
                 />
 
                 {/* /app/form */}
-                <Route path="form" element={<Form />} />
+                <Route
+                  path="form"
+                  element={
+                    <Suspense fallback={<Spinner />}>
+                      <Form />
+                    </Suspense>
+                  }
+                />
 
                 {/* /app/profile */}
                 <Route
