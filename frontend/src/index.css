@@ -283,3 +283,15 @@ body.is-resizing-sidebar {
   cursor: col-resize;
   user-select: none;
 }
+
+/* Phones and touch screens: text fields and selects get a 44px touch
+   target. :where() keeps this at zero specificity, so component styles
+   (toolbar filters, map search, ...) still decide everything else. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  :where(
+      input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+      select
+    ) {
+    min-height: var(--touch-target);
+  }
+}

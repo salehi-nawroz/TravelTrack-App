@@ -32,3 +32,47 @@ a.ctaLink:visited {
   padding: 0.8rem 2rem;
   border-radius: var(--radius-md);
 }
+
+.nav a:not(.ctaLink):hover {
+  color: var(--color-brand--2);
+}
+
+.nav a:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 4px;
+  border-radius: var(--radius-xs);
+}
+
+/* Phones: logo above, links in one row underneath. */
+@media (max-width: 600px) {
+  .nav {
+    flex-wrap: wrap;
+    gap: 1.6rem;
+    justify-content: center;
+  }
+
+  .nav ul {
+    gap: 2.4rem;
+  }
+
+  .nav a:link,
+  .nav a:visited {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    font-size: 1.4rem;
+  }
+}
+
+/* Touch screens (tablets) and phones: 44px links, also wide enough for
+   short labels like "Home". */
+@media (max-width: 600px), (pointer: coarse) {
+  .nav a:link,
+  .nav a:visited {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+}

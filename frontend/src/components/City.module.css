@@ -54,3 +54,17 @@
   align-items: center;
   width: 100%;
 }
+
+/* Long names and pasted URLs in notes wrap inside the card instead of being
+   clipped by the sidebar. The flag + name row (FlagBox's global
+   .flagBox2) may shrink too. */
+.city h3,
+.city p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.row :global(.flagBox2) {
+  max-width: 100%;
+  min-width: 0;
+}

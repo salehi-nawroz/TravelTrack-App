@@ -1,0 +1,171 @@
+/* Shared by the Sign In (Login.jsx) and Sign Up (Signup.jsx) pages so both
+   forms look and respond the same. Breakpoints match the app: phones
+   < 768px, tablets 768-1099px, desktop >= 1100px. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  margin: 2.5rem;
+  padding: 2.5rem 5rem;
+  background-color: var(--color-dark--1);
+  min-height: calc(100vh - 5rem);
+  /* Dynamic viewport height where supported: tracks the mobile browser's
+     toolbars instead of overflowing behind them. */
+  min-height: calc(100dvh - 5rem);
+}
+
+/* Fluid up to the original 48rem: never wider than the space available. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  max-width: 48rem;
+  margin: 8rem auto;
+  padding: 3rem;
+  background-color: var(--color-dark--2);
+  border-radius: var(--radius-md);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.body {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+/* Long values (e.g. a long email address) never push the field wider. */
+.form input {
+  min-width: 0;
+}
+
+/* Form-level errors: a tinted panel with light text. The shared error red
+   is too low-contrast as body text on this surface, so the text uses the
+   primary colour and the red marks the edge. Two classes so it wins over
+   the shared FormMessage colour regardless of stylesheet order. */
+.errorBox {
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--color-danger);
+  background-color: rgba(224, 49, 49, 0.16);
+  overflow-wrap: anywhere;
+}
+
+.errorBox p {
+  color: var(--color-text-primary);
+}
+
+.errorBox a {
+  color: var(--color-brand-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.submit {
+  width: 100%;
+  min-height: var(--control-height);
+}
+
+.switch {
+  text-align: center;
+  font-size: 1.4rem;
+}
+
+.switch a {
+  color: var(--color-brand--2);
+  font-weight: 600;
+}
+
+.switch a:focus-visible,
+.errorBox a:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* --- Tablet --- */
+@media (max-width: 1099.98px) {
+  .page {
+    padding: 2.5rem 3.2rem;
+  }
+
+  .form {
+    margin: 6rem auto;
+  }
+}
+
+/* --- Phones --- */
+@media (max-width: 767.98px) {
+  .page {
+    margin: 0;
+    padding: 1.6rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .form {
+    margin: 3.2rem auto 2.4rem;
+    padding: 2.4rem 2rem;
+    gap: 1.8rem;
+  }
+
+  /* Comfortable touch targets. */
+  .form input {
+    min-height: var(--touch-target);
+  }
+
+  .submit {
+    min-height: var(--touch-target);
+  }
+
+}
+
+/* Very narrow phones (320px): a little more room for the fields. */
+@media (max-width: 359.98px) {
+  .page {
+    padding: 1.2rem;
+  }
+
+  .form {
+    padding: 2rem 1.6rem;
+  }
+
+  .title {
+    font-size: var(--font-size-lg);
+  }
+}
+
+/* Short screens (landscape phones, or the on-screen keyboard open): less
+   empty space above the form so the fields stay in view. */
+@media (max-height: 600px) {
+  .form {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* Phones and touch screens: the "Sign up" / "Log in" switch link and the
+   link inside error messages are 44px touch targets. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .switch a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    padding: 0 0.4rem;
+  }
+}

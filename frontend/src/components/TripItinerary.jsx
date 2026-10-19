@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Button from "./Button";
 import ConfirmDialog from "./ConfirmDialog";
 import DestinationDialog from "./DestinationDialog";
@@ -11,23 +11,20 @@ import {
   reorderDestinations,
   updateDestination,
 } from "../services/tripService";
-import { formatStayRange, formatTripDate } from "../utils/tripDates";
+import { useTripMap } from "../contexts/tripMapContext";
+import { formatStay } from "../utils/tripDates";
+import { isValidPosition } from "../utils/tripMap";
 import styles from "./TripItinerary.module.css";
 
-function stayLabel({ arrivalDate, departureDate }) {
-  if (arrivalDate && departureDate) {
-    return arrivalDate === departureDate
-      ? formatTripDate(arrivalDate)
-      : formatStayRange(arrivalDate, departureDate);
-  }
-  if (arrivalDate) return `Arrived ${formatTripDate(arrivalDate)}`;
-  if (departureDate) return `Left ${formatTripDate(departureDate)}`;
-  return "";
-}
+const prefersReducedMotion = () =>
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 // A trip's destinations in travel order, with add / edit / remove and
 // move up / move down (buttons, so reordering works from the keyboard and
-// on touch screens without drag and drop).
+// on touch screens without drag and drop). Linked to the map (see
+// TripMapLayer): a stop's name shows it on the map, "Show route on map"
+// fits the whole route, and "Show in itinerary" in a map popup scrolls to
+// and highlights the stop here.
 //   canEdit:      show the editing controls (the database decides anyway)
 //   cities:       the owner's cities for the destination picker
 //   onTripChange: receives the trip with its updated destinations
@@ -38,9 +35,44 @@ function TripItinerary({ trip, canEdit, cities = [], onTripChange }) {
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
+  const listRef = useRef(null);
+  const { activeDestinationId, revealRequest, focusDestination } = useTripMap();
 
   const destinations = trip.destinations;
   const withDestinations = (list) => onTripChange({ ...trip, destinations: list });
+  const unmappedCount = destinations.filter((d) => !isValidPosition(d.position)).length;
+  const mappedCount = destinations.length - unmappedCount;
+
+  // "Show in itinerary" from the map: bring the stop into view and put
+  // keyboard focus on it. On phones the bottom sheet is still collapsed
+  // (content hidden) when this runs and opens just after, so keep trying
+  // for a few frames until the stop can take focus.
+  useEffect(() => {
+    if (!revealRequest) return;
+    let frame = 0;
+    let attempts = 0;
+
+    function reveal() {
+      const item = listRef.current?.querySelector(
+        `[data-destination-id="${revealRequest.destinationId}"]`,
+      );
+      const target = item?.querySelector("button");
+      if (target) {
+        target.focus({ preventScroll: true });
+        if (document.activeElement === target) {
+          item.scrollIntoView?.({
+            block: "center",
+            behavior: prefersReducedMotion() ? "auto" : "smooth",
+          });
+          return;
+        }
+      }
+      if (++attempts < 30) frame = requestAnimationFrame(reveal);
+    }
+
+    reveal();
+    return () => cancelAnimationFrame(frame);
+  }, [revealRequest]);
 
   async function handleSave(values) {
     if (dialog.destination) {
@@ -100,17 +132,39 @@ function TripItinerary({ trip, canEdit, cities = [], onTripChange }) {
           Itinerary
           <span className={styles.count}>{destinations.length}</span>
         </h3>
-        {canEdit && (
-          <Button
-            variant="outline"
-            size="sm"
-            htmlType="button"
-            onClick={() => setDialog({})}
-          >
-            + Add destination
-          </Button>
-        )}
+        <div className={styles.headerActions}>
+          {mappedCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              htmlType="button"
+              onClick={() => focusDestination(null)}
+            >
+              Show route on map
+            </Button>
+          )}
+          {canEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              htmlType="button"
+              onClick={() => setDialog({})}
+            >
+              + Add destination
+            </Button>
+          )}
+        </div>
       </div>
+
+      {unmappedCount > 0 && (
+        <p className={styles.unmappedNote}>
+          {unmappedCount === destinations.length
+            ? "None of these stops can be shown on the map"
+            : `${unmappedCount} of ${destinations.length} stops can't be shown on the map`}{" "}
+          because their location is missing or invalid.
+          {canEdit && " Edit a stop and choose its place again to fix it."}
+        </p>
+      )}
 
       {error && <FormMessage>{error}</FormMessage>}
       <p className={styles.srOnly} role="status">
@@ -129,12 +183,18 @@ function TripItinerary({ trip, canEdit, cities = [], onTripChange }) {
           }
         />
       ) : (
-        <ol className={styles.stops}>
+        <ol className={styles.stops} ref={listRef}>
           {destinations.map((destination, index) => {
             const isBusy = busyId === destination.id;
-            const stay = stayLabel(destination);
+            const stay = formatStay(destination);
+            const isMapped = isValidPosition(destination.position);
+            const isActive = destination.id === activeDestinationId;
             return (
-              <li key={destination.id} className={styles.stop}>
+              <li
+                key={destination.id}
+                className={`${styles.stop} ${isActive ? styles.active : ""}`}
+                data-destination-id={destination.id}
+              >
                 <span className={styles.marker} aria-hidden="true">
                   {index + 1}
                 </span>
@@ -147,7 +207,19 @@ function TripItinerary({ trip, canEdit, cities = [], onTripChange }) {
                       position="left"
                     />
                     <span className={styles.placeText}>
-                      <strong className={styles.cityName}>{destination.cityName}</strong>
+                      {isMapped ? (
+                        <button
+                          type="button"
+                          className={styles.cityButton}
+                          onClick={() => focusDestination(destination.id)}
+                          aria-label={`Show ${destination.cityName}, stop ${index + 1}, on the map`}
+                          title="Show on the map"
+                        >
+                          <strong className={styles.cityName}>{destination.cityName}</strong>
+                        </button>
+                      ) : (
+                        <strong className={styles.cityName}>{destination.cityName}</strong>
+                      )}
                       <span className={styles.country}>
                         {[destination.region, destination.country].filter(Boolean).join(", ")}
                       </span>
@@ -155,6 +227,9 @@ function TripItinerary({ trip, canEdit, cities = [], onTripChange }) {
                   </div>
                   {stay && <p className={styles.stay}>{stay}</p>}
                   {destination.notes && <p className={styles.notes}>{destination.notes}</p>}
+                  {!isMapped && (
+                    <p className={styles.noLocation}>Not on the map: no valid location.</p>
+                  )}
                 </div>
 
                 {canEdit && (

@@ -1,0 +1,36 @@
+/* Own stacking context, like the app map: Leaflet's internal z-indexes
+   (panes 400, controls up to 1000) stay inside this box. */
+.wrapper {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-map-bg);
+}
+
+.map {
+  height: 100%;
+  min-height: 24rem;
+}
+
+.popupButton {
+  align-self: flex-start;
+  padding: 0.4rem 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-brand-text);
+  cursor: pointer;
+}
+
+.popupButton:hover {
+  text-decoration: underline;
+}
+
+.popupButton:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}

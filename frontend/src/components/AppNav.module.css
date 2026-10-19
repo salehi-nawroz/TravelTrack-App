@@ -317,3 +317,18 @@
     margin-top: 0.6rem;
   }
 }
+
+/* Touch screens (tablets): the sidebar's Sections toggle and Add city
+   button get a 44px touch target. */
+@media (pointer: coarse) {
+  .toggle {
+    height: auto;
+    min-height: var(--touch-target);
+  }
+
+  .nav a.addCity:link,
+  .nav a.addCity:visited {
+    height: auto;
+    min-height: var(--touch-target);
+  }
+}

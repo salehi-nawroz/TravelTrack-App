@@ -14,6 +14,7 @@ import { buttonClassName } from "./buttonClassName";
 import { useAuth } from "../contexts/AuthContext";
 import { useCities } from "../contexts/CitiesContext";
 import { useTrips } from "../contexts/tripsContext";
+import { useTripMap } from "../contexts/tripMapContext";
 import { useTripOwner } from "../hooks/useTripOwner";
 import { deleteTrip, endTrip, getTrip } from "../services/tripService";
 import { formatTripRange, todayIso, tripLengthDays } from "../utils/tripDates";
@@ -59,6 +60,9 @@ function TripDetail() {
     let isMounted = true;
     setIsLoading(true);
     setLoadError("");
+    // Another trip: drop the previous one at once, so neither this page nor
+    // the map shows it while the new one loads.
+    setTrip((current) => (current?.id === id ? current : null));
 
     getTrip(id)
       .then((data) => {
@@ -75,6 +79,19 @@ function TripDetail() {
       isMounted = false;
     };
   }, [id, reloadKey]);
+
+  // The map shows this trip's itinerary while the page is open, and always
+  // the latest version of it (after adding, editing, removing or reordering
+  // destinations). Leaving the page, or a failed load, gives the map back.
+  const { showTripOnMap, clearTripMap } = useTripMap();
+  useEffect(() => {
+    if (trip) showTripOnMap(trip);
+  }, [trip, showTripOnMap]);
+  const shownTripId = trip?.id;
+  useEffect(() => {
+    if (!shownTripId) return;
+    return () => clearTripMap(shownTripId);
+  }, [shownTripId, clearTripMap]);
 
   function handleTripChange(updated) {
     setTrip(updated);

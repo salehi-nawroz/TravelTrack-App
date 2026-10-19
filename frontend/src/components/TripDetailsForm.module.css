@@ -65,3 +65,10 @@
     min-height: var(--touch-target);
   }
 }
+
+/* Phones and touch screens: the cover-photo file picker is a 44px target. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .fileInput {
+    min-height: var(--touch-target);
+  }
+}

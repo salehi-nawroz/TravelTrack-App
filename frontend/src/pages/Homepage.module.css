@@ -1,34 +1,576 @@
 .homepage {
-  height: calc(100vh - 5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
   margin: 2.5rem;
-  background-image: linear-gradient(
-      rgba(36, 42, 46, 0.8),
-      rgba(36, 42, 46, 0.8)
-    ),
+}
+
+/* --- Hero --- */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 5rem);
+  padding: 2.5rem 5rem;
+  border-radius: var(--radius-lg);
+  background-image:
+    linear-gradient(rgba(36, 42, 46, 0.78), rgba(36, 42, 46, 0.88)),
     url("../bg.jpg");
   background-size: cover;
   background-position: center;
-  padding: 2.5rem 5rem;
 }
 
-.homepage section {
+.heroContent {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 85%;
   align-items: center;
   justify-content: center;
-  gap: 2.5rem;
+  gap: 2.4rem;
+  padding: 6rem 0 4rem;
   text-align: center;
 }
 
-.homepage h1 {
-  font-size: 4.5rem;
-  line-height: 1.3;
+.eyebrow,
+.sectionEyebrow {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
 }
 
-.homepage h2 {
-  width: 90%;
-  font-size: 1.9rem;
-  color: var(--color-light--1);
-  margin-bottom: 2.5rem;
+.heroContent h1 {
+  font-size: 5.6rem;
+  line-height: 1.15;
+  font-weight: var(--font-weight-extrabold);
+}
+
+.highlight {
+  color: var(--color-brand);
+}
+
+.lead {
+  max-width: 64rem;
+  font-size: 2rem;
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.6rem;
+}
+
+/* Larger hero/CTA buttons on top of the shared button styles; two classes
+   so they win over Button.module.css regardless of stylesheet order. */
+.actions .bigButton {
+  min-height: 5rem;
+  padding: 0 3.2rem;
+  font-size: var(--font-size-md);
+}
+
+.assurances {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem 2.4rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.assurances li::before {
+  content: "✓ ";
+  color: var(--color-brand);
+  font-weight: var(--font-weight-bold);
+}
+
+/* --- Sections --- */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 6rem 5rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface-1);
+  text-align: center;
+}
+
+.section h2 {
+  font-size: 3.4rem;
+  line-height: var(--line-height-tight);
+}
+
+.sectionLead {
+  max-width: 64rem;
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+}
+
+/* --- Features --- */
+
+.features {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2rem;
+  width: 100%;
+  margin-top: 2.4rem;
+  text-align: left;
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2.4rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-2);
+  border-top: 3px solid var(--color-brand);
+}
+
+.feature:nth-child(even) {
+  border-top-color: var(--color-accent);
+}
+
+.featureIcon {
+  display: grid;
+  place-items: center;
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+
+.feature:nth-child(even) .featureIcon {
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.icon {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.feature h3 {
+  font-size: var(--font-size-lg);
+}
+
+.feature p {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+/* --- Previews --- */
+
+.previewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+    "map map cities"
+    "map map trips"
+    "stats stats stats";
+  gap: 2rem;
+  width: 100%;
+  margin: 2.4rem 0 1.2rem;
+  text-align: left;
+}
+
+.previewCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin: 0;
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-2);
+}
+
+.mapPreview {
+  grid-area: map;
+  padding: 1.2rem;
+}
+
+.mapPreview figcaption {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.mapPreview figcaption strong {
+  color: var(--color-text-primary);
+}
+
+.previewMap {
+  flex: 1;
+  min-height: 38rem;
+}
+
+.previewGrid > :nth-child(2) {
+  grid-area: cities;
+}
+
+.previewGrid > :nth-child(3) {
+  grid-area: trips;
+}
+
+.previewGrid > :nth-child(4) {
+  grid-area: stats;
+}
+
+.previewTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.previewIcon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-brand);
+}
+
+.cityRows {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cityRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1.2rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-1);
+  border-left: 4px solid var(--color-brand);
+  font-size: var(--font-size-base);
+}
+
+.cityRow img {
+  width: 2.4rem;
+  height: 1.7rem;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+}
+
+.cityName {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.cityRow time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.tripCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.4rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-1);
+  border: 1px solid rgba(0, 196, 106, 0.45);
+}
+
+.tripCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.days {
+  padding: 0.2rem 0.9rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.tripTitle {
+  font-size: var(--font-size-lg);
+}
+
+.tripDates {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.tripStops {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  margin-top: 0.6rem;
+  font-size: var(--font-size-sm);
+}
+
+.tripStops li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.tripStops span {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-size: 1.1rem;
+  font-weight: var(--font-weight-extrabold);
+}
+
+.statTiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.2rem;
+}
+
+.statTiles div {
+  display: flex;
+  flex-direction: column-reverse;
+  padding: 1.2rem 1.4rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-1);
+}
+
+.statTiles dt {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.statTiles dd {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-brand-text);
+  line-height: 1.1;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.2rem;
+  height: 12rem;
+  padding-top: 1rem;
+}
+
+.bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  height: 100%;
+}
+
+.bar span {
+  display: block;
+  width: 100%;
+  max-width: 6rem;
+  min-height: 0.4rem;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+  background-color: var(--color-brand);
+}
+
+.bar small {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.textLink:link,
+.textLink:visited {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-brand-text);
+  text-decoration: none;
+}
+
+.textLink:hover {
+  text-decoration: underline;
+}
+
+/* --- Steps --- */
+
+.steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+  width: 100%;
+  margin-top: 2.4rem;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2.4rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-2);
+}
+
+.stepNumber {
+  display: grid;
+  place-items: center;
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: 50%;
+  background-color: var(--color-brand);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+}
+
+.step h3 {
+  font-size: var(--font-size-lg);
+}
+
+.step p {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+/* --- Closing CTA --- */
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+  padding: 6rem 3rem;
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(rgba(36, 42, 46, 0.8), rgba(36, 42, 46, 0.8)),
+    url("../bg.jpg") center / cover;
+  text-align: center;
+}
+
+.cta h2 {
+  font-size: 3.4rem;
+  line-height: var(--line-height-tight);
+}
+
+.cta p {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+}
+
+.footer {
+  padding: 0 1rem 1rem;
+  text-align: center;
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 1099.98px) {
+  .features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .previewGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "map map"
+      "cities trips"
+      "stats stats";
+  }
+
+  .previewMap {
+    min-height: 34rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .homepage {
+    margin: 1.2rem;
+    gap: 1.2rem;
+  }
+
+  .hero {
+    min-height: auto;
+    padding: 2rem 2rem 3rem;
+  }
+
+  .heroContent {
+    padding: 4rem 0 1rem;
+  }
+
+  .heroContent h1 {
+    font-size: 3.6rem;
+  }
+
+  .lead {
+    font-size: var(--font-size-md);
+  }
+
+  .section {
+    padding: 4rem 2rem;
+  }
+
+  .section h2,
+  .cta h2 {
+    font-size: 2.6rem;
+  }
+
+  .features,
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .previewGrid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "map"
+      "cities"
+      "trips"
+      "stats";
+  }
+
+  .previewMap {
+    min-height: 28rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .actions .bigButton {
+    width: 100%;
+    min-height: var(--touch-target);
+  }
+}
+
+@media (max-width: 400px) {
+  .statTiles dd {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* Phones and touch screens: the "Open the interactive demo" text link is a
+   44px touch target. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .textLink:link,
+  .textLink:visited {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+  }
 }

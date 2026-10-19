@@ -20,6 +20,21 @@
   font-weight: var(--font-weight-bold);
 }
 
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+/* Some stops can't be mapped (missing/invalid coordinates). */
+.unmappedNote {
+  padding: 0.8rem 1.2rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-accent-soft);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
 .count {
   min-width: 2.2rem;
   padding: 0 0.6rem;
@@ -81,6 +96,14 @@
   color: var(--color-text-inverse);
 }
 
+/* The stop selected on the map or here: tinted, with an amber edge (the
+   map marker of the same stop is enlarged at the same time). */
+.active {
+  border-radius: var(--radius-md);
+  background-color: var(--color-accent-soft);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
 .stopBody {
   flex: 1;
   min-width: 0;
@@ -114,6 +137,35 @@
 .cityName {
   font-size: var(--font-size-md);
   overflow-wrap: anywhere;
+}
+
+/* The stop's name doubles as its "show on the map" button. */
+.cityButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+}
+
+.cityButton:hover .cityName {
+  color: var(--color-brand-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cityButton:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.noLocation {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
 }
 
 .country {
@@ -170,6 +222,22 @@
 }
 
 @media (max-width: 767.98px) {
+  .actions > button {
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+}
+
+/* Phones and touch screens: a stop's "show on the map" name is a 44px
+   touch target. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .cityButton {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+
   .actions > button {
     min-height: var(--touch-target);
     min-width: var(--touch-target);

@@ -117,3 +117,30 @@
 .moreButton:hover {
   text-decoration: underline;
 }
+
+/* Very long city names (e.g. Llanfairpwllgwyngyll...) wrap instead of
+   running past the sidebar. */
+.cityList li,
+.cityList a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Phones and touch screens: the country header and each city link are
+   comfortable 44px touch targets. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .countryHeader {
+    min-height: var(--touch-target);
+  }
+
+  .cityList a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+
+  .cityList {
+    gap: 0;
+  }
+}

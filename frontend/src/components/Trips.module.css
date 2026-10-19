@@ -248,3 +248,10 @@
     min-height: var(--touch-target);
   }
 }
+
+/* Touch screens (tablets): filter pills at 44px, like on phones. */
+@media (pointer: coarse) {
+  .filter {
+    min-height: var(--touch-target);
+  }
+}

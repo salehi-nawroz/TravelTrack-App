@@ -1,0 +1,529 @@
+.explore {
+  display: flex;
+  flex-direction: column;
+  gap: 3.2rem;
+  min-height: calc(100vh - 5rem);
+  margin: 2.5rem;
+  padding: 2.5rem 5rem;
+  background-color: var(--color-surface-1);
+  border-radius: var(--radius-lg);
+}
+
+/* --- Intro --- */
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 76rem;
+}
+
+.eyebrow {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.intro h1 {
+  font-size: 4rem;
+  line-height: var(--line-height-tight);
+}
+
+.lead {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+}
+
+.demoNote {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  align-self: flex-start;
+  padding: 0.6rem 1.4rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent-soft);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.demoNote span {
+  color: var(--color-accent);
+}
+
+.introActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  margin-top: 0.4rem;
+}
+
+/* --- Stat tiles --- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.2rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1.6rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-2);
+}
+
+.statValue {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+  color: var(--color-brand-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* --- Map + panel --- */
+
+.demo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40rem;
+  gap: 2rem;
+  align-items: start;
+}
+
+.mapColumn {
+  position: sticky;
+  top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.map {
+  height: 62rem;
+  max-height: calc(100vh - 8rem);
+  box-shadow: var(--shadow-md);
+}
+
+.mapCaption {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.tripPicker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tripOption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 1rem 1.4rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-2);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+.tripOption:hover {
+  border-color: var(--color-brand);
+}
+
+.tripOption:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.selected,
+.selected:hover {
+  border-color: var(--color-brand);
+  background-color: var(--color-brand-soft);
+  box-shadow: inset 3px 0 0 var(--color-brand);
+}
+
+.tripOptionTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.tripOptionMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-2);
+}
+
+.details h2 {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+}
+
+.detailsHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.days {
+  padding: 0.2rem 0.9rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.dates {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.subheading {
+  margin-top: 0.8rem;
+  font-size: var(--font-size-md);
+}
+
+.stops {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.stop {
+  position: relative;
+  display: flex;
+  gap: 1.2rem;
+  padding: 0.8rem 0.6rem;
+  border-radius: var(--radius-md);
+}
+
+.stop:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: calc(1.9rem - 1px);
+  top: 3.6rem;
+  bottom: -0.8rem;
+  border-left: 2px dotted var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+.activeStop {
+  background-color: var(--color-accent-soft);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.stopNumber {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-extrabold);
+}
+
+.stopBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.stopButton,
+.cityButton {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+}
+
+.stopButton strong {
+  font-size: var(--font-size-md);
+}
+
+.stopButton img {
+  width: 2.4rem;
+  height: 1.7rem;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+}
+
+.stopButton:hover strong,
+.cityButton:hover {
+  color: var(--color-brand-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.stopButton:focus-visible,
+.cityButton:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.stopCountry {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.stay {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-text);
+}
+
+.notes {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.countries {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.countryName {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: var(--font-size-md);
+}
+
+.countryName img {
+  width: 2.4rem;
+  height: 1.7rem;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+}
+
+.count {
+  min-width: 2.2rem;
+  padding: 0 0.6rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-1);
+  font-size: var(--font-size-xs);
+  line-height: 1.8rem;
+  text-align: center;
+}
+
+.cityList {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.6rem;
+  margin: 0.4rem 0 0 3.2rem;
+}
+
+.cityButton {
+  font-size: var(--font-size-base);
+  min-height: 3.2rem;
+}
+
+.cityTrip {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* --- Countries choropleth --- */
+
+.countriesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-2);
+}
+
+.countriesSection h2 {
+  font-size: var(--font-size-xl);
+}
+
+/* --- Closing CTA --- */
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 4rem 2rem;
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(rgba(36, 42, 46, 0.82), rgba(36, 42, 46, 0.82)),
+    url("/bg.jpg") center / cover;
+  text-align: center;
+}
+
+.cta h2 {
+  font-size: 3rem;
+  line-height: var(--line-height-tight);
+}
+
+.cta p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+}
+
+.ctaActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 0.8rem;
+}
+
+.textLink:link,
+.textLink:visited {
+  color: var(--color-brand-text);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 1099.98px) {
+  .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .demo {
+    grid-template-columns: minmax(0, 1fr) 34rem;
+  }
+}
+
+/* Tablet portrait and phones: map first, then the list. */
+@media (max-width: 899.98px) {
+  .explore {
+    margin: 1.2rem;
+    padding: 2rem 2.4rem;
+  }
+
+  .demo {
+    grid-template-columns: 1fr;
+  }
+
+  .mapColumn {
+    position: static;
+  }
+
+  .map {
+    height: 52vh;
+    min-height: 30rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .explore {
+    margin: 0;
+    padding: 1.6rem;
+    border-radius: 0;
+    gap: 2.4rem;
+  }
+
+  .intro h1 {
+    font-size: 3rem;
+  }
+
+  .lead {
+    font-size: var(--font-size-md);
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat {
+    padding: 1.2rem;
+  }
+
+  .statValue {
+    font-size: var(--font-size-xl);
+  }
+
+  .details,
+  .countriesSection {
+    padding: 1.6rem;
+  }
+
+  .cta h2 {
+    font-size: 2.4rem;
+  }
+
+  .tripOption,
+  .stopButton {
+    min-height: var(--touch-target);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tripOption {
+    transition: none;
+  }
+}
+
+/* Touch screens (tablets) and phones: list controls are 44px targets. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .tripOption,
+  .stopButton,
+  .cityButton {
+    min-height: var(--touch-target);
+  }
+
+  .textLink:link,
+  .textLink:visited {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+  }
+}

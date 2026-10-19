@@ -114,3 +114,10 @@
     min-height: var(--touch-target);
   }
 }
+
+/* Touch screens (tablets): a 44px Logout target on the floating user card. */
+@media (pointer: coarse) {
+  .logoutBtn {
+    min-height: var(--touch-target);
+  }
+}

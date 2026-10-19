@@ -107,3 +107,14 @@
     flex-wrap: wrap;
   }
 }
+
+/* Long names and email addresses wrap inside the dialog (phones). */
+.header > div {
+  min-width: 0;
+}
+
+.header h2,
+.email,
+.cityName {
+  overflow-wrap: anywhere;
+}

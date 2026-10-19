@@ -9,9 +9,14 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { useCities } from "../contexts/CitiesContext";
+import { useTripMap } from "../contexts/tripMapContext";
+import { TRIPS_ENABLED } from "../config/features";
+import TripMapLayer from "./TripMapLayer";
+import tripStyles from "./TripMapLayer.module.css";
+import { getTripMapData } from "../utils/tripMap";
 import {
   Link,
   useLocation,
@@ -81,6 +86,22 @@ function Map() {
   const isSelectingLocation = searchParams.get("selectLocation") === "true";
   const { lat: mapLat, lng: mapLng } = useUrlPosition();
 
+  // An open trip (see TripDetail) replaces the city pins with its itinerary
+  // until the trip page is left.
+  const {
+    mapTrip,
+    activeDestinationId,
+    focusRequest,
+    selectDestination,
+    revealDestination,
+  } = useTripMap();
+  const tripOnMap = TRIPS_ENABLED && mapTrip ? mapTrip : null;
+  const tripMapSummary = tripOnMap ? getTripMapData(tripOnMap.destinations) : null;
+  // Read when the trip closes: a page that sets its own position (a city,
+  // the add-city form) keeps it instead of getting the pre-trip view back.
+  const hasUrlPositionRef = useRef(false);
+  hasUrlPositionRef.current = Boolean(mapLat && mapLng);
+
   function handleSearchSelect(selectedLocation) {
     const path = isSelectingLocation ? location.pathname : "/app/form";
     const selectionMode = isSelectingLocation ? "selectLocation=true&" : "";
@@ -100,6 +121,18 @@ function Map() {
   return (
     <div className={styles.mapContainer}>
       <LocationSearch onSelect={handleSearchSelect} variant="map" />
+
+      {tripMapSummary && (
+        <p className={tripStyles.chip} role="status">
+          <span className={tripStyles.chipDot} aria-hidden="true" />
+          <span className={tripStyles.chipText}>
+            Trip: <strong>{tripOnMap.title}</strong> ·{" "}
+            {tripMapSummary.points.length === tripMapSummary.total
+              ? `${tripMapSummary.total} ${tripMapSummary.total === 1 ? "stop" : "stops"}`
+              : `${tripMapSummary.points.length} of ${tripMapSummary.total} stops on the map`}
+          </span>
+        </p>
+      )}
 
       {geolocationError && (
         <div className={styles.geoError} role="alert">
@@ -140,7 +173,18 @@ function Map() {
           maxZoom={19}
         />
 
-        {cities.map((city) => (
+        {tripOnMap && (
+          <TripMapLayer
+            trip={tripOnMap}
+            activeDestinationId={activeDestinationId}
+            focusRequest={focusRequest}
+            onSelectDestination={selectDestination}
+            onShowInItinerary={revealDestination}
+            shouldRestoreView={() => !hasUrlPositionRef.current}
+          />
+        )}
+
+        {!tripOnMap && cities.map((city) => (
           <Marker
             position={[city.position.lat, city.position.lng]}
             key={city.id}

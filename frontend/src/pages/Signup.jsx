@@ -2,8 +2,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import PageNav from "../components/PageNav";
 import Button from "../components/Button";
+import Field, { FormMessage } from "../components/Field";
+import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../contexts/AuthContext";
-import styles from "./Signup.module.css";
+import styles from "./Auth.module.css";
 
 function getSignupErrorMessage(error) {
   switch (error?.code) {
@@ -28,6 +30,10 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  // Which field a validation error belongs to ("password" |
+  // "confirmPassword"), so it's shown and announced on that field; null for
+  // form-level errors.
+  const [errorField, setErrorField] = useState(null);
   const [isDuplicateEmailError, setIsDuplicateEmailError] = useState(false);
   const [status, setStatus] = useState("idle"); // idle | submitting | success
 
@@ -41,7 +47,9 @@ export default function Signup() {
     const trimmedName = fullName.trim();
     const trimmedEmail = email.trim();
 
+    if (status === "submitting") return;
     setError("");
+    setErrorField(null);
     setIsDuplicateEmailError(false);
 
     if (!trimmedName || !trimmedEmail || !password || !confirmPassword) {
@@ -50,10 +58,12 @@ export default function Signup() {
     }
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
+      setErrorField("password");
       return;
     }
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      setErrorField("confirmPassword");
       return;
     }
 
@@ -88,14 +98,17 @@ export default function Signup() {
 
   if (status === "success") {
     return (
-      <main className={styles.signup}>
+      <main className={styles.page}>
         <PageNav />
-        <div className={styles.form}>
-          <h2>Check your email</h2>
-          <p>
+        <div className={styles.form} role="status">
+          <h1 className={styles.title}>Check your email</h1>
+          <p className={styles.body}>
             If {email.trim()} isn&apos;t already registered, we&apos;ve sent
             a confirmation link to it. Click the link to verify your account,
             then log in.
+          </p>
+          <p className={styles.switch}>
+            <Link to="/login">Go to log in</Link>
           </p>
         </div>
       </main>
@@ -103,11 +116,17 @@ export default function Signup() {
   }
 
   return (
-    <main className={styles.signup}>
+    <main className={styles.page}>
       <PageNav />
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <div className={styles.row}>
-          <label htmlFor="fullName">Full name</label>
+      <form className={styles.form} onSubmit={handleSubmit} aria-labelledby="signup-title">
+        <div className={styles.header}>
+          <h1 id="signup-title" className={styles.title}>
+            Create an account
+          </h1>
+          <p className={styles.subtitle}>Start mapping the places you&apos;ve been.</p>
+        </div>
+
+        <Field id="fullName" label="Full name">
           <input
             type="text"
             id="fullName"
@@ -116,64 +135,71 @@ export default function Signup() {
             onChange={(e) => setFullName(e.target.value)}
             value={fullName}
           />
-        </div>
+        </Field>
 
-        <div className={styles.row}>
-          <label htmlFor="email">Email address</label>
+        <Field id="email" label="Email address">
           <input
             type="email"
             id="email"
             name="email"
             autoComplete="email"
+            inputMode="email"
             onChange={(e) => setEmail(e.target.value)}
             value={email}
           />
-        </div>
+        </Field>
 
-        <div className={styles.row}>
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
+        <Field
+          id="password"
+          label="Password"
+          hint="At least 8 characters."
+          error={errorField === "password" ? error : undefined}
+        >
+          <PasswordInput
             id="password"
             name="password"
             autoComplete="new-password"
             onChange={(e) => setPassword(e.target.value)}
             value={password}
           />
-          <span className={styles.hint}>At least 8 characters.</span>
-        </div>
+        </Field>
 
-        <div className={styles.row}>
-          <label htmlFor="confirmPassword">Confirm password</label>
-          <input
-            type="password"
+        <Field
+          id="confirmPassword"
+          label="Confirm password"
+          error={errorField === "confirmPassword" ? error : undefined}
+        >
+          <PasswordInput
             id="confirmPassword"
             name="confirmPassword"
             autoComplete="new-password"
             onChange={(e) => setConfirmPassword(e.target.value)}
             value={confirmPassword}
           />
-        </div>
+        </Field>
 
         {isDuplicateEmailError && (
-          <p style={{ color: "var(--color-danger)" }}>
-            This email is already registered. Please{" "}
-            <Link
-              to="/login"
-              style={{ color: "var(--color-brand--2)", fontWeight: 600 }}
-            >
-              log in
-            </Link>{" "}
-            instead.
-          </p>
+          <div className={styles.errorBox}>
+            <FormMessage>
+              This email is already registered. Please{" "}
+              <Link to="/login">log in</Link> instead.
+            </FormMessage>
+          </div>
         )}
-        {error && <p style={{ color: "var(--color-danger)" }}>{error}</p>}
+        {error && !errorField && (
+          <div className={styles.errorBox}>
+            <FormMessage>{error}</FormMessage>
+          </div>
+        )}
 
-        <div>
-          <Button type="primary" disabled={status === "submitting"}>
-            {status === "submitting" ? "Creating account…" : "Sign up"}
-          </Button>
-        </div>
+        <Button
+          type="primary"
+          htmlType="submit"
+          className={styles.submit}
+          disabled={status === "submitting"}
+        >
+          {status === "submitting" ? "Creating account…" : "Sign up"}
+        </Button>
 
         <p className={styles.switch}>
           Already have an account? <Link to="/login">Log in</Link>

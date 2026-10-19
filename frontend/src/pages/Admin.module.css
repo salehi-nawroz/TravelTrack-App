@@ -327,3 +327,20 @@
     flex-wrap: wrap;
   }
 }
+
+/* Long city names wrap so the Edit / Delete actions next to them stay
+   visible. */
+.cityList a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Phones and touch screens: city links in the Cities tab are 44px targets. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .cityList a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+}

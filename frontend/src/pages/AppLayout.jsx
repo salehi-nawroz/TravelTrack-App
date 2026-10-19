@@ -4,6 +4,7 @@ import Map from "../components/Map";
 import MobileNav from "../components/MobileNav";
 import Sidebar from "../components/Sidebar";
 import User from "../components/User";
+import { useTripMap } from "../contexts/tripMapContext";
 import {
   useResizableSidebar,
   SIDEBAR_MIN_WIDTH,
@@ -47,6 +48,19 @@ function AppLayout() {
       (pickedLat !== null && pickedLat !== last.pickedLat);
     if (hasMoved && !isInitialRedirect) setIsSheetExpanded(true);
   }, [pathname, isSelectingLocation, pickedLat]);
+
+  // Trip itinerary <-> map (phones): showing a stop or the route on the map
+  // gets the sheet out of the way; "Show in itinerary" from a map popup
+  // brings it back. Larger screens show both side by side already.
+  const { focusRequest, revealRequest } = useTripMap();
+  useEffect(() => {
+    if (focusRequest && window.matchMedia?.("(max-width: 767.98px)").matches) {
+      setIsSheetExpanded(false);
+    }
+  }, [focusRequest]);
+  useEffect(() => {
+    if (revealRequest) setIsSheetExpanded(true);
+  }, [revealRequest]);
 
   const expandSheet = () => setIsSheetExpanded(true);
 

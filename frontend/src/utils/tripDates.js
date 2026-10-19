@@ -66,6 +66,19 @@ export function formatStayRange(startDate, endDate) {
     : `${format.format(start)} – ${format.format(end)}`;
 }
 
+// A destination's stay: "Mar 1 – 4", "Mar 3, 2025", "Arrived Mar 3, 2025",
+// "Left Mar 5, 2025", or "" when it has no dates.
+export function formatStay({ arrivalDate, departureDate }) {
+  if (arrivalDate && departureDate) {
+    return arrivalDate === departureDate
+      ? formatTripDate(arrivalDate)
+      : formatStayRange(arrivalDate, departureDate);
+  }
+  if (arrivalDate) return `Arrived ${formatTripDate(arrivalDate)}`;
+  if (departureDate) return `Left ${formatTripDate(departureDate)}`;
+  return "";
+}
+
 // Calendar days from start to end (or today, for an active trip), both
 // included. Never less than 1.
 export function tripLengthDays(startDate, endDate) {

@@ -4,6 +4,7 @@ import { lazy, StrictMode, Suspense } from "react";
 import { CitiesProvider } from "./contexts/CitiesContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import TripsProvider from "./contexts/TripsProvider";
+import TripMapProvider from "./contexts/TripMapProvider";
 import ProtectRoute from "./pages/ProtectRoute";
 import { TRIPS_ENABLED } from "./config/features";
 
@@ -19,8 +20,7 @@ import Spinner from "./components/Spinner";
 
 // Pages
 const Homepage = lazy(() => import("./pages/Homepage"));
-const Product = lazy(() => import("./pages/Product"));
-const Pricing = lazy(() => import("./pages/Pricing"));
+const Explore = lazy(() => import("./pages/Explore"));
 const AppLayout = lazy(() => import("./pages/AppLayout"));
 const PageNotFound = lazy(() => import("./pages/PageNotFound"));
 const Login = lazy(() => import("./pages/Login"));
@@ -48,22 +48,18 @@ function App() {
                   </StrictMode>
                 }
               />
+              {/* Public read-only demo with local sample data (no sign-in) */}
               <Route
-                path="pricing"
+                path="explore"
                 element={
                   <StrictMode>
-                    <Pricing />
+                    <Explore />
                   </StrictMode>
                 }
               />
-              <Route
-                path="product"
-                element={
-                  <StrictMode>
-                    <Product />
-                  </StrictMode>
-                }
-              />
+              {/* The former Product and Pricing pages: keep old links working */}
+              <Route path="product" element={<Navigate replace to="/explore" />} />
+              <Route path="pricing" element={<Navigate replace to="/" />} />
               <Route
                 path="login"
                 element={
@@ -87,7 +83,9 @@ function App() {
                 element={
                   <ProtectRoute>
                     <TripsProvider>
-                      <AppLayout />
+                      <TripMapProvider>
+                        <AppLayout />
+                      </TripMapProvider>
                     </TripsProvider>
                   </ProtectRoute>
                 }

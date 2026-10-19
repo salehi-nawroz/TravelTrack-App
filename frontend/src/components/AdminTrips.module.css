@@ -76,3 +76,14 @@
     align-items: stretch;
   }
 }
+
+/* Phones and touch screens: the trip title link is a 44px target too (the
+   row's "Open" button leads to the same page). */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .titleLink:link,
+  .titleLink:visited {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+  }
+}

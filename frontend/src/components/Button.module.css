@@ -148,3 +148,20 @@
     min-height: var(--touch-target);
   }
 }
+
+/* Phones and touch screens (tablets included): every button, including the
+   compact (sm) and icon-only variants, reaches a comfortable 44px touch
+   target. Desktop with a mouse keeps the compact sizes. Placed last so it
+   wins over the size variants above. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .btn,
+  .sm {
+    min-height: var(--touch-target);
+  }
+
+  .iconOnly,
+  .iconOnly.sm {
+    width: var(--touch-target);
+    height: var(--touch-target);
+  }
+}
