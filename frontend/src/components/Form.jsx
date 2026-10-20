@@ -15,6 +15,13 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useCities } from "../contexts/CitiesContext";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { getCityData } from "../services/geocodingService";
+import { COUNTRIES, getCountryName } from "../utils/countries";
+
+const GEOCODING_UNAVAILABLE =
+  "We couldn't look up this place. Enter the city and country yourself; the pin stays where you clicked.";
+const NOT_A_CITY =
+  "This spot doesn't match a city. Enter the city and country yourself, or click somewhere else on the map.";
+
 function Form() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -32,11 +39,14 @@ function Form() {
   const [date, setDate] = useState(new Date());
   const [notes, setNotes] = useState("");
   const [countryCode, setCountryCode] = useState("");
+  const [region, setRegion] = useState("");
   const [position, setPosition] = useState(null);
   const [geocodingError, setGeocodingError] = useState("");
   const [validationError, setValidationError] = useState("");
+  // Reverse geocoding failed for a new city: keep the clicked coordinates
+  // and let the user type the city and pick the country.
+  const [isManualLocation, setIsManualLocation] = useState(false);
 
-  void country;
   useEffect(() => {
     if (isEditMode && !isSelectingLocation) {
       getCity(id);
@@ -48,27 +58,38 @@ function Form() {
     async function fetchCityData() {
       if (!lat || !lng) return;
 
+      let location = null;
+      let message = "";
       try {
         setIsLoadingGeocoding(true);
         setGeocodingError("");
+        location = await getCityData(lat, lng);
+        if (!location) message = NOT_A_CITY;
+      } catch (err) {
+        console.error("Reverse geocoding failed:", err.message);
+        message = GEOCODING_UNAVAILABLE;
+      }
 
-        const location = await getCityData(lat, lng);
-
-        if (!location) {
-          throw new Error(
-            "This location doesn't seem to be a city. Click somewhere else 🙂",
-          );
+      try {
+        if (location) {
+          applyLocation(location);
+          if (isEditMode)
+            navigate(
+              `/app/cities/${id}/edit?locationSource=map&lat=${lat}&lng=${lng}`,
+              { replace: true },
+            );
+        } else if (isEditMode) {
+          // Editing keeps the city's current place; just say why.
+          setGeocodingError(message);
+        } else {
+          setIsManualLocation(true);
+          setGeocodingError(message);
+          setCityName("");
+          setCountry("");
+          setCountryCode("");
+          setRegion("");
+          setPosition({ lat: Number(lat), lng: Number(lng) });
         }
-
-        applyLocation(location);
-
-        if (isEditMode)
-          navigate(
-            `/app/cities/${id}/edit?locationSource=map&lat=${lat}&lng=${lng}`,
-            { replace: true },
-          );
-      } catch (error) {
-        setGeocodingError(error.message);
       } finally {
         setIsLoadingGeocoding(false);
       }
@@ -94,6 +115,7 @@ function Form() {
     setDate(currentCity.date ? new Date(currentCity.date) : null);
     setNotes(currentCity.notes || "");
     setCountryCode(currentCity.countryCode || "");
+    setRegion(currentCity.region || "");
     setPosition(currentCity.position || null);
   }, [currentCity, id, isEditMode]);
 
@@ -105,15 +127,21 @@ function Form() {
       setValidationError("Please provide a city name and visit date.");
       return;
     }
+    const code = countryCode.trim().toUpperCase();
+    if (!country.trim() || !/^[A-Z]{2}$/.test(code)) {
+      setValidationError("Please choose the country.");
+      return;
+    }
 
     setValidationError("");
     const city = {
-      cityName,
+      cityName: cityName.trim(),
       country,
       date,
-      countryCode,
+      countryCode: code,
+      region: region || null,
       notes,
-      position: position || { lat, lng },
+      position: position || { lat: Number(lat), lng: Number(lng) },
     };
 
     const savedCity = isEditMode
@@ -132,10 +160,19 @@ function Form() {
   }
 
   function applyLocation(location) {
+    setIsManualLocation(false);
+    setGeocodingError("");
     setCityName(location.cityName);
     setCountry(location.country);
     setCountryCode(location.countryCode);
+    setRegion(location.region || "");
     setPosition(location.position);
+  }
+
+  function handleCountryChange(e) {
+    const code = e.target.value;
+    setCountryCode(code);
+    setCountry(getCountryName(code));
   }
 
   function handleSelectLocation() {
@@ -157,8 +194,6 @@ function Form() {
     );
   }
 
-  if (geocodingError && !isEditMode)
-    return <Message message={geocodingError} />;
   if (isEditMode && error && String(currentCity.id) !== String(id))
     return <Message message={error} />;
   if (isEditMode && (isLoading || String(currentCity.id) !== String(id)))
@@ -176,7 +211,7 @@ function Form() {
     >
       <h2>{isEditMode ? "Edit city" : "Add a new city"}</h2>
 
-      {(validationError || error || (isEditMode && geocodingError)) && (
+      {(validationError || error || geocodingError) && (
         <Message message={validationError || error || geocodingError} />
       )}
 
@@ -208,8 +243,23 @@ function Form() {
           />
         )}
         <FlagBox countryCode={countryCode} country={country} />
-        <input type="hidden" id="countryCode" value={countryCode}></input>
+        {!isManualLocation && (
+          <input type="hidden" id="countryCode" value={countryCode}></input>
+        )}
       </Field>
+
+      {isManualLocation && (
+        <Field id="countryCode" label="Country" className={styles.row}>
+          <select id="countryCode" value={countryCode} onChange={handleCountryChange}>
+            <option value="">Choose a country…</option>
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
 
       <LocationSearch onSelect={handleSearchSelect} />
 

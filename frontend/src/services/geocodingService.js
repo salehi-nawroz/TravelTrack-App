@@ -49,6 +49,10 @@ export function normalizeSearchLocation(result) {
   });
 }
 
+// Reverse geocoding (BigDataCloud reverse-geocode-client). Resolves to a
+// location, or null when the point isn't in a country (e.g. open sea).
+// Rejects when the provider can't be reached; callers fall back to manual
+// entry.
 export async function getCityData(lat, lng) {
   const response = await geocodingApi.get("/reverse-geocode-client", {
     params: {
@@ -58,11 +62,11 @@ export async function getCityData(lat, lng) {
     },
   });
 
-  const data = response.data;
+  const data = response.data ?? {};
 
   return createLocation({
     cityName: data.city || data.locality,
-    region: data.state || data.province || "",
+    region: data.principalSubdivision || "",
     country: data.countryName,
     countryCode: data.countryCode,
     lat: Number(lat),

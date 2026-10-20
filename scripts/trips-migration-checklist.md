@@ -11,8 +11,9 @@ by the live checks after the migration, with separate approval.
 
 ## 0. Before you start (read-only)
 
-- [ ] `frontend/.env.local` does **not** set `VITE_TRIPS_ENABLED` (the app keeps
-      the old Trips page until step 8).
+- [ ] The deployed frontend is not yet using the trip tables. (Historical: the
+      live project was migrated on 2026-10-15. Trip tracking is now always on,
+      so a new project must complete steps 1–6 before the app is deployed.)
 - [ ] Nothing named `trips`, `trip_destinations`, `trip_photos` exists yet:
       ```sql
       select to_regclass('public.trips'), to_regclass('public.trip_destinations'),
@@ -98,8 +99,7 @@ Claude then re-runs the same read-only checks. It writes nothing.
 
 ## 8. Live testing (separate approval)
 
-Only after approval: set `VITE_TRIPS_ENABLED=true` in `frontend/.env.local`
-and test with test accounts (user, admin, super_admin): start/end trips,
+Only after approval: run the app against the project and test with test accounts (user, admin, super_admin): start/end trips,
 destinations, real photo uploads and progress, signed URLs, cover, photo and
 trip deletion (then `trips-verify.sql` query 12 must still show 0/0),
 admin/super_admin boundaries, and account deletion of a test user with photos.
@@ -119,8 +119,8 @@ This creates real data.
 ## Rollback
 
 Prerequisites, in this order:
-1. `VITE_TRIPS_ENABLED` off (removed) and the frontend redeployed, so nothing
-   uses the trip tables.
+1. A frontend without trip tracking deployed, so nothing uses the trip
+   tables (the current app always uses them).
 2. Every object in the `trip-photos` bucket removed (Dashboard → Storage, or
    the Storage API). The rollback refuses to run otherwise.
 

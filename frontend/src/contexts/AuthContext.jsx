@@ -11,7 +11,6 @@ import {
 } from "../services/avatarService";
 import { deleteAccount as deleteAccountApi } from "../services/accountService";
 import { removeAllMyTripFiles } from "../services/tripPhotoService";
-import { TRIPS_ENABLED } from "../config/features";
 
 const AuthContext = createContext();
 
@@ -204,7 +203,7 @@ function AuthProvider({ children }) {
     // Trip photo files can only be removed through Storage, not by the
     // delete_own_account() SQL function, so they go first; if any remain,
     // this throws and the account is left untouched.
-    if (TRIPS_ENABLED) await removeAllMyTripFiles(user.id);
+    await removeAllMyTripFiles(user.id);
 
     await deleteAccountApi();
     await supabase.auth.signOut();

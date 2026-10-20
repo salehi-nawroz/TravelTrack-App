@@ -1,8 +1,19 @@
-# Verifies every push and pull request: lint, tests, production build.
-# Deployment is done by Vercel's GitHub integration, not by this workflow.
-# No secrets are used: the tests mock Supabase, and the build only needs
-# placeholder values (a real deployment gets its values from Vercel).
-name: CI
+# CI/CD for TravelTrack. GitHub Actions is the only thing that deploys:
+# Vercel's Git deployments are switched off in frontend/vercel.json.
+#
+#   verify   every push and pull request: npm ci, lint, tests, audit, build.
+#   stage    pushes to main only, after verify: build once with the Vercel
+#            project's production settings, deploy it WITHOUT production
+#            domains (--prod --skip-domain), wait for READY, smoke-test the
+#            immutable deployment URL.
+#   promote  after stage: re-check that the commit is still the head of main,
+#            then point the production domains at that exact, tested
+#            deployment (vercel promote - no rebuild), and verify it.
+#
+# Pull requests (including forks) only ever run `verify`, which has no
+# secrets. Setup (secrets, environments, Vercel settings): README.md,
+# "Continuous integration and deployment".
+name: CI/CD
 
 on:
   push:
@@ -12,14 +23,17 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+env:
+  VERCEL_CLI_VERSION: 62.4.0
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Superseded pull request runs are cancelled; runs on main all finish.
+    concurrency:
+      group: verify-${{ github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     defaults:
       run:
         working-directory: frontend
@@ -41,21 +55,226 @@ jobs:
         run: npm run lint
 
       - name: Test
-        run: npm test
+        run: npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/junit.xml
 
       - name: Audit runtime dependencies (high and critical)
         run: npm audit --omit=dev --audit-level=high
 
-      - name: Build (trip tracking off)
+      # A check build only: the deployed build is made in `stage` with the
+      # Vercel project's own environment variables.
+      - name: Build
         run: npm run build
         env:
-          VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
-          VITE_SUPABASE_ANON_KEY: ci-placeholder-anon-key
-          VITE_TRIPS_ENABLED: "false"
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://ci-placeholder.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'ci-placeholder-anon-key' }}
 
-      - name: Build (trip tracking on)
-        run: npm run build
+      - name: Upload test report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: frontend/reports/junit.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+  stage:
+    needs: verify
+    # Only real pushes to main of this repository; never pull requests or forks.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'salehi-nawroz/TravelTrack-App'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: staging
+    # One staging run at a time; a running one is never cancelled, and a
+    # newer pending run replaces an older pending one.
+    concurrency:
+      group: vercel-stage
+      cancel-in-progress: false
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    outputs:
+      eligible: ${{ steps.head.outputs.eligible }}
+      url: ${{ steps.deploy.outputs.url }}
+      id: ${{ steps.ready.outputs.id }}
+      html_sha256: ${{ steps.smoke.outputs.html_sha256 }}
+    steps:
+      - name: Check that this commit is still the head of main
+        id: head
         env:
-          VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
-          VITE_SUPABASE_ANON_KEY: ci-placeholder-anon-key
-          VITE_TRIPS_ENABLED: "true"
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/main" | jq -r .sha)
+          if [ "$head" = "$GITHUB_SHA" ]; then
+            echo "eligible=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::main has moved on to $head; not deploying $GITHUB_SHA."
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check deployment secrets
+        if: steps.head.outputs.eligible == 'true'
+        run: |
+          for name in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            [ -n "${!name}" ] || { echo "::error::Secret $name is not set."; exit 1; }
+          done
+
+      - uses: actions/checkout@v4
+        if: steps.head.outputs.eligible == 'true'
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        if: steps.head.outputs.eligible == 'true'
+        with:
+          node-version: 22
+
+      - name: Install Vercel CLI
+        if: steps.head.outputs.eligible == 'true'
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
+
+      # Run from the repository root: the Vercel project's Root Directory is
+      # `frontend`, and the CLI applies it itself.
+      - name: Pull the production project settings and environment
+        if: steps.head.outputs.eligible == 'true'
+        run: vercel pull --yes --environment=production
+
+      - name: Build with production settings
+        if: steps.head.outputs.eligible == 'true'
+        run: vercel build --prod
+
+      - name: Deploy without assigning production domains
+        id: deploy
+        if: steps.head.outputs.eligible == 'true'
+        run: |
+          url=$(vercel deploy --prebuilt --prod --skip-domain \
+            --meta ciCommitSha="$GITHUB_SHA" --meta ciRunId="$GITHUB_RUN_ID")
+          case "$url" in
+            https://*.vercel.app) ;;
+            *) echo "::error::Unexpected deploy output: $url"; exit 1 ;;
+          esac
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Staged deployment: $url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Wait until the deployment is READY
+        id: ready
+        if: steps.head.outputs.eligible == 'true'
+        env:
+          STAGED_URL: ${{ steps.deploy.outputs.url }}
+        run: node .github/scripts/vercel-deployment.mjs ready "$STAGED_URL" "$GITHUB_SHA"
+
+      - name: Smoke-test the staged deployment
+        id: smoke
+        if: steps.head.outputs.eligible == 'true'
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          SMOKE_REPORT: smoke-staged.json
+          STAGED_URL: ${{ steps.deploy.outputs.url }}
+        run: node .github/scripts/smoke-test.mjs "$STAGED_URL"
+
+      - name: Upload smoke-test report
+        if: ${{ !cancelled() && steps.head.outputs.eligible == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-staged
+          path: smoke-staged.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+  promote:
+    needs: stage
+    if: needs.stage.outputs.eligible == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Add required reviewers to this environment to approve each release.
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+    # Separate from vercel-stage, so a queued promotion can never cancel a
+    # newer commit's staging (and vice versa).
+    concurrency:
+      group: vercel-promote
+      cancel-in-progress: false
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      STAGED_URL: ${{ needs.stage.outputs.url }}
+      STAGED_ID: ${{ needs.stage.outputs.id }}
+      PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+    steps:
+      - name: Check configuration
+        run: |
+          [ -n "$STAGED_URL" ] && [ -n "$STAGED_ID" ] || { echo "::error::No staged deployment from the stage job."; exit 1; }
+          case "$PRODUCTION_URL" in
+            https://*) ;;
+            *) echo "::error::Repository variable PRODUCTION_URL must be the https:// production URL."; exit 1 ;;
+          esac
+
+      # Approval can take a while; a newer commit may have reached main.
+      - name: Re-check that this commit is still the head of main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/main" | jq -r .sha)
+          if [ "$head" != "$GITHUB_SHA" ]; then
+            echo "::error::main has moved on to $head; refusing to promote the older $GITHUB_SHA. The newer commit's run deploys it."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Vercel CLI
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
+
+      - name: Re-check the staged deployment
+        run: node .github/scripts/vercel-deployment.mjs ready "$STAGED_URL" "$GITHUB_SHA"
+
+      - name: Promote the tested deployment (no rebuild)
+        run: vercel promote "$STAGED_URL" --yes --timeout 5m
+
+      - name: Verify production serves the promoted deployment
+        run: node .github/scripts/vercel-deployment.mjs assert-alias "$PRODUCTION_URL" "$STAGED_ID"
+
+      - name: Smoke-test production
+        id: smoke
+        env:
+          SMOKE_REPORT: smoke-production.json
+        run: node .github/scripts/smoke-test.mjs "$PRODUCTION_URL"
+
+      - name: Compare production with the tested build
+        env:
+          STAGED_HASH: ${{ needs.stage.outputs.html_sha256 }}
+          PRODUCTION_HASH: ${{ steps.smoke.outputs.html_sha256 }}
+        run: |
+          if [ "$STAGED_HASH" != "$PRODUCTION_HASH" ]; then
+            echo "::error::Production index.html differs from the tested deployment."
+            exit 1
+          fi
+
+      - name: How to roll back
+        if: failure()
+        run: |
+          {
+            echo "### Production verification failed"
+            echo "If production was already promoted, restore the previous deployment:"
+            echo '`vercel rollback <previous-deployment-url>` (or Vercel dashboard → Deployments → Instant Rollback).'
+            echo 'Then run `vercel promote <url>` on a good deployment to resume normal releases.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload smoke-test report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-production
+          path: smoke-production.json
+          if-no-files-found: ignore
+          retention-days: 14

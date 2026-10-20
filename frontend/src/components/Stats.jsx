@@ -176,8 +176,8 @@ function LongestTrip({ trip }) {
         Your cities store one visit date each, not trip start and end dates.
         Visits within {TRIP_GAP_DAYS} days of each other are grouped into one
         trip, and its length runs from the first to the last recorded visit,
-        so the real trip may have been longer. <Link to="/app/trips">See all
-        trips</Link>
+        so the real trip may have been longer. Trips you track yourself are on
+        the <Link to="/app/trips">Trips</Link> page.
       </p>
     </div>
   );

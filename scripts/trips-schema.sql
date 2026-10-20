@@ -6,7 +6,7 @@
 --   1. scripts/trips-schema.sql                  (this file - tables, RLS, RPCs)
 --   2. scripts/setup-trip-photos-storage.mjs     (creates the private bucket)
 --   3. scripts/trip-photos-storage-policies.sql  (Storage RLS for the bucket)
---   4. set VITE_TRIPS_ENABLED=true in frontend/.env and rebuild/deploy.
+--   4. deploy the frontend (trip tracking is always on; it needs steps 1-3).
 -- Undo with scripts/trips-rollback.sql.
 --
 -- Requires the existing helpers public.current_user_role() and

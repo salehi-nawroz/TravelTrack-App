@@ -6,7 +6,7 @@ import { createContext, useContext } from "react";
 // (react-refresh/only-export-components).
 //
 // The default is "no trip" with no-op actions, so the map and the pages
-// work unchanged without a provider (tests, or the feature flag off).
+// work unchanged without a provider (tests, public pages).
 const noop = () => {};
 
 export const NO_TRIP_MAP = {

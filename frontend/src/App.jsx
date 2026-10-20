@@ -6,13 +6,11 @@ import { AuthProvider } from "./contexts/AuthContext";
 import TripsProvider from "./contexts/TripsProvider";
 import TripMapProvider from "./contexts/TripMapProvider";
 import ProtectRoute from "./pages/ProtectRoute";
-import { TRIPS_ENABLED } from "./config/features";
 
 // Components
 import CityList from "./components/CityList";
 import City from "./components/City";
 import CountryList from "./components/CountryList";
-import TripList from "./components/TripList";
 import Trash from "./components/Trash";
 import SpinnerFullPage from "./components/SpinnerFullPage";
 import Spinner from "./components/Spinner";
@@ -116,47 +114,39 @@ function App() {
                 {/* /app/countries */}
                 <Route path="countries" element={<CountryList />} />
 
-                {/* /app/trips - trip tracking once its schema is applied
-                    (config/features.js); until then the read-only list
-                    derived from cities. */}
-                {TRIPS_ENABLED ? (
-                  <>
-                    <Route
-                      path="trips"
-                      element={
-                        <Suspense fallback={<Spinner />}>
-                          <Trips />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="trips/new"
-                      element={
-                        <Suspense fallback={<Spinner />}>
-                          <TripForm />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="trips/:id"
-                      element={
-                        <Suspense fallback={<Spinner />}>
-                          <TripDetail />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="trips/:id/edit"
-                      element={
-                        <Suspense fallback={<Spinner />}>
-                          <TripForm />
-                        </Suspense>
-                      }
-                    />
-                  </>
-                ) : (
-                  <Route path="trips" element={<TripList />} />
-                )}
+                {/* /app/trips */}
+                <Route
+                  path="trips"
+                  element={
+                    <Suspense fallback={<Spinner />}>
+                      <Trips />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="trips/new"
+                  element={
+                    <Suspense fallback={<Spinner />}>
+                      <TripForm />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="trips/:id"
+                  element={
+                    <Suspense fallback={<Spinner />}>
+                      <TripDetail />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="trips/:id/edit"
+                  element={
+                    <Suspense fallback={<Spinner />}>
+                      <TripForm />
+                    </Suspense>
+                  }
+                />
 
                 {/* /app/stats */}
                 <Route

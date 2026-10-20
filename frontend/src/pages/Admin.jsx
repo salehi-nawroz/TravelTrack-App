@@ -4,7 +4,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { getAllProfiles, getAdminUsers } from "../services/profileService";
 import { getCities, deleteCity as deleteCityApi } from "../services/cityService";
 import { getAllTrips } from "../services/tripService";
-import { TRIPS_ENABLED } from "../config/features";
 import { getContinent } from "../utils/continent";
 import { compareDates } from "../utils/compareDates";
 import { usePagination } from "../hooks/usePagination";
@@ -45,7 +44,7 @@ const ROLE_LABELS = {
 const TABS = [
   { id: "users", label: "Users" },
   { id: "cities", label: "Cities" },
-  ...(TRIPS_ENABLED ? [{ id: "trips", label: "Trips" }] : []),
+  { id: "trips", label: "Trips" },
 ];
 
 function groupByCountry(cities) {
@@ -75,7 +74,7 @@ function Admin() {
   const [deleteError, setDeleteError] = useState("");
 
   const [trips, setTrips] = useState([]);
-  const [isLoadingTrips, setIsLoadingTrips] = useState(TRIPS_ENABLED);
+  const [isLoadingTrips, setIsLoadingTrips] = useState(true);
   const [tripsError, setTripsError] = useState("");
 
   // Bumped by "Try again" to re-run the matching (read-only) load below.
@@ -176,9 +175,8 @@ function Admin() {
   }, [citiesReloadKey]);
 
   // Every trip RLS lets this admin see (never a super admin's, for a plain
-  // admin). Skipped entirely until the trips schema is live.
+  // admin).
   useEffect(() => {
-    if (!TRIPS_ENABLED) return;
     let isMounted = true;
 
     async function loadTrips() {
@@ -429,9 +427,7 @@ function Admin() {
         summary={
           isSuperAdmin
             ? "Super admin"
-            : TRIPS_ENABLED
-              ? "Admin · read and edit; can also delete trips"
-              : "Admin · read and edit only"
+            : "Admin · read and edit; can also delete trips"
         }
       />
 

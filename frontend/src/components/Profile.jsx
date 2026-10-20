@@ -9,12 +9,9 @@ import Spinner from "./Spinner";
 import PageHeader from "./PageHeader";
 import ConfirmDialog from "./ConfirmDialog";
 import styles from "./Profile.module.css";
-import { TRIPS_ENABLED } from "../config/features";
 
 // What account deletion removes, for the warning texts below.
-const DELETED_DATA = TRIPS_ENABLED
-  ? "cities, trips, trip photos and profile data"
-  : "cities and profile data";
+const DELETED_DATA = "cities, trips, trip photos and profile data";
 
 function Profile() {
   const {

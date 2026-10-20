@@ -5,8 +5,8 @@ export const TRIP_GAP_DAYS = 7;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-// Derives trips from the user's already-loaded cities until trips are stored
-// in their own table: cities sorted by visit date, with a new trip started
+// Derives visit groups from the user's already-loaded cities for the Stats
+// page ("Longest trip"); tracked trips live in their own tables. Cities sorted by visit date, with a new trip started
 // whenever the gap to the previous visit exceeds TRIP_GAP_DAYS. Cities with
 // no valid date are left out. Returns newest trip first.
 export function groupCitiesIntoTrips(cities, gapDays = TRIP_GAP_DAYS) {

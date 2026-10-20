@@ -4,8 +4,8 @@
 -- remove the trip feature and ALL trip data.
 --
 -- Before running:
---   1. Set VITE_TRIPS_ENABLED=false (or remove it) and redeploy, so the app
---      stops using the trip tables.
+--   1. Deploy a frontend without trip tracking first. The current app always
+--      uses the trip tables, so running this under it breaks the Trips pages.
 --   2. Remove every object in the "trip-photos" bucket (Dashboard -> Storage,
 --      or the Storage API). This script refuses to run while any remain,
 --      because dropping the tables would leave those files untracked.

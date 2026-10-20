@@ -9,7 +9,7 @@ The public **Explore** page shows a read-only demo with sample data, so you can 
 - **Cities:** add a city by clicking the map, searching for a place or using your current location. The name and country are filled in by reverse geocoding. You can add a visit date and notes, and edit or delete cities.
 - **Trash:** deleted cities go to the Trash first. From there you can restore them or delete them permanently.
 - **Countries:** your cities grouped by country and continent.
-- **Trips** (behind the `VITE_TRIPS_ENABLED` flag):
+- **Trips:**
   - start a trip, with only one active trip at a time;
   - add destinations from your cities or as new places, and reorder them;
   - end a trip;
@@ -33,10 +33,10 @@ The public **Explore** page shows a read-only demo with sample data, so you can 
 | --- | --- |
 | UI | React 18, React Router 6, CSS Modules |
 | Build | Vite 4 |
-| Maps | Leaflet with react-leaflet. Tiles: OpenStreetMap. Place search: Nominatim. Reverse geocoding: BigDataCloud. Flags: flagcdn. |
+| Maps | Leaflet with react-leaflet. Tiles: OpenStreetMap. Place search: Nominatim. Reverse geocoding: BigDataCloud (`api-bdc.io`; if it is unavailable, the city and country are entered by hand). Flags: flagcdn. |
 | Backend | Supabase: Postgres with Row Level Security, Auth (email and password), private Storage buckets |
 | Tests | Vitest, React Testing Library, jsdom |
-| Hosting | Vercel (static SPA) with GitHub Actions CI |
+| Hosting | Vercel (static SPA), deployed only by GitHub Actions CI/CD |
 
 There is no custom server. The browser talks to Supabase directly, and Row Level Security decides what each user can read or change.
 
@@ -59,7 +59,6 @@ These are set in `frontend/.env.local` for local development and in the Vercel p
 | --- | --- | --- |
 | `VITE_SUPABASE_URL` | yes | Project URL, from Supabase → Project Settings → API |
 | `VITE_SUPABASE_ANON_KEY` | yes | The **anon / publishable** key from the same page |
-| `VITE_TRIPS_ENABLED` | no | `true` turns on trip tracking. Only set it after the trip scripts below have been applied. |
 
 Every `VITE_*` value is compiled into the public JavaScript. **Never** put the `service_role` / secret key there.
 
@@ -80,7 +79,7 @@ The SQL lives in `scripts/`. Run each file in the Supabase Dashboard → SQL Edi
 5. `cities-soft-delete.sql`: adds `deleted_at`, which the Trash uses.
 6. `delete-own-account-function.sql`: self-service account deletion.
 7. `node --env-file=scripts/.env scripts/setup-avatars-storage.mjs`, then `avatars-storage-policies.sql`: the private `avatars` bucket and its policies.
-8. Trip tracking. Follow `scripts/trips-migration-checklist.md`:
+8. Trip tracking (required: the app always uses the trip tables and the `trip-photos` bucket). Follow `scripts/trips-migration-checklist.md`:
    - run `trips-schema.sql`;
    - run `setup-trip-photos-storage.mjs` (the private `trip-photos` bucket: 5 MB, JPEG, PNG and WEBP);
    - run `trip-photos-storage-policies.sql`;
@@ -116,27 +115,77 @@ From `frontend/`:
 | `npm run build` | Production build into `frontend/dist` |
 | `npm run preview` | Serves the production build locally |
 
-## Continuous integration
+## Continuous integration and deployment
 
-`.github/workflows/ci.yml` runs on every push to `main` and on every pull request. It:
+GitHub Actions is the only thing that deploys TravelTrack. `frontend/vercel.json` sets `"git": { "deploymentEnabled": false }`, so pushes no longer make Vercel build anything by itself. Everything runs in `.github/workflows/ci.yml`:
 
-- installs from the lockfile (`npm ci`);
-- runs lint and the tests;
-- audits runtime dependencies (fails on high or critical);
-- builds the app with trip tracking off and on.
+| Job | Runs for | What it does |
+| --- | --- | --- |
+| `verify` | every push and pull request | `npm ci`, `npm run lint`, `npm test` (JUnit report uploaded as an artifact), `npm audit --omit=dev --audit-level=high`, `npm run build` |
+| `stage` | pushes to `main` only, after `verify` passed | checks the commit is still the head of `main`; `vercel pull` + `vercel build --prod` (the project's production settings and env vars); `vercel deploy --prebuilt --prod --skip-domain`, which creates a deployment that **no production domain points at**; waits until it is `READY` and built from this commit; smoke-tests its immutable URL |
+| `promote` | after `stage` passed, in the `production` environment | re-checks that the commit is still the head of `main`; `vercel promote <staged URL>` moves the production domains to that exact, tested build (no rebuild); checks that the production domain now serves it, and smoke-tests and compares it with the tested build |
 
-It uses read-only permissions and no secrets: the build gets placeholder Supabase values. It does not deploy anything.
+Guarantees and limits:
+
+- A failed, skipped or cancelled `verify` or `stage` means `promote` doesn't run, so production stays on the previous deployment.
+- **Pull requests never deploy.** They run `verify` only, and that job has no access to the Vercel secrets. A fork's PR gets no secrets at all. There are no PR preview deployments any more.
+- The promoted build is the one that was smoke-tested: same deployment ID, same `index.html`. The CI `verify` build is a separate check build made with placeholder or secret Supabase values.
+- **Concurrency:**
+  - staging and promotion each run one at a time and are never cancelled midway;
+  - a newer pending run replaces an older pending one;
+  - an older commit is never promoted after a newer one reaches `main`, because both deploy jobs check the head of `main` first.
+- The smoke test checks:
+  - the app shell, JS and CSS are served;
+  - deep links work through the SPA rewrite;
+  - the static data files are served;
+  - the CSP and security headers from `vercel.json` are present;
+  - the bundle points at a real Supabase project, not a placeholder.
+
+  It doesn't sign in or use Supabase, so it can't prove every feature works.
+- **Promotion is an alias switch on Vercel.** Production moves from the old deployment to the new one in one step. If a check fails after the switch, production stays on the new build until you roll back: run `vercel rollback <previous deployment URL>` or use **Instant Rollback** in the dashboard. A rollback stops automatic domain assignment until the next `vercel promote`; this pipeline always promotes explicitly. The job summary repeats these steps.
+
+### One-time setup
+
+None of this can be set from the repository. Until it's done, the `stage` job fails at "Check deployment secrets" and production stays as it is.
+
+1. **Vercel token and IDs.**
+   - Create a token at vercel.com → Account Settings → Tokens. Scope it to the team that owns the project.
+   - Run `npx vercel@62.4.0 link` in the repository root and choose the existing project; don't create a new one. `.vercel/project.json` then holds `orgId` and `projectId`. `.vercel` is git-ignored.
+2. **GitHub → Settings → Secrets and variables → Actions:**
+
+   | Kind | Name | Notes |
+   | --- | --- | --- |
+   | secret | `VERCEL_TOKEN` | |
+   | secret | `VERCEL_ORG_ID` | |
+   | secret | `VERCEL_PROJECT_ID` | |
+   | secret (optional) | `VERCEL_AUTOMATION_BYPASS_SECRET` | Only if Deployment Protection covers the project's `*.vercel.app` URLs (Vercel → Settings → Deployment Protection → Protection Bypass for Automation). Without it the staged smoke test gets 401 and stops. |
+   | secret (optional) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | Used only by the `verify` check build. |
+   | variable | `PRODUCTION_URL` | The production URL, e.g. `https://traveltrack.vercel.app`. |
+
+3. **GitHub → Settings → Environments:**
+   - `staging` and `production` are created on the first run if they don't exist.
+   - Give both a deployment branch rule that allows only `main`.
+   - Add **Required reviewers** to `production` if each release should wait for approval. The pipeline works with or without reviewers.
+   - Optionally, move the three `VERCEL_*` secrets into these two environments instead of repository secrets.
+4. **GitHub → Settings → Branches:** protect `main` and require the `verify` check and pull requests before merging. Then broken code can't reach `main` in the first place.
+5. **Vercel → Project → Settings:**
+   - Root Directory must stay `frontend`.
+   - Production Branch stays `main`.
+   - Production env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must be set; `vercel pull` reads them.
+   - Delete `VITE_TRIPS_ENABLED` if it is still set.
+   - **Deployment Checks** aren't needed with this pipeline.
+6. **Check it worked:** push a commit and confirm that the Vercel dashboard shows no deployment started by Git, only one created by the CLI from the workflow.
 
 ## Deploying to Vercel
 
-1. Push the repository to GitHub.
-2. In Vercel: **Add New → Project → Import** the repository.
-3. Set **Root Directory** to `frontend`. Vercel then reads `frontend/vercel.json`, which sets:
-   - the Vite framework, `npm ci` and `npm run build`, with output in `dist`;
-   - the SPA fallback, so deep links like `/app/trips/123` survive a refresh;
-   - asset caching and the security headers.
-4. Under **Settings → Environment Variables**, add `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and, if wanted, `VITE_TRIPS_ENABLED=true`. Add them for Production, and for Preview if you want working preview deployments.
-5. Deploy. After that, Vercel deploys `main` automatically and creates a preview deployment for each pull request. GitHub Actions only verifies the code.
+The Vercel project imports this repository with **Root Directory** `frontend`. `frontend/vercel.json` sets:
+
+- the Vite framework, `npm ci` and `npm run build`, with output in `dist`;
+- the SPA fallback, so deep links like `/app/trips/123` survive a refresh;
+- asset caching and the security headers;
+- `git.deploymentEnabled: false`, so only the workflow above deploys.
+
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` under **Settings → Environment Variables** for Production. `VITE_TRIPS_ENABLED` is no longer used. A manual emergency deploy is still possible with `vercel deploy --prod` from a linked checkout, but it skips CI.
 
 ### Supabase settings for production
 

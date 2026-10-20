@@ -3,26 +3,25 @@ import { useAuth } from "./AuthContext";
 import { TripsContext } from "./tripsContext";
 import { getMyTrips, createTrip as createTripApi } from "../services/tripService";
 import { compareIsoDates } from "../utils/tripDates";
-import { TRIPS_ENABLED } from "../config/features";
 
 const byStartDateDesc = (a, b) => compareIsoDates(b.startDate, a.startDate);
 
 // The signed-in user's own trips, for the Trips list and the "one active
 // trip" check. Pages that change a trip (detail, edit, photos) save through
 // tripService and then hand the updated trip back with upsertTrip, so the
-// list never needs a full reload. Does nothing while TRIPS_ENABLED is off.
+// list never needs a full reload. Does nothing while signed out.
 function TripsProvider({ children }) {
   const { user } = useAuth();
   const userId = user?.id;
 
   const [trips, setTrips] = useState([]);
-  const [isLoading, setIsLoading] = useState(TRIPS_ENABLED);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   // Bumped by reload() ("Try again") to repeat the read-only load.
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    if (!TRIPS_ENABLED || !userId) {
+    if (!userId) {
       setTrips([]);
       setIsLoading(false);
       return;

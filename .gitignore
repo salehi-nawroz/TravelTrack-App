@@ -28,3 +28,7 @@ Thumbs.db
 # Vercel CLI (local project link)
 # =========================
 .vercel
+
+# CI reports
+frontend/reports/
+smoke-*.json

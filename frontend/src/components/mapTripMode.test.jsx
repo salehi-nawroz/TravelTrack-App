@@ -3,7 +3,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 // The real Map component with React-Leaflet stubbed: which markers it would
-// draw for the normal city map vs. an open trip, under both flag values.
+// draw for the normal city map vs. an open trip.
 const mapApi = vi.hoisted(() => ({
   setView: vi.fn(),
   fitBounds: vi.fn(),
@@ -11,8 +11,7 @@ const mapApi = vi.hoisted(() => ({
   getZoom: vi.fn(() => 6),
 }));
 
-function mockLeafletAndApp(tripsEnabled) {
-  vi.doMock("../config/features", () => ({ TRIPS_ENABLED: tripsEnabled }));
+function mockLeafletAndApp() {
   vi.doMock("react-leaflet", async () => {
     const { forwardRef, useImperativeHandle } = await import("react");
     return {
@@ -90,8 +89,8 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-describe("Map with trips enabled", () => {
-  beforeEach(() => mockLeafletAndApp(true));
+describe("Map trip mode", () => {
+  beforeEach(() => mockLeafletAndApp());
 
   it("shows the city pins when no trip is open", async () => {
     await renderMap(null, { path: "/app/cities" });
@@ -128,17 +127,5 @@ describe("Map with trips enabled", () => {
     rerender(ui(null));
     expect(cityPins()).toHaveLength(1);
     expect(tripStops()).toHaveLength(0);
-  });
-});
-
-describe("Map with trips disabled (VITE_TRIPS_ENABLED off)", () => {
-  beforeEach(() => mockLeafletAndApp(false));
-
-  it("ignores any trip and keeps the normal city map", async () => {
-    await renderMap(trip);
-    expect(cityPins()).toHaveLength(1);
-    expect(tripStops()).toHaveLength(0);
-    expect(screen.queryByTestId("route")).toBeNull();
-    expect(screen.queryByRole("status")).toBeNull();
   });
 });

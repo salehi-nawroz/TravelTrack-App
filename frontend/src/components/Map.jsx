@@ -13,7 +13,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { useCities } from "../contexts/CitiesContext";
 import { useTripMap } from "../contexts/tripMapContext";
-import { TRIPS_ENABLED } from "../config/features";
 import TripMapLayer from "./TripMapLayer";
 import tripStyles from "./TripMapLayer.module.css";
 import { getTripMapData } from "../utils/tripMap";
@@ -95,7 +94,7 @@ function Map() {
     selectDestination,
     revealDestination,
   } = useTripMap();
-  const tripOnMap = TRIPS_ENABLED && mapTrip ? mapTrip : null;
+  const tripOnMap = mapTrip ?? null;
   const tripMapSummary = tripOnMap ? getTripMapData(tripOnMap.destinations) : null;
   // Read when the trip closes: a page that sets its own position (a city,
   // the add-city form) keeps it instead of getting the pre-trip view back.
