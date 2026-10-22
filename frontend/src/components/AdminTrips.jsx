@@ -1,3 +1,4 @@
+// This component is used in the Admin page to list all trips that the current admin can see. It supports searching, filtering, sorting, and pagination. Admins can also delete trips they have permission to manage.
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import adminStyles from "../pages/Admin.module.css";
@@ -18,7 +19,11 @@ import { canManageTrip } from "../utils/tripPermissions";
 
 const TRIPS_PAGE_SIZE = 10;
 
-const ROLE_LABELS = { user: "User", admin: "Admin", super_admin: "Super Admin" };
+const ROLE_LABELS = {
+  user: "User",
+  admin: "Admin",
+  super_admin: "Super Admin",
+};
 
 const SORT_OPTIONS = [
   { value: "startNewest", label: "Start date newest first" },
@@ -35,7 +40,15 @@ const plural = (count, word, words = `${word}s`) =>
 // admin never receives a super admin's trips at all); `profiles` supplies
 // owner names and roles. Opening a trip goes to its own page, where the
 // same itinerary and photo tools are available to permitted admins.
-function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles, viewer }) {
+function AdminTrips({
+  trips,
+  isLoading,
+  error,
+  onRetry,
+  onTripDeleted,
+  profiles,
+  viewer,
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [ownerFilter, setOwnerFilter] = useState("");
@@ -51,7 +64,8 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
     () => Object.fromEntries(profiles.map((p) => [p.id, p])),
     [profiles],
   );
-  const ownerName = (userId) => profileById[userId]?.full_name || "Unknown user";
+  const ownerName = (userId) =>
+    profileById[userId]?.full_name || "Unknown user";
 
   const ownerOptions = useMemo(() => {
     const ids = [...new Set(trips.map((trip) => trip.userId))];
@@ -62,14 +76,20 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
 
   const countryOptions = useMemo(
     () =>
-      [...new Set(trips.flatMap((trip) => trip.destinations.map((d) => d.country)))].sort(
-        (a, b) => a.localeCompare(b),
-      ),
+      [
+        ...new Set(
+          trips.flatMap((trip) => trip.destinations.map((d) => d.country)),
+        ),
+      ].sort((a, b) => a.localeCompare(b)),
     [trips],
   );
 
   const hasActiveControls = Boolean(
-    searchQuery.trim() || statusFilter || ownerFilter || countryFilter || sortOption !== "startNewest",
+    searchQuery.trim() ||
+    statusFilter ||
+    ownerFilter ||
+    countryFilter ||
+    sortOption !== "startNewest",
   );
 
   // Pipeline: raw trips -> search -> filters -> sort; pagination slices the
@@ -80,7 +100,10 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
     const result = trips.filter((trip) => {
       if (statusFilter && trip.status !== statusFilter) return false;
       if (ownerFilter && trip.userId !== ownerFilter) return false;
-      if (countryFilter && !trip.destinations.some((d) => d.country === countryFilter))
+      if (
+        countryFilter &&
+        !trip.destinations.some((d) => d.country === countryFilter)
+      )
         return false;
       if (!query) return true;
 
@@ -92,7 +115,8 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
       ].some((field) => field.toLowerCase().includes(query));
     });
 
-    const name = (trip) => profileById[trip.userId]?.full_name || "Unknown user";
+    const name = (trip) =>
+      profileById[trip.userId]?.full_name || "Unknown user";
     return result.sort((a, b) => {
       switch (sortOption) {
         case "startOldest":
@@ -100,21 +124,38 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
         case "titleAsc":
           return a.title.localeCompare(b.title);
         case "ownerAsc":
-          return name(a).localeCompare(name(b)) || a.title.localeCompare(b.title);
+          return (
+            name(a).localeCompare(name(b)) || a.title.localeCompare(b.title)
+          );
         case "updatedNewest":
           return compareIsoDates(b.updatedAt, a.updatedAt);
         default:
           return compareIsoDates(b.startDate, a.startDate);
       }
     });
-  }, [trips, searchQuery, statusFilter, ownerFilter, countryFilter, sortOption, profileById]);
+  }, [
+    trips,
+    searchQuery,
+    statusFilter,
+    ownerFilter,
+    countryFilter,
+    sortOption,
+    profileById,
+  ]);
 
   const { currentPage, totalPages, startIndex, endIndex, goToPage, resetPage } =
     usePagination(processedTrips.length, TRIPS_PAGE_SIZE);
 
   useEffect(() => {
     resetPage();
-  }, [searchQuery, statusFilter, ownerFilter, countryFilter, sortOption, resetPage]);
+  }, [
+    searchQuery,
+    statusFilter,
+    ownerFilter,
+    countryFilter,
+    sortOption,
+    resetPage,
+  ]);
 
   function handleClearFilters() {
     setSearchQuery("");
@@ -154,7 +195,9 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
     >
       <h3 className={adminStyles.sectionTitle}>
         Trips
-        {!isLoading && !error && <span className={adminStyles.count}>({trips.length})</span>}
+        {!isLoading && !error && (
+          <span className={adminStyles.count}>({trips.length})</span>
+        )}
       </h3>
 
       {deleteError && <FormMessage>{deleteError}</FormMessage>}
@@ -170,7 +213,12 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
           title="Couldn't load trips"
           message={error}
           action={
-            <Button variant="outline" size="sm" htmlType="button" onClick={onRetry}>
+            <Button
+              variant="outline"
+              size="sm"
+              htmlType="button"
+              onClick={onRetry}
+            >
               Try again
             </Button>
           }
@@ -253,7 +301,12 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
                   : plural(trips.length, "trip")}
               </span>
               {hasActiveControls && (
-                <Button variant="outline" size="sm" htmlType="button" onClick={handleClearFilters}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  htmlType="button"
+                  onClick={handleClearFilters}
+                >
                   Clear
                 </Button>
               )}
@@ -265,7 +318,12 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
               compact
               title="No trips match your filters."
               action={
-                <Button variant="outline" size="sm" htmlType="button" onClick={handleClearFilters}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  htmlType="button"
+                  onClick={handleClearFilters}
+                >
                   Clear filters
                 </Button>
               }
@@ -294,14 +352,18 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
                         <span>
                           {ownerName(trip.userId)}
                           {ownerRole && (
-                            <span className={`${adminStyles.role} ${adminStyles[`role-${ownerRole}`] || ""}`}>
+                            <span
+                              className={`${adminStyles.role} ${adminStyles[`role-${ownerRole}`] || ""}`}
+                            >
                               {" "}
                               {ROLE_LABELS[ownerRole] ?? ownerRole}
                             </span>
                           )}
                         </span>
                         <span aria-hidden="true">·</span>
-                        <span>{formatTripRange(trip.startDate, trip.endDate)}</span>
+                        <span>
+                          {formatTripRange(trip.startDate, trip.endDate)}
+                        </span>
                       </p>
                       <p className={styles.rowMeta}>
                         {plural(trip.destinations.length, "destination")}
@@ -314,7 +376,10 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
                       <Link
                         to={`/app/trips/${trip.id}`}
                         state={{ from: "/app/admin?tab=trips" }}
-                        className={buttonClassName({ variant: "ghost", size: "sm" })}
+                        className={buttonClassName({
+                          variant: "ghost",
+                          size: "sm",
+                        })}
                         aria-label={`Open ${trip.title}`}
                       >
                         {canManage ? "Open / edit" : "Open"}
@@ -361,9 +426,9 @@ function AdminTrips({ trips, isLoading, error, onRetry, onTripDeleted, profiles,
           message={
             <>
               Permanently delete <strong>{pendingDelete.title}</strong> (
-              {formatTripRange(pendingDelete.startDate, pendingDelete.endDate)}), owned by{" "}
-              <strong>{ownerName(pendingDelete.userId)}</strong>? Its{" "}
-              {plural(pendingDelete.destinations.length, "destination")} and{" "}
+              {formatTripRange(pendingDelete.startDate, pendingDelete.endDate)}
+              ), owned by <strong>{ownerName(pendingDelete.userId)}</strong>?
+              Its {plural(pendingDelete.destinations.length, "destination")} and{" "}
               {plural(pendingDelete.photos.length, "photo")} are deleted too.
             </>
           }
