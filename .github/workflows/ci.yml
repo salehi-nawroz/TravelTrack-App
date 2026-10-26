@@ -8,7 +8,7 @@
 #            immutable deployment URL.
 #   promote  after stage: re-check that the commit is still the head of main,
 #            then point the production domains at that exact, tested
-#            deployment (vercel promote - no rebuild), and verify it.
+#            deployment (Vercel's promote API - no rebuild), and verify it.
 #
 # Pull requests (including forks) only ever run `verify`, which has no
 # secrets. Setup (secrets, environments, Vercel settings): README.md,
@@ -232,14 +232,16 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Vercel CLI
-        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
-
       - name: Re-check the staged deployment
         run: node .github/scripts/vercel-deployment.mjs ready "$STAGED_URL" "$GITHUB_SHA"
 
+      # Through the REST API rather than `vercel promote`: the CLI command
+      # needs a token that can read the user account (GET /v2/user), which a
+      # team-scoped token cannot.
       - name: Promote the tested deployment (no rebuild)
-        run: vercel promote "$STAGED_URL" --yes --timeout 5m
+        env:
+          DEPLOY_WAIT_SECONDS: 300
+        run: node .github/scripts/vercel-deployment.mjs promote "$STAGED_ID" "$GITHUB_SHA"
 
       - name: Verify production serves the promoted deployment
         run: node .github/scripts/vercel-deployment.mjs assert-alias "$PRODUCTION_URL" "$STAGED_ID"

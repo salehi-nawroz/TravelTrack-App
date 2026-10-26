@@ -143,7 +143,7 @@ GitHub Actions is the only thing that deploys TravelTrack. `frontend/vercel.json
 | --- | --- | --- |
 | `verify` | every push and pull request | `npm ci`, `npm run lint`, `npm test` (JUnit report uploaded as an artifact), `npm audit --omit=dev --audit-level=high`, `npm run build` |
 | `stage` | pushes to `main` only, after `verify` passed | checks the commit is still the head of `main`; `vercel pull` + `vercel build --prod` (the project's production settings and env vars); `vercel deploy --prebuilt --prod --skip-domain`, which creates a deployment that **no production domain points at**; waits until it is `READY` and built from this commit; smoke-tests its immutable URL |
-| `promote` | after `stage` passed, in the `production` environment | re-checks that the commit is still the head of `main`; `vercel promote <staged URL>` moves the production domains to that exact, tested build (no rebuild); checks that the production domain now serves it, and smoke-tests and compares it with the tested build |
+| `promote` | after `stage` passed, in the `production` environment | re-checks that the commit is still the head of `main`; Vercel's promote API (`POST /v10/projects/{id}/promote/{deployment}`, what `vercel promote` calls) moves the production domains to that exact, tested build (no rebuild) after checking it is the staged build of this commit in this project; checks that the production domain now serves it, and smoke-tests and compares it with the tested build |
 
 Guarantees and limits:
 
@@ -169,7 +169,7 @@ Guarantees and limits:
 None of this can be set from the repository. Until it's done, the `stage` job fails at "Check deployment secrets" and production stays as it is.
 
 1. **Vercel token and IDs.**
-   - Create a token at vercel.com → Account Settings → Tokens. Scope it to the team that owns the project.
+   - Create a token at vercel.com → Account Settings → Tokens. Scope it to the team that owns the project. Promotion goes through the REST API rather than `vercel promote` because that CLI command reads the user account (`GET /v2/user`), which a team-scoped token can't; it fails with `User not found. (404)`.
    - Run `npx vercel@62.4.0 link` in the repository root and choose the existing project; don't create a new one. `.vercel/project.json` then holds `orgId` and `projectId`. `.vercel` is git-ignored.
 2. **GitHub → Settings → Secrets and variables → Actions:**
 
