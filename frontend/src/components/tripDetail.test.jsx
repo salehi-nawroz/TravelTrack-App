@@ -146,7 +146,9 @@ describe("Trip page errors", () => {
 
 describe("Delete controls by role", () => {
   const tripWithPhoto = () => ({
-    ...activeTrip(),
+    ...activeTrip([
+      { id: "d1", cityName: "Porto", country: "Portugal", countryCode: "PT", sortOrder: 0, position: { lat: 41.1, lng: -8.6 } },
+    ]),
     photos: [{ id: "p1", tripId: "t1", userId: "owner", storagePath: "owner/t1/p1.jpg", isCover: false, caption: "" }],
   });
 
@@ -158,14 +160,15 @@ describe("Delete controls by role", () => {
     });
   };
 
-  it("offers the owner Delete trip and photo deletion", async () => {
+  it("offers the owner Delete trip, photo deletion and Remove", async () => {
     vi.mocked(getTrip).mockResolvedValue(tripWithPhoto());
     renderDetail();
     expect(await screen.findByRole("button", { name: "Delete trip" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Delete photo 1" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Remove Porto" })).toBeTruthy();
   });
 
-  it("lets a plain admin edit a user's trip but never delete it or its photos", async () => {
+  it("lets a plain admin edit a user's trip but never delete it, its photos or its destinations", async () => {
     auth.current = { user: { id: "admin-1" }, profile: { role: "admin" } };
     ownerProfile();
     vi.mocked(getTrip).mockResolvedValue(tripWithPhoto());
@@ -177,9 +180,12 @@ describe("Delete controls by role", () => {
     expect(screen.getByRole("button", { name: "Make photo 1 the cover" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Delete trip" })).toBeNull();
     expect(screen.queryByRole("button", { name: /Delete photo/ })).toBeNull();
+    // Destinations: still editable, but not removable.
+    expect(screen.getByRole("button", { name: "Edit Porto" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Remove Porto" })).toBeNull();
   });
 
-  it("offers a super admin Delete trip and photo deletion", async () => {
+  it("offers a super admin Delete trip, photo deletion and Remove", async () => {
     auth.current = { user: { id: "super-1" }, profile: { role: "super_admin" } };
     ownerProfile();
     vi.mocked(getTrip).mockResolvedValue(tripWithPhoto());
@@ -188,5 +194,6 @@ describe("Delete controls by role", () => {
     expect(await screen.findByText("Olive Owner")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Delete trip" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Delete photo 1" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Remove Porto" })).toBeTruthy();
   });
 });

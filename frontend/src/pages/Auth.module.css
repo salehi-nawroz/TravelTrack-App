@@ -175,3 +175,160 @@
     padding: 0 0.4rem;
   }
 }
+
+/* --- Demo admin account card (Login.jsx) ---
+   Same card as the login form and the user demo panel (DemoAccess), with a
+   brand-green edge and the admin shield so the two demos read apart. Sits
+   directly under the form; the user demo panel, when shown, follows it. */
+.adminDemo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto 8rem;
+  padding: 2.4rem 3rem;
+  background-color: var(--color-dark--2);
+  border-radius: var(--radius-md);
+  border-top: 3px solid var(--color-brand);
+}
+
+/* Followed by the user demo panel: keep the stack together. */
+.adminDemo.adminDemoStacked {
+  margin-bottom: 2.4rem;
+}
+
+.adminDemoHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+}
+
+.adminDemoBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 4rem;
+  height: 4rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-brand-soft);
+  color: var(--color-brand-text);
+}
+
+.adminDemoIcon {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+.adminDemoIntro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.adminDemoTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-brand-text);
+}
+
+.adminDemoNote {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.adminDemoCredentials {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.adminDemoRow {
+  display: grid;
+  grid-template-columns: 8.4rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.adminDemoRow dt {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+}
+
+.adminDemoRow dd {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+  margin: 0;
+}
+
+/* Long values wrap instead of pushing the card wider; one click selects. */
+.adminDemoValue {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-1);
+  font-size: var(--font-size-base);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.adminDemoCopy {
+  flex-shrink: 0;
+}
+
+.adminDemoFill {
+  width: 100%;
+  min-height: var(--control-height);
+}
+
+/* Copy / fill feedback. The reserved line keeps the card from jumping. */
+.adminDemoStatus {
+  min-height: 1.8rem;
+  margin-top: -0.6rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-brand-text);
+}
+
+@media (max-width: 1099.98px) {
+  .adminDemo {
+    margin-bottom: 6rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .adminDemo {
+    margin-bottom: 2.4rem;
+    padding: 2rem;
+  }
+
+  /* Label above the value on narrow screens. */
+  .adminDemoRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 767.98px), (pointer: coarse) {
+  .adminDemoCopy,
+  .adminDemoFill {
+    min-height: var(--touch-target);
+  }
+}
+
+@media (max-width: 359.98px) {
+  .adminDemo {
+    padding: 1.6rem;
+  }
+
+  .adminDemoBadge {
+    width: 3.4rem;
+    height: 3.4rem;
+  }
+}

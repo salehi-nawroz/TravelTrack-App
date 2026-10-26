@@ -437,7 +437,7 @@ function Admin() {
         summary={
           isSuperAdmin
             ? "Super admin"
-            : "Admin · read and edit; can delete users and cities, not trips"
+            : "Admin · read and edit; can delete only your own data"
         }
       />
 
@@ -519,7 +519,7 @@ function Admin() {
           ) : (
             <>
               <div className={styles.toolbar}>
-                <CollapsibleFilters activeCount={activeControlCount}>
+                <CollapsibleFilters activeCount={activeControlCount} toggleable>
                   <Field variant="toolbar" id="adminCitySearch" label="Search">
                     <input
                       id="adminCitySearch"
@@ -676,9 +676,9 @@ function Admin() {
                                       >
                                         Edit
                                       </Link>
-                                      {/* RLS hides super admins' cities from admins. */}
-                                      {(isSuperAdmin ||
-                                        (isAdmin && role !== "super_admin")) && (
+                                      {/* Super admins delete any city; a plain admin only
+                                          their own (the database enforces the same). */}
+                                      {(isSuperAdmin || city.userId === user?.id) && (
                                         <Button
                                           variant="ghost"
                                           size="sm"

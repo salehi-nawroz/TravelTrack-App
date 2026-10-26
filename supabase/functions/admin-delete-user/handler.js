@@ -1,4 +1,6 @@
-// admin-delete-user: an admin or super admin deletes another user's account.
+// admin-delete-user: a super admin deletes another user's account (regular
+// admins are refused by admin_delete_user(), see
+// scripts/admin-ownership-deletion.sql).
 // Plain JavaScript with its dependencies passed in, so the same code runs in
 // the Edge Function (index.ts, Deno) and in the Node tests next to it.
 //

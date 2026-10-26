@@ -230,7 +230,7 @@ function AdminTrips({
       ) : (
         <>
           <div className={adminStyles.toolbar}>
-            <CollapsibleFilters activeCount={activeControlCount}>
+            <CollapsibleFilters activeCount={activeControlCount} toggleable>
               <Field variant="toolbar" id="adminTripSearch" label="Search">
                 <input
                   id="adminTripSearch"

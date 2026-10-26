@@ -7,6 +7,8 @@ import { useState } from "react";
 import { MemoryRouter } from "react-router-dom";
 import CollapsibleFilters from "./CollapsibleFilters";
 import CityList from "./CityList";
+import AdminUsers from "./AdminUsers";
+import AdminTrips from "./AdminTrips";
 import GlobalSearch from "./GlobalSearch";
 import LocationSearch from "./LocationSearch";
 
@@ -123,7 +125,7 @@ describe("Cities list toolbar", () => {
         <CityList />
       </MemoryRouter>,
     );
-    const toggle = screen.getByRole("button", { name: "Search & filter" });
+    const toggle = screen.getByRole("button", { name: "Show search and filters" });
     const panel = panelOf(toggle);
     for (const label of ["Search", "Country", "Visited", "Sort"]) {
       expect(within(panel).getByLabelText(label)).toBeTruthy();
@@ -134,7 +136,7 @@ describe("Cities list toolbar", () => {
     fireEvent.click(toggle);
 
     expect(screen.getByText("1 of 2 cities")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Search & filter 1 active" })).toBe(toggle);
+    expect(screen.getByRole("button", { name: "Show search and filters (1 active)" })).toBe(toggle);
     expect(screen.getByLabelText("Search").value).toBe("kyo");
 
     // The count and Clear stay outside the panel, so they're always visible.
@@ -142,7 +144,7 @@ describe("Cities list toolbar", () => {
     expect(panel.contains(clear)).toBe(false);
     fireEvent.click(clear);
     expect(screen.getByText("2 cities")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Search & filter" })).toBe(toggle);
+    expect(screen.getByRole("button", { name: "Show search and filters" })).toBe(toggle);
   });
 });
 
@@ -209,5 +211,137 @@ describe("breakpoint rules (CollapsibleFilters.module.css)", () => {
     expect(narrow).toMatch(/\.toggle \{ display: inline-flex;[^}]*max-width: 100%;/);
     expect(narrow).toContain(".panel { display: none; }");
     expect(narrow).toMatch(/\.panel\.open \{ display: grid; grid-template-columns: minmax\(0, 1fr\);/);
+  });
+});
+
+// Admin and Cities toolbars: an icon-only toggle, closed on every screen size.
+describe("toggleable (icon-only)", () => {
+  function ToggleableToolbar() {
+    const [query, setQuery] = useState("");
+    return (
+      <CollapsibleFilters toggleable activeCount={query ? 1 : 0}>
+        <label htmlFor="t-q">Search</label>
+        <input id="t-q" value={query} onChange={(e) => setQuery(e.target.value)} />
+      </CollapsibleFilters>
+    );
+  }
+
+  it("starts closed, as a labelled icon with no visible text", () => {
+    render(<ToggleableToolbar />);
+    const toggle = screen.getByRole("button", { name: "Show search and filters" });
+    expect(isOpen(toggle)).toBe(false);
+    expect(panelOf(toggle).className).not.toMatch(/open/);
+    expect(toggle.querySelector("svg")).toBeTruthy();
+    expect(screen.queryByText("Search & filter")).toBeNull();
+    // The visual tooltip says the same thing and is hidden from screen readers.
+    const tooltip = within(toggle).getByText("Show search and filters");
+    expect(tooltip.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("starts closed even on a desktop-sized window", () => {
+    const original = window.matchMedia;
+    window.matchMedia = vi.fn(() => ({ matches: true, addEventListener() {}, removeEventListener() {} }));
+    try {
+      render(<ToggleableToolbar />);
+      expect(isOpen(screen.getByRole("button", { name: "Show search and filters" }))).toBe(false);
+    } finally {
+      window.matchMedia = original;
+    }
+  });
+
+  it("shows and hides the fields, updating its label and tooltip", () => {
+    render(<ToggleableToolbar />);
+    const toggle = screen.getByRole("button", { name: "Show search and filters" });
+
+    fireEvent.click(toggle);
+    expect(isOpen(toggle)).toBe(true);
+    expect(panelOf(toggle).className).toMatch(/open/);
+    expect(toggle.getAttribute("aria-label")).toBe("Hide search and filters");
+    expect(within(toggle).getByText("Hide search and filters")).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByLabelText("Search"));
+
+    fireEvent.click(toggle);
+    expect(isOpen(toggle)).toBe(false);
+    expect(toggle.getAttribute("aria-label")).toBe("Show search and filters");
+  });
+
+  it("keeps the search when hidden and says how many are active", () => {
+    render(<ToggleableToolbar />);
+    const toggle = screen.getByRole("button", { name: "Show search and filters" });
+    fireEvent.click(toggle);
+    fireEvent.change(screen.getByLabelText("Search"), { target: { value: "lis" } });
+    fireEvent.click(toggle);
+
+    expect(screen.getByRole("button", { name: "Show search and filters (1 active)" })).toBe(toggle);
+    fireEvent.click(toggle);
+    expect(screen.getByLabelText("Search").value).toBe("lis");
+  });
+
+  it("is used, closed, by the Admin users and trips toolbars", () => {
+    render(
+      <MemoryRouter>
+        <AdminUsers
+          users={[{ id: "u1", fullName: "Una User", email: "una@example.test", role: "user", avatarPath: null, createdAt: "2026-01-01" }]}
+          isLoadingUsers={false}
+          usersError=""
+          onRetry={() => {}}
+          cities={[]}
+          viewer={{ id: "s1", role: "super_admin" }}
+          onUserDeleted={() => {}}
+        />
+        <AdminTrips
+          trips={[
+            { id: "t1", userId: "u1", title: "Iberia", description: "", startDate: "2025-03-01", endDate: "2025-03-08", status: "completed", destinations: [], photos: [] },
+          ]}
+          isLoading={false}
+          error=""
+          onRetry={() => {}}
+          onTripDeleted={() => {}}
+          profiles={[]}
+          viewer={{ id: "s1", role: "super_admin" }}
+        />
+      </MemoryRouter>,
+    );
+    const toggles = screen.getAllByRole("button", { name: "Show search and filters" });
+    expect(toggles).toHaveLength(2);
+    for (const toggle of toggles) {
+      expect(isOpen(toggle)).toBe(false);
+      expect(panelOf(toggle).parentElement.className).toMatch(/toggleable/);
+    }
+  });
+
+  it("leaves the sidebar search's text toggle as it was", () => {
+    render(
+      <MemoryRouter>
+        <GlobalSearch />
+      </MemoryRouter>,
+    );
+    const toggle = screen.getByRole("button", { name: "Search" });
+    expect(toggle.getAttribute("aria-label")).toBeNull();
+    expect(toggle.textContent).toBe("Search");
+    expect(panelOf(toggle).parentElement.className).not.toMatch(/toggleable/);
+  });
+});
+
+describe("icon toggle rules (CSS)", () => {
+  const read = (file) =>
+    readFileSync(resolve(__dirname, file), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\s+/g, " ");
+  const css = read("CollapsibleFilters.module.css");
+
+  it("hides a closed panel at every width and keeps the icon compact", () => {
+    expect(css).toContain(".toggleable .panel:not(.open) { display: none; }");
+    expect(css).toContain(".toggleable { width: auto; }");
+    expect(css).toMatch(/\.toggle\.iconToggle \{ position: relative;[^}]*width: var\(--control-height-sm\);[^}]*padding: 0;/);
+  });
+
+  it("shows the tooltip on keyboard focus and is a 44px target on touch screens", () => {
+    expect(css).toContain(".iconToggle:focus-visible .tooltip { opacity: 1; }");
+    expect(css).toMatch(/\.toggle\.iconToggle \{ width: var\(--touch-target\); min-height: var\(--touch-target\); \}/);
+  });
+
+  it("lets the toolbar's result line sit beside the closed icon", () => {
+    expect(read("../pages/Admin.module.css")).toMatch(/\.toolbarResult \{[^}]*flex: 1 1 0%; min-width: min\(24rem, 100%\);/);
   });
 });

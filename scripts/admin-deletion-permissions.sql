@@ -1,7 +1,10 @@
 -- Admin deletion permissions: who may delete accounts, cities and trips.
 --
--- NOT applied. Review it, then run it once, manually, in the Supabase
--- Dashboard -> SQL Editor, AFTER every other script (it changes policies
+-- Applied to the live project. Narrowed by admin-ownership-deletion.sql
+-- (run it after this one): regular admins there delete only their own data
+-- and no account, so the admin rules for cities and accounts below are
+-- replaced. Run once, manually, in the Supabase Dashboard -> SQL Editor,
+-- AFTER every other script (it changes policies
 -- created by add-admin-roles.sql, trips-schema.sql and
 -- trip-photos-storage-policies.sql). Then deploy the admin-delete-user Edge
 -- Function (supabase/functions/admin-delete-user, see README "Database

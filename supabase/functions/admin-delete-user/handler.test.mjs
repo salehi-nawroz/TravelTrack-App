@@ -167,7 +167,7 @@ describe("authorization comes from admin_delete_user()", () => {
   });
 
   for (const [code, status, message] of [
-    ["42501", 403, "Only admins can delete accounts."],
+    ["42501", 403, "Only a super admin can delete accounts."],
     ["42501", 403, "You can't delete your own account here. Use Profile -> Delete account."],
     ["P0002", 404, "This account doesn't exist, or you can't delete it."],
     ["42501", 403, "The shared demo account cannot be deleted."],

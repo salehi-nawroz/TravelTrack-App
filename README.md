@@ -88,11 +88,9 @@ The SQL lives in `scripts/`. Run each file in the Supabase Dashboard → SQL Edi
    - then do the read-only checks in `trips-verify.sql`.
 
    `trips-rollback.sql` undoes this step.
-9. Admin deletion permissions (**not yet applied to the live project**):
-   - run `admin-deletion-permissions.sql`. Admins can then delete cities in their scope, only owners and super admins can delete trips and trip photos, and `admin_delete_user()` deletes an account in one transaction;
-   - deploy the Edge Function that Admin → Users → **Delete account** calls: `supabase functions deploy admin-delete-user --project-ref <project ref>` (Supabase CLI). It uses the service-role key that Supabase provides to functions, so nothing has to be configured, and the key never reaches the browser.
-
-   Until both are done, a regular admin's city and account deletions fail with an error, and admins can still delete trips through the API.
+9. Deletion permissions (both scripts are applied to the live project; the second on 2026-10-26 as migration `admin_ownership_deletion`):
+   - run `admin-deletion-permissions.sql`, then `admin-ownership-deletion.sql`. Together: regular admins delete only their own data and no account; only owners and super admins delete trips and trip photos; `admin_delete_user()` lets a super admin delete an account in one transaction;
+   - deploy the Edge Function that Admin → Users → **Delete account** (super admins) calls: `supabase functions deploy admin-delete-user --project-ref <project ref>` (Supabase CLI). It uses the service-role key that Supabase provides to functions, so nothing has to be configured, and the key never reaches the browser. **Not deployed yet**: until it is, a super admin's account deletion fails with an error.
 
 `scripts/recommended-hardening.sql` contains reviewed, optional hardening for the live project (see Security). It has **not** been applied.
 
@@ -121,10 +119,10 @@ An **admin demo** isn't provided, on purpose: the `admin` role can read every no
   - admins are limited to non-super-admin users, and super admins are unrestricted;
   - writes that RLS blocks return no rows, and the app treats that as a failure.
 - **Roles:** users can only update `full_name` and `avatar_path` on their own profile (column-level grant). The signup trigger copies only the display name from sign-up metadata, never a role.
-- **Deletion** (`admin-deletion-permissions.sql`):
-  - cities: the owner, an admin within their scope, or a super admin;
-  - trips, trip photo records and photo files: only the owner or a super admin. A plain admin can view and edit trips but not delete them;
-  - accounts: through `admin_delete_user()`, which checks the caller's role in `profiles`. Nobody deletes their own account that way (that is Profile → Delete account), and an admin can't delete a super admin. The `admin-delete-user` Edge Function removes the photo and avatar files with the service role, after the function's checks pass.
+- **Deletion** (`admin-deletion-permissions.sql`, `admin-ownership-deletion.sql`): a regular admin deletes only their own data.
+  - cities, trips, trip photo records and files, trip destinations: only the owner or a super admin. A plain admin can view and edit other users' cities and trips, but can't delete them, move them to the Trash, or change their owner (a trigger refuses owner changes and other people's Trash moves);
+  - accounts: only a super admin, through `admin_delete_user()`, which checks the caller's role in `profiles` (never their own account that way). Regular users and super admins delete their own account in Profile; a regular admin can't delete any account, including their own. The `admin-delete-user` Edge Function removes the photo and avatar files with the service role, after the function's checks pass;
+  - profiles are never deleted directly by a client (no DELETE grant), and `anon` has no write or TRUNCATE grants on cities and profiles.
 - **Storage:** both buckets are private and are read through short-lived signed URLs. Files sit under a `<user id>/` folder, and the Storage policies check that folder. Size and type limits are enforced by the bucket and re-checked in the browser.
 - **Emails:** they live only in `auth.users` and reach the browser only through the admin-only `get_admin_users()` function.
 - **Sessions:** stored in `sessionStorage`, so a session lasts until the tab is closed.

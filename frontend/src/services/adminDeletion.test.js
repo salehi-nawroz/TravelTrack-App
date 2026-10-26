@@ -95,10 +95,10 @@ describe("canDeleteTrip", () => {
 describe("canDeleteUser", () => {
   const user = (id, role) => ({ id, role });
 
-  it("lets an admin delete users and admins, never super admins or themselves", () => {
+  it("never lets a plain admin delete any account", () => {
     const admin = { id: "a1", role: "admin" };
-    expect(canDeleteUser(user("u1", "user"), admin)).toBe(true);
-    expect(canDeleteUser(user("a2", "admin"), admin)).toBe(true);
+    expect(canDeleteUser(user("u1", "user"), admin)).toBe(false);
+    expect(canDeleteUser(user("a2", "admin"), admin)).toBe(false);
     expect(canDeleteUser(user("s1", "super_admin"), admin)).toBe(false);
     expect(canDeleteUser(user("a1", "admin"), admin)).toBe(false);
   });

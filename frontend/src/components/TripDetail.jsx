@@ -231,6 +231,7 @@ function TripDetail() {
         <TripItinerary
           trip={trip}
           canEdit={canManage && !isDeleting}
+          canDelete={canDelete && !isDeleting}
           cities={isOwner ? cities : []}
           onTripChange={handleTripChange}
         />

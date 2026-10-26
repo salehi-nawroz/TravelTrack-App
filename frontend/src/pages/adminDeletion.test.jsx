@@ -50,7 +50,12 @@ function renderAdmin(tab = "cities") {
 
 beforeEach(() => {
   auth.current = asAdmin;
-  vi.mocked(getCities).mockResolvedValue([city("c1", "u1", "Lisbon"), city("c2", "a2", "Porto")]);
+  // c3 belongs to the signed-in plain admin (a1).
+  vi.mocked(getCities).mockResolvedValue([
+    city("c1", "u1", "Lisbon"),
+    city("c2", "a2", "Porto"),
+    city("c3", "a1", "Faro"),
+  ]);
   vi.mocked(deleteCity).mockReset();
   vi.mocked(adminDeleteUser).mockReset();
 });
@@ -58,52 +63,73 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Admin -> Cities: permanent delete", () => {
-  it("is offered to a plain admin and removes the city after the server confirms", async () => {
+  it("is offered to a plain admin only for their own city", async () => {
+    renderAdmin();
+    expect(await screen.findByRole("button", { name: "Delete Faro permanently" })).toBeTruthy();
+    expect(screen.getByText("Lisbon")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Delete Lisbon permanently" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Delete Porto permanently" })).toBeNull();
+  });
+
+  it("removes the admin's own city after the server confirms", async () => {
     vi.mocked(deleteCity).mockResolvedValue();
     renderAdmin();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Delete Lisbon permanently" }));
-    expect(screen.getByRole("button", { name: "Delete Porto permanently" })).toBeTruthy();
-    const dialog = screen.getByRole("dialog");
-    expect(dialog.textContent).toContain("Una User");
-    fireEvent.click(within(dialog).getByRole("button", { name: "Delete forever" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Delete Faro permanently" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete forever" }));
 
-    await waitFor(() => expect(screen.queryByText("Lisbon")).toBeNull());
-    expect(deleteCity).toHaveBeenCalledWith("c1");
-    expect(screen.getByText("Porto")).toBeTruthy();
+    await waitFor(() => expect(screen.queryByText("Faro")).toBeNull());
+    expect(deleteCity).toHaveBeenCalledWith("c3");
+    expect(screen.getByText("Lisbon")).toBeTruthy();
   });
 
-  it("keeps the city and shows why when the delete fails", async () => {
+  it("keeps the city and shows the permission error when the database refuses", async () => {
     vi.mocked(deleteCity).mockRejectedValue(
       new Error("This city no longer exists, or you don't have permission to delete it."),
     );
     renderAdmin();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Delete Lisbon permanently" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Delete Faro permanently" }));
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete forever" }));
 
     expect(
       await screen.findByText(
-        "Could not delete Lisbon. This city no longer exists, or you don't have permission to delete it.",
+        "Could not delete Faro. This city no longer exists, or you don't have permission to delete it.",
       ),
     ).toBeTruthy();
-    expect(screen.getByText("Lisbon")).toBeTruthy();
+    expect(screen.getByText("Faro")).toBeTruthy();
   });
 
-  it("is offered to a super admin", async () => {
+  it("is offered to a super admin for every city, and removes another user's city", async () => {
     auth.current = asSuper;
+    vi.mocked(deleteCity).mockResolvedValue();
     renderAdmin();
-    expect(await screen.findByRole("button", { name: "Delete Lisbon permanently" })).toBeTruthy();
+
+    expect(await screen.findByRole("button", { name: "Delete Faro permanently" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Delete Porto permanently" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Delete Lisbon permanently" }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.textContent).toContain("Una User");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete forever" }));
+    await waitFor(() => expect(screen.queryByText("Lisbon")).toBeNull());
+    expect(deleteCity).toHaveBeenCalledWith("c1");
   });
 
   it("describes a plain admin's permissions accurately", async () => {
     renderAdmin();
-    expect(await screen.findByText("Admin · read and edit; can delete users and cities, not trips")).toBeTruthy();
+    expect(await screen.findByText("Admin · read and edit; can delete only your own data")).toBeTruthy();
   });
 });
 
-describe("Admin -> Users: after deleting an account", () => {
-  it("removes the user and their cities from the dashboard", async () => {
+describe("Admin -> Users: deleting an account", () => {
+  it("is not offered to a plain admin", async () => {
+    renderAdmin("users");
+    fireEvent.click(await screen.findByRole("button", { name: /Una User/ }));
+    expect(screen.queryByRole("button", { name: "Delete account" })).toBeNull();
+  });
+
+  it("removes the user and their cities from a super admin's dashboard", async () => {
+    auth.current = asSuper;
     vi.mocked(adminDeleteUser).mockResolvedValue({ warnings: [] });
     renderAdmin("users");
 

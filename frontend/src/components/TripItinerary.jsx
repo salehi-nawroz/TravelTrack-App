@@ -26,9 +26,11 @@ const prefersReducedMotion = () =>
 // fits the whole route, and "Show in itinerary" in a map popup scrolls to
 // and highlights the stop here.
 //   canEdit:      show the editing controls (the database decides anyway)
+//   canDelete:    show Remove: the owner or a super admin only, like
+//                 deleting the trip (a plain admin edits but can't remove)
 //   cities:       the owner's cities for the destination picker
 //   onTripChange: receives the trip with its updated destinations
-function TripItinerary({ trip, canEdit, cities = [], onTripChange }) {
+function TripItinerary({ trip, canEdit, canDelete = false, cities = [], onTripChange }) {
   const titleId = useId();
   const [dialog, setDialog] = useState(null); // { destination? } while open
   const [pendingRemove, setPendingRemove] = useState(null);
@@ -268,17 +270,19 @@ function TripItinerary({ trip, canEdit, cities = [], onTripChange }) {
                     >
                       Edit
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      htmlType="button"
-                      className={styles.remove}
-                      onClick={() => setPendingRemove(destination)}
-                      disabled={isBusy}
-                      aria-label={`Remove ${destination.cityName}`}
-                    >
-                      Remove
-                    </Button>
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        htmlType="button"
+                        className={styles.remove}
+                        onClick={() => setPendingRemove(destination)}
+                        disabled={isBusy}
+                        aria-label={`Remove ${destination.cityName}`}
+                      >
+                        Remove
+                      </Button>
+                    )}
                   </div>
                 )}
               </li>

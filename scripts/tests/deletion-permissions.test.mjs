@@ -1,7 +1,8 @@
-// Database tests for who may delete accounts, cities and trips.
+// Database tests for who may delete accounts, cities and trips: regular
+// admins only their own data (admin-ownership-deletion.sql).
 //
 // Runs the real scripts in scripts/ (README "Database setup" order, then
-// admin-deletion-permissions.sql) in PGlite - Postgres 16 in WebAssembly,
+// admin-deletion-permissions.sql and admin-ownership-deletion.sql) in PGlite - Postgres 16 in WebAssembly,
 // in memory - on top of supabase-stub.sql, and checks the RLS policies and
 // admin_delete_user() as the signed-in roles would hit them. Nothing here
 // talks to a real Supabase project.
@@ -28,6 +29,7 @@ const SETUP = [
   "trip-photos-storage-policies.sql",
   "demo-account-guard.sql",
   "admin-deletion-permissions.sql",
+  "admin-ownership-deletion.sql",
 ].map(script);
 
 // Fixed ids, readable in failures.
@@ -49,10 +51,12 @@ const TRIP_USER = id(201);
 const TRIP_SUPER = id(202);
 const TRIP_USER_2 = id(203);
 const TRIP_ADMIN_2 = id(204);
+const TRIP_ADMIN = id(205);
 
 const PHOTO_USER = id(301);
 const PHOTO_SUPER = id(302);
 const PHOTO_USER_2 = id(303);
+const PHOTO_ADMIN = id(304);
 
 const DEST_USER = id(401);
 
@@ -129,6 +133,7 @@ async function seed() {
   await trip(TRIP_SUPER, SUPER, "Super trip");
   await trip(TRIP_USER_2, USER_2, "User 2 trip");
   await trip(TRIP_ADMIN_2, ADMIN_2, "Admin 2 trip");
+  await trip(TRIP_ADMIN, ADMIN, "Admin trip");
 
   await superuser(
     `insert into public.trip_destinations (id, trip_id, city_id, city_name, country, country_code, latitude, longitude, position)
@@ -148,6 +153,7 @@ async function seed() {
   await photo(PHOTO_USER, USER, TRIP_USER);
   await photo(PHOTO_SUPER, SUPER, TRIP_SUPER);
   await photo(PHOTO_USER_2, USER_2, TRIP_USER_2);
+  await photo(PHOTO_ADMIN, ADMIN, TRIP_ADMIN);
 
   // An avatar file, to show account deletion leaves Storage to the Edge Function.
   await superuser("insert into storage.objects (bucket_id, name, owner) values ('avatars', $1, $2)", [`${USER}/avatar.png`, USER]);
@@ -160,8 +166,11 @@ beforeEach(async () => {
 });
 
 describe("cities", () => {
-  test("an admin deletes a user's city; the trip destination keeps its snapshot", async () => {
-    const rows = await as(ADMIN, "delete from public.cities where id = $1 returning id", [CITY_USER]);
+  test("an admin can't delete a user's city; the owner can, and the trip destination keeps its snapshot", async () => {
+    assert.deepEqual(await as(ADMIN, "delete from public.cities where id = $1 returning id", [CITY_USER]), []);
+    assert.equal(await count("select count(*) n from public.cities where id = $1", [CITY_USER]), 1);
+
+    const rows = await as(USER, "delete from public.cities where id = $1 returning id", [CITY_USER]);
     assert.deepEqual(rows, [{ id: CITY_USER }]);
 
     const { rows: dest } = await superuser(
@@ -174,14 +183,21 @@ describe("cities", () => {
     assert.equal(await count("select count(*) n from public.trips where id = $1", [TRIP_USER]), 1);
   });
 
-  test("an admin deletes their own city and another admin's", async () => {
+  test("an admin deletes their own city but not another admin's", async () => {
     assert.equal((await as(ADMIN, "delete from public.cities where id = $1 returning id", [CITY_ADMIN])).length, 1);
     await superuser(
       `insert into public.cities (id, user_id, city_name, country, country_code, latitude, longitude, visit_date)
        values ($1, $2, 'Evora', 'Portugal', 'PT', 38.5, -7.9, '2026-01-01')`,
       [id(105), ADMIN_2],
     );
-    assert.equal((await as(ADMIN, "delete from public.cities where id = $1 returning id", [id(105)])).length, 1);
+    assert.deepEqual(await as(ADMIN, "delete from public.cities where id = $1 returning id", [id(105)]), []);
+    assert.equal(await count("select count(*) n from public.cities where id = $1", [id(105)]), 1);
+  });
+
+  test("filtering by someone else's user id deletes nothing for an admin", async () => {
+    assert.deepEqual(await as(ADMIN, "delete from public.cities where user_id = $1 returning id", [USER]), []);
+    assert.deepEqual(await as(ADMIN, "delete from public.cities returning id"), [{ id: CITY_ADMIN }]);
+    assert.equal(await count("select count(*) n from public.cities"), 3);
   });
 
   test("an admin can't delete a super admin's city", async () => {
@@ -202,14 +218,14 @@ describe("cities", () => {
   });
 
   test("an anonymous visitor deletes nothing", async () => {
-    // cities: anon has Supabase's default table grants, but every policy is
-    // for `authenticated`, so the delete matches no rows. trips: anon has
-    // no grant at all (trips-schema.sql revokes it).
-    assert.deepEqual(await as(null, "delete from public.cities returning id"), []);
-    const err = await errorOf(as(null, "delete from public.trips returning id"));
-    assert.equal(err.code, "42501");
+    // anon has no write grant on cities (admin-ownership-deletion.sql) or
+    // trips (trips-schema.sql), so both are refused outright.
+    for (const table of ["cities", "trips"]) {
+      const err = await errorOf(as(null, `delete from public.${table} returning id`));
+      assert.equal(err.code, "42501", table);
+    }
     assert.equal(await count("select count(*) n from public.cities"), 4);
-    assert.equal(await count("select count(*) n from public.trips"), 4);
+    assert.equal(await count("select count(*) n from public.trips"), 5);
   });
 
   test("trash and restore still work for the owner only", async () => {
@@ -231,7 +247,7 @@ describe("trips", () => {
     );
     assert.equal(await count("select count(*) n from public.trips where id = $1", [TRIP_USER]), 1);
     assert.equal(await count("select count(*) n from public.trip_photos where id = $1", [PHOTO_USER]), 1);
-    assert.equal(await count("select count(*) n from storage.objects where bucket_id = 'trip-photos'"), 3);
+    assert.equal(await count("select count(*) n from storage.objects where bucket_id = 'trip-photos'"), 4);
   });
 
   test("an admin can't delete another admin's trip either", async () => {
@@ -244,7 +260,7 @@ describe("trips", () => {
     assert.equal(await count("select count(*) n from public.trips where id = $1", [TRIP_SUPER]), 1);
   });
 
-  test("an admin still views and edits a user's trip, destinations and photos", async () => {
+  test("an admin still views and edits a user's trip, destinations and photos, but can't remove a destination", async () => {
     assert.equal((await as(ADMIN, "select id from public.trips where id = $1", [TRIP_USER])).length, 1);
     assert.equal((await as(ADMIN, "update public.trips set title = 'Renamed' where id = $1 returning id", [TRIP_USER])).length, 1);
     assert.equal(
@@ -258,7 +274,14 @@ describe("trips", () => {
       ])).length,
       1,
     );
-    assert.equal((await as(ADMIN, "delete from public.trip_destinations where id = $1 returning id", [DEST_USER])).length, 1);
+    assert.equal(
+      (await as(ADMIN, "update public.trip_destinations set notes = 'Edited' where id = $1 returning id", [DEST_USER])).length,
+      1,
+    );
+    assert.deepEqual(await as(ADMIN, "delete from public.trip_destinations where id = $1 returning id", [DEST_USER]), []);
+    assert.equal(await count("select count(*) n from public.trip_destinations where id = $1", [DEST_USER]), 1);
+    // The owner still removes their own destinations.
+    assert.equal((await as(USER, "delete from public.trip_destinations where id = $1 returning id", [DEST_USER])).length, 1);
   });
 
   test("the owner deletes their trip: file, then photo record, then trip", async () => {
@@ -342,52 +365,50 @@ async function accountRows(uid) {
 }
 
 describe("accounts", () => {
-  test("an admin deletes a user's whole account once the photo files are gone", async () => {
+  test("a super admin deletes a user's whole account once the photo files are gone", async () => {
     await removeFilesAsService(USER);
-    await deleteUser(ADMIN, USER);
+    await deleteUser(SUPER, USER);
 
     assert.deepEqual(await accountRows(USER), { auth: 0, profile: 0, cities: 0, trips: 0, photos: 0 });
     assert.equal(await count("select count(*) n from public.trip_destinations where trip_id = $1", [TRIP_USER]), 0);
     // Nobody else's data is touched.
     assert.deepEqual(await accountRows(USER_2), { auth: 1, profile: 1, cities: 1, trips: 1, photos: 1 });
-    assert.deepEqual(await accountRows(SUPER), { auth: 1, profile: 1, cities: 1, trips: 1, photos: 1 });
+    assert.deepEqual(await accountRows(ADMIN), { auth: 1, profile: 1, cities: 1, trips: 1, photos: 1 });
     // Avatars are the Edge Function's job; SQL leaves Storage alone.
     assert.equal(await count("select count(*) n from storage.objects where bucket_id = 'avatars'"), 1);
   });
 
   test("with photo files still in Storage, nothing at all is deleted", async () => {
-    const err = await errorOf(deleteUser(ADMIN, USER));
+    const err = await errorOf(deleteUser(SUPER, USER));
     assert.match(err.message, /Remove the photo file from Storage/);
     assert.deepEqual(await accountRows(USER), { auth: 1, profile: 1, cities: 1, trips: 1, photos: 1 });
   });
 
   test("a dry run checks permission and changes nothing", async () => {
-    await deleteUser(ADMIN, USER, true);
+    await deleteUser(SUPER, USER, true);
     assert.deepEqual(await accountRows(USER), { auth: 1, profile: 1, cities: 1, trips: 1, photos: 1 });
   });
 
-  test("an admin deletes another admin's account", async () => {
-    await deleteUser(ADMIN, ADMIN_2);
-    assert.deepEqual(await accountRows(ADMIN_2), { auth: 0, profile: 0, cities: 0, trips: 0, photos: 0 });
-  });
-
-  test("an admin can't delete a super admin; it looks like an unknown account", async () => {
-    const err = await errorOf(deleteUser(ADMIN, SUPER, true));
-    assert.equal(err.code, "P0002");
-    const unknown = await errorOf(deleteUser(ADMIN, id(999), true));
-    assert.equal(unknown.code, "P0002");
-    assert.equal(err.message, unknown.message);
-    await errorOf(deleteUser(ADMIN, SUPER));
-    assert.deepEqual(await accountRows(SUPER), { auth: 1, profile: 1, cities: 1, trips: 1, photos: 1 });
-  });
-
-  test("nobody deletes their own account here", async () => {
-    for (const caller of [ADMIN, SUPER]) {
-      const err = await errorOf(deleteUser(caller, caller, true));
-      assert.equal(err.code, "42501");
-      assert.match(err.message, /own account/);
+  test("an admin can't delete any account - user, admin, super admin, unknown or their own", async () => {
+    await removeFilesAsService(USER);
+    for (const target of [USER, ADMIN_2, SUPER, id(999), ADMIN]) {
+      for (const dryRun of [true, false]) {
+        const err = await errorOf(deleteUser(ADMIN, target, dryRun));
+        assert.equal(err.code, "42501", `${target} dry=${dryRun}`);
+        assert.match(err.message, /Only a super admin can delete accounts/);
+      }
     }
-    assert.equal(await count("select count(*) n from auth.users where id in ($1, $2)", [ADMIN, SUPER]), 2);
+    for (const uid of [USER, ADMIN_2, SUPER, ADMIN]) {
+      const rows = await accountRows(uid);
+      assert.equal(rows.auth + rows.profile, 2, uid);
+    }
+  });
+
+  test("a super admin can't delete their own account here", async () => {
+    const err = await errorOf(deleteUser(SUPER, SUPER, true));
+    assert.equal(err.code, "42501");
+    assert.match(err.message, /own account/);
+    assert.equal(await count("select count(*) n from auth.users where id = $1", [SUPER]), 1);
   });
 
   test("a regular user can't delete anyone", async () => {
@@ -402,6 +423,7 @@ describe("accounts", () => {
   });
 
   test("a super admin deletes admins and other super admins", async () => {
+    await removeFilesAsService(ADMIN);
     await deleteUser(SUPER, ADMIN);
     await removeFilesAsService(SUPER_2);
     await deleteUser(SUPER, SUPER_2);
@@ -427,7 +449,7 @@ describe("accounts", () => {
 
   test("profiles and auth users stay one-to-one after deletions", async () => {
     await removeFilesAsService(USER);
-    await deleteUser(ADMIN, USER);
+    await deleteUser(SUPER, USER);
     await deleteUser(SUPER, ADMIN_2);
     assert.equal(
       await count(
@@ -437,9 +459,114 @@ describe("accounts", () => {
     );
   });
 
-  test("delete_own_account() still works for the owner", async () => {
+  test("delete_own_account() still works for a regular user and a super admin", async () => {
     await removeFilesAsService(USER_2);
     await as(USER_2, "select public.delete_own_account()");
     assert.deepEqual(await accountRows(USER_2), { auth: 0, profile: 0, cities: 0, trips: 0, photos: 0 });
+
+    await removeFilesAsService(SUPER_2);
+    await as(SUPER_2, "select public.delete_own_account()");
+    assert.equal(await count("select count(*) n from auth.users where id = $1", [SUPER_2]), 0);
+  });
+
+  test("delete_own_account() refuses a regular admin and deletes nothing", async () => {
+    await removeFilesAsService(ADMIN);
+    const err = await errorOf(as(ADMIN, "select public.delete_own_account()"));
+    assert.equal(err.code, "42501");
+    assert.match(err.message, /Admin accounts can't be deleted here/);
+    assert.deepEqual(await accountRows(ADMIN), { auth: 1, profile: 1, cities: 1, trips: 1, photos: 1 });
+  });
+});
+
+describe("ownership (admin-ownership-deletion.sql)", () => {
+  test("an admin deletes their own trip: own photo file, own photo record, then the trip", async () => {
+    const path = photoPath(ADMIN, TRIP_ADMIN, PHOTO_ADMIN);
+    assert.equal(
+      (await as(ADMIN, "delete from storage.objects where bucket_id = 'trip-photos' and name = $1 returning id", [path])).length,
+      1,
+    );
+    assert.equal((await as(ADMIN, "delete from public.trip_photos where id = $1 returning id", [PHOTO_ADMIN])).length, 1);
+    assert.equal((await as(ADMIN, "delete from public.trips where id = $1 returning id", [TRIP_ADMIN])).length, 1);
+  });
+
+  test("an admin can't delete another user's photo record or file, even by its path", async () => {
+    const path = photoPath(USER, TRIP_USER, PHOTO_USER);
+    assert.deepEqual(await as(ADMIN, "delete from storage.objects where name = $1 returning id", [path]), []);
+    assert.deepEqual(await as(ADMIN, "delete from public.trip_photos where user_id = $1 returning id", [USER]), []);
+    assert.equal(await count("select count(*) n from storage.objects where name = $1", [path]), 1);
+    assert.equal(await count("select count(*) n from public.trip_photos where id = $1", [PHOTO_USER]), 1);
+  });
+
+  test("an admin can't take over someone's city by changing its owner, then delete it", async () => {
+    const err = await errorOf(
+      as(ADMIN, "update public.cities set user_id = $2 where id = $1 returning id", [CITY_USER, ADMIN]),
+    );
+    assert.equal(err.code, "42501");
+    assert.match(err.message, /owner can't be changed/);
+    assert.deepEqual(await as(ADMIN, "delete from public.cities where id = $1 returning id", [CITY_USER]), []);
+    const { rows } = await superuser("select user_id from public.cities where id = $1", [CITY_USER]);
+    assert.deepEqual(rows, [{ user_id: USER }]);
+  });
+
+  test("nobody changes their own city's owner either (no giving cities away)", async () => {
+    const err = await errorOf(as(USER, "update public.cities set user_id = $2 where id = $1", [CITY_USER, USER_2]));
+    assert.equal(err.code, "42501");
+  });
+
+  test("an admin can't move someone's city to the Trash, but can still edit it", async () => {
+    const err = await errorOf(as(ADMIN, "update public.cities set deleted_at = now() where id = $1", [CITY_USER]));
+    assert.equal(err.code, "42501");
+    assert.match(err.message, /Only the city's owner can move it/);
+    assert.equal(
+      (await as(ADMIN, "update public.cities set notes = 'Checked' where id = $1 returning id", [CITY_USER])).length,
+      1,
+    );
+    const { rows } = await superuser("select deleted_at, notes from public.cities where id = $1", [CITY_USER]);
+    assert.deepEqual(rows, [{ deleted_at: null, notes: "Checked" }]);
+  });
+
+  test("owners and super admins still use the Trash", async () => {
+    assert.equal((await as(ADMIN, "update public.cities set deleted_at = now() where id = $1 returning id", [CITY_ADMIN])).length, 1);
+    assert.equal((await as(SUPER, "update public.cities set deleted_at = null where id = $1 returning id", [CITY_ADMIN])).length, 1);
+  });
+
+  test("nobody signed in can delete a profile row directly", async () => {
+    for (const [caller, target] of [[ADMIN, USER], [SUPER, USER], [USER, USER]]) {
+      const err = await errorOf(as(caller, "delete from public.profiles where id = $1", [target]));
+      assert.equal(err.code, "42501");
+    }
+    assert.equal(await count("select count(*) n from public.profiles where id = $1", [USER]), 1);
+  });
+
+  test("TRUNCATE and anonymous writes are no longer granted on cities and profiles", async () => {
+    const { rows } = await superuser(
+      `select r.role, t.tbl, p.priv
+       from unnest(array['anon', 'authenticated']) r(role)
+       cross join unnest(array['public.cities', 'public.profiles']) t(tbl)
+       cross join unnest(array['TRUNCATE', 'TRIGGER', 'REFERENCES']) p(priv)
+       where has_table_privilege(r.role, t.tbl, p.priv)`,
+    );
+    assert.deepEqual(rows, []);
+    for (const priv of ["INSERT", "UPDATE", "DELETE"]) {
+      for (const tbl of ["public.cities", "public.profiles"]) {
+        const { rows: [{ ok }] } = await superuser("select has_table_privilege('anon', $1, $2) as ok", [tbl, priv]);
+        assert.equal(ok, false, `anon ${priv} ${tbl}`);
+      }
+    }
+  });
+
+  test("the policy set: one DELETE policy each on cities and destinations, owner or super admin only", async () => {
+    const { rows } = await superuser(
+      `select tablename, policyname, qual from pg_policies
+       where cmd = 'DELETE' and tablename in ('cities', 'trip_destinations') order by tablename`,
+    );
+    assert.deepEqual(
+      rows.map((r) => [r.tablename, r.policyname]),
+      [
+        ["cities", "Owners and super admins can delete cities"],
+        ["trip_destinations", "Owner and super admins can delete destinations"],
+      ],
+    );
+    for (const row of rows) assert.doesNotMatch(row.qual, /'admin'|can_manage_trips_of/);
   });
 });

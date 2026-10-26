@@ -255,7 +255,9 @@ export async function deleteDestination(id) {
     .select("id");
 
   if (error) throw toFriendlyError(error, "Couldn't remove this destination.");
-  if (!data.length) throw new Error("This destination no longer exists.");
+  if (!data.length) {
+    throw new Error("This destination no longer exists, or you don't have permission to remove it.");
+  }
 }
 
 // orderedIds must list every destination of the trip exactly once.

@@ -137,12 +137,17 @@
   background-size: 1.2rem;
 }
 
+/* Beside the closed search & filter icon (CollapsibleFilters, toggleable),
+   on the next row when the panel is open or there's less than 24rem left.
+   0% basis rather than a length, so it keeps its natural height when the
+   phone layout turns the toolbar into a column. */
 .toolbarResult {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  flex: 1 1 100%;
+  flex: 1 1 0%;
+  min-width: min(24rem, 100%);
 }
 
 .toolbarCount {

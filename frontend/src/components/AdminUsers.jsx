@@ -284,7 +284,7 @@ function AdminUsers({
       ) : (
         <>
           <div className={`${adminStyles.toolbar} ${adminStyles.userToolbar}`}>
-            <CollapsibleFilters activeCount={activeControlCount}>
+            <CollapsibleFilters activeCount={activeControlCount} toggleable>
               <Field variant="toolbar" id="adminUserSearch" label="Search">
                 <input
                   id="adminUserSearch"

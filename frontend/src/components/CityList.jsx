@@ -181,7 +181,7 @@ function CityList() {
       />
 
       <div className={`${adminStyles.toolbar} ${styles.toolbar}`}>
-        <CollapsibleFilters activeCount={activeControlCount}>
+        <CollapsibleFilters activeCount={activeControlCount} toggleable>
           <Field variant="toolbar" id="citySearch" label="Search">
             <input
               id="citySearch"

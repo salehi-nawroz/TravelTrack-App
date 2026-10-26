@@ -7,9 +7,14 @@ import styles from "./CollapsibleFilters.module.css";
 // the CSS). On a wide sidebar the toggle is hidden and the fields show in
 // one row, laid out like the toolbar they sit in.
 //
+// With `toggleable` (Admin and Cities toolbars), the toggle is a compact
+// icon-only button at every width, with a tooltip and an aria-label saying
+// what it does, and the panel starts closed on every screen size.
+//
 // Only the panel's visibility lives here. The field values stay in the
 // parent, so closing the panel never clears a search, filter or sort.
-//   label:           toggle text
+//   label:           toggle text (not shown on the icon-only toggle)
+//   toggleable:      icon-only toggle at every width, closed by default
 //   activeCount:     searches/filters/sorts currently set - shown on the
 //                    toggle so a closed panel doesn't hide that results are
 //                    filtered
@@ -19,6 +24,7 @@ import styles from "./CollapsibleFilters.module.css";
 function CollapsibleFilters({
   label = "Search & filter",
   activeCount = 0,
+  toggleable = false,
   toggleClassName = "",
   open,
   onOpenChange,
@@ -49,33 +55,70 @@ function CollapsibleFilters({
     setIsOpen(!isOpen);
   }
 
+  const action = `${isOpen ? "Hide" : "Show"} search and filters`;
+
   return (
-    <div className={styles.root}>
+    <div
+      className={`${styles.root} ${toggleable ? styles.toggleable : ""} ${
+        toggleable && isOpen ? styles.rootOpen : ""
+      }`}
+    >
       <button
         type="button"
-        className={`${styles.toggle} ${toggleClassName}`}
+        className={`${styles.toggle} ${toggleable ? styles.iconToggle : ""} ${toggleClassName}`}
         aria-expanded={isOpen}
         aria-controls={panelId}
+        aria-label={
+          toggleable
+            ? `${action}${activeCount > 0 ? ` (${activeCount} active)` : ""}`
+            : undefined
+        }
         onClick={handleToggle}
       >
-        <svg
-          className={styles.icon}
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          focusable="false"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        >
-          <circle cx="11" cy="11" r="6.5" />
-          <path d="m16 16 4.5 4.5" />
-        </svg>
-        <span>{label}</span>
+        {toggleable ? (
+          // Horizontal sliders: the usual "filters" mark.
+          <svg
+            className={styles.icon}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" />
+            <circle cx="15" cy="6" r="2" />
+            <circle cx="9" cy="12" r="2" />
+            <circle cx="17" cy="18" r="2" />
+          </svg>
+        ) : (
+          <svg
+            className={styles.icon}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          >
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m16 16 4.5 4.5" />
+          </svg>
+        )}
+        {!toggleable && <span>{label}</span>}
         {activeCount > 0 && (
-          <span className={styles.badge}>
+          <span className={styles.badge} aria-hidden={toggleable || undefined}>
             {activeCount}
             <span className={styles.srOnly}> active</span>
+          </span>
+        )}
+        {/* Visual tooltip on hover and keyboard focus; the aria-label above
+            already gives screen readers the same words. */}
+        {toggleable && (
+          <span className={styles.tooltip} aria-hidden="true">
+            {action}
           </span>
         )}
       </button>

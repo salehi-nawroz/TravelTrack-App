@@ -40,29 +40,32 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Admin -> Users: Delete account", () => {
-  it("is offered to an admin for users and other admins", () => {
+  it("is never offered to a plain admin - not for users, other admins or super admins", () => {
     renderUsers({ id: "a1", role: "admin" });
+    for (const name of ["Una User", "Abe Admin", "Sam Super", "Ada Admin"]) {
+      openUser(name);
+      expect(deleteButton()).toBeNull();
+      // The dialog has an × "Close" button too; use the text button.
+      fireEvent.click(screen.getAllByRole("button", { name: "Close" }).at(-1));
+    }
+  });
+
+  it("is offered to a super admin for users and admins, never for their own account", () => {
+    renderUsers({ id: "s2", role: "super_admin" });
     openUser("Una User");
     expect(deleteButton()).toBeTruthy();
-    // The dialog has an × "Close" button too; use the text button.
     fireEvent.click(screen.getAllByRole("button", { name: "Close" }).at(-1));
     openUser("Abe Admin");
     expect(deleteButton()).toBeTruthy();
   });
 
   it("is never offered for your own account", () => {
-    renderUsers({ id: "a1", role: "admin" });
-    openUser("Ada Admin");
-    expect(deleteButton()).toBeNull();
-  });
-
-  it("is never offered to an admin for a super admin", () => {
-    renderUsers({ id: "a1", role: "admin" });
+    renderUsers({ id: "s1", role: "super_admin" });
     openUser("Sam Super");
     expect(deleteButton()).toBeNull();
   });
 
-  it("is offered to a super admin for another super admin", () => {
+    it("is offered to a super admin for another super admin", () => {
     renderUsers({ id: "s2", role: "super_admin" });
     openUser("Sam Super");
     expect(deleteButton()).toBeTruthy();
@@ -76,7 +79,7 @@ describe("Admin -> Users: Delete account", () => {
 
   it("asks first, then removes the user only after the server confirms", async () => {
     vi.mocked(adminDeleteUser).mockResolvedValue({ warnings: [] });
-    const { onUserDeleted } = renderUsers({ id: "a1", role: "admin" });
+    const { onUserDeleted } = renderUsers({ id: "s2", role: "super_admin" });
     openUser("Una User");
     fireEvent.click(deleteButton());
 
@@ -92,7 +95,7 @@ describe("Admin -> Users: Delete account", () => {
   });
 
   it("cancelling deletes nothing", () => {
-    const { onUserDeleted } = renderUsers({ id: "a1", role: "admin" });
+    const { onUserDeleted } = renderUsers({ id: "s2", role: "super_admin" });
     openUser("Una User");
     fireEvent.click(deleteButton());
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" }));
@@ -102,7 +105,7 @@ describe("Admin -> Users: Delete account", () => {
 
   it("shows the server's reason and keeps the user when deletion fails", async () => {
     vi.mocked(adminDeleteUser).mockRejectedValue(new Error("This account doesn't exist, or you can't delete it."));
-    const { onUserDeleted } = renderUsers({ id: "a1", role: "admin" });
+    const { onUserDeleted } = renderUsers({ id: "s2", role: "super_admin" });
     openUser("Una User");
     fireEvent.click(deleteButton());
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete account" }));

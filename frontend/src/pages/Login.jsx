@@ -2,14 +2,24 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import PageNav from "../components/PageNav";
 import { useAuth } from "../contexts/AuthContext";
 import styles from "./Auth.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Button from "../components/Button";
+import NavIcon from "../components/NavIcon";
 import Field, { FormMessage } from "../components/Field";
 import PasswordInput from "../components/PasswordInput";
 import { getLoginErrorMessage } from "../utils/authErrors";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import DemoAccess from "../components/DemoAccess";
 import { DEMO_ACCOUNT } from "../config/portfolio";
+
+// Shared admin demo account, shown on the login page on purpose (the
+// project holds sample data only). Same rules as any admin: the database
+// decides what it can do; this card only describes it.
+const ADMIN_DEMO = { email: "admin_user@outlook.com", password: "admin@321" };
+const ADMIN_DEMO_FIELDS = [
+  ["Email", ADMIN_DEMO.email],
+  ["Password", ADMIN_DEMO.password],
+];
 
 export default function Login() {
   useDocumentTitle("Log in");
@@ -68,11 +78,36 @@ export default function Login() {
     setError("");
   }
 
+  // Copy / fill feedback for the admin demo card, cleared after a moment.
+  const [adminDemoStatus, setAdminDemoStatus] = useState("");
+  const adminDemoTimer = useRef(null);
+  useEffect(() => () => clearTimeout(adminDemoTimer.current), []);
+
+  function announceAdminDemo(message) {
+    clearTimeout(adminDemoTimer.current);
+    setAdminDemoStatus(message);
+    adminDemoTimer.current = setTimeout(() => setAdminDemoStatus(""), 4000);
+  }
+
+  async function copyAdminDemo(label, value) {
+    try {
+      await navigator.clipboard.writeText(value);
+      announceAdminDemo(`Admin ${label.toLowerCase()} copied to the clipboard.`);
+    } catch {
+      announceAdminDemo(`Couldn't copy the ${label.toLowerCase()} - please select it and copy it manually.`);
+    }
+  }
+
+  function fillAdminDemo() {
+    fillDemoCredentials(ADMIN_DEMO.email, ADMIN_DEMO.password);
+    announceAdminDemo("Admin credentials filled in - select Login to continue.");
+  }
+
   return (
     <main className={styles.page}>
       <PageNav />
       <form
-        className={`${styles.form} ${DEMO_ACCOUNT ? styles.formWithDemo : ""}`}
+        className={`${styles.form} ${styles.formWithDemo}`}
         onSubmit={handleSubmit}
         aria-labelledby="login-title"
       >
@@ -119,6 +154,57 @@ export default function Login() {
           Don&apos;t have an account? <Link to="/signup">Sign up</Link>
         </p>
       </form>
+
+      <section
+        className={`${styles.adminDemo} ${DEMO_ACCOUNT ? styles.adminDemoStacked : ""}`}
+        aria-labelledby="admin-demo-title"
+      >
+        <div className={styles.adminDemoHeader}>
+          <span className={styles.adminDemoBadge}>
+            <NavIcon id="admin" className={styles.adminDemoIcon} />
+          </span>
+          <div className={styles.adminDemoIntro}>
+            <h2 id="admin-demo-title" className={styles.adminDemoTitle}>
+              Demo Admin Account
+            </h2>
+            <p className={styles.adminDemoNote}>
+              Demo admin accounts can manage users and cities, including deleting them, but cannot
+              delete trips.
+            </p>
+          </div>
+        </div>
+
+        <dl className={styles.adminDemoCredentials}>
+          {ADMIN_DEMO_FIELDS.map(([label, value]) => (
+            <div key={label} className={styles.adminDemoRow}>
+              <dt>{label}</dt>
+              <dd>
+                <code className={styles.adminDemoValue}>{value}</code>
+                <Button
+                  htmlType="button"
+                  variant="ghost"
+                  size="sm"
+                  className={styles.adminDemoCopy}
+                  aria-label={`Copy demo admin ${label.toLowerCase()}`}
+                  onClick={() => copyAdminDemo(label, value)}
+                >
+                  Copy
+                </Button>
+              </dd>
+            </div>
+          ))}
+        </dl>
+
+        <Button htmlType="button" variant="outline" className={styles.adminDemoFill} onClick={fillAdminDemo}>
+          Fill Admin Credentials
+        </Button>
+
+        {/* aria-live rather than role="status": the user demo panel below
+            already has the page's status region. */}
+        <p className={styles.adminDemoStatus} aria-live="polite">
+          {adminDemoStatus}
+        </p>
+      </section>
 
       {DEMO_ACCOUNT && (
         <DemoAccess
