@@ -278,3 +278,6 @@ jobs:
           path: smoke-production.json
           if-no-files-found: ignore
           retention-days: 14
+
+          ## The `smoke-production` report is also uploaded on failure, so that the
+          ## user can inspect it even if the job fails before this step.
