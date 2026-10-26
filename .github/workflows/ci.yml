@@ -241,7 +241,7 @@ jobs:
       - name: Promote the tested deployment (no rebuild)
         env:
           DEPLOY_WAIT_SECONDS: 300
-        run: node .github/scripts/vercel-deployment.mjs promote "$STAGED_ID" "$GITHUB_SHA"
+        run: node .github/scripts/vercel-deployment.mjs promote "$STAGED_ID" "$GITHUB_SHA" "$PRODUCTION_URL"
 
       - name: Verify production serves the promoted deployment
         run: node .github/scripts/vercel-deployment.mjs assert-alias "$PRODUCTION_URL" "$STAGED_ID"

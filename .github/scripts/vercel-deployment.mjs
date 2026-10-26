@@ -7,10 +7,10 @@
 //     target build of <commit-sha> (the ciCommitSha meta set at deploy time).
 //     Writes id=<deployment id> to $GITHUB_OUTPUT.
 //
-//   node vercel-deployment.mjs promote <deployment-id> <commit-sha>
+//   node vercel-deployment.mjs promote <deployment-id> <commit-sha> <production-url>
 //     Re-checks the deployment as `ready` does and that it belongs to
 //     VERCEL_PROJECT_ID, then points the production domains at it (no
-//     rebuild) and waits until Vercel reports the promotion as finished.
+//     rebuild) and waits until the production alias points at it.
 //     Replaces `vercel promote`, which always calls the user-level
 //     GET /v2/user and so fails with "User not found (404)" for a token
 //     scoped to a team.
@@ -93,10 +93,16 @@ async function ready(deploymentUrl, sha) {
   }
 }
 
-// The same API call `vercel promote` makes, followed by the same wait on the
-// project's lastAliasRequest.
-async function promote(deploymentId, sha) {
+// lastAliasRequest.jobStatus values in Vercel's API schema.
+const KNOWN_JOB = ["pending", "in-progress", "succeeded", "skipped", "failed"];
+
+// The same API call `vercel promote` makes, sent once. Done only when the
+// production alias points at the deployment (GET /v4/aliases, deploymentId):
+// the project's lastAliasRequest is optional and nullable in the API schema
+// and can stay empty, so it only explains progress and reports failures.
+async function promote(deploymentId, sha, productionUrl) {
   if (!PROJECT) fail("VERCEL_PROJECT_ID is not set.");
+  const productionHost = hostOf(productionUrl);
   const d = await getDeployment(deploymentId);
   if (d.id !== deploymentId) fail(`Vercel returned deployment ${d.id}, expected ${deploymentId}.`);
   if ((d.readyState ?? d.status) !== "READY") fail(`Deployment ${d.id} is ${d.readyState ?? d.status}, not READY.`);
@@ -111,22 +117,31 @@ async function promote(deploymentId, sha) {
     fail("Promotion was queued behind an active rolling release; production does not serve this deployment yet.");
   }
   if (!res.ok) fail(`Promotion of ${d.id} was refused (${await apiError(res)}).`);
-  console.log(`Promotion of ${d.id} requested.`);
+  console.log(`Promotion of ${d.id} accepted (HTTP ${res.status}); waiting for ${productionHost}.`);
 
   // requestedAt comes from Vercel's clock; allow for skew against ours.
   const recent = startedAt - 3 * 60 * 1000;
   const deadline = startedAt + WAIT_MS;
+  let last = "";
   for (;;) {
-    const p = await api(`/v9/projects/${encodeURIComponent(PROJECT)}`);
-    if (!p.ok) fail(`Could not read the promotion status (${await apiError(p)}).`);
-    const job = (await p.json()).lastAliasRequest ?? {};
-    if (job.toDeploymentId === d.id && job.requestedAt >= recent) {
-      if (job.jobStatus === "succeeded") return console.log(`Production domains now point at ${d.id}.`);
-      // Vercel skips the job when the domains already point there; assert-alias checks that.
-      if (job.jobStatus === "skipped") return console.log(`Promotion skipped by Vercel: domains already at ${d.id}.`);
-      if (job.jobStatus === "failed") fail(`Vercel could not move all production domains to ${d.id}.`);
-    }
-    if (Date.now() > deadline) fail(`Promotion of ${d.id} not finished after ${WAIT_MS / 1000}s (last: ${job.jobStatus ?? "none"}).`);
+    // rollbackInfo=true is what `vercel promote` sends when it polls this.
+    const p = await api(`/v9/projects/${encodeURIComponent(PROJECT)}?rollbackInfo=true`);
+    if (!p.ok) fail(`Could not read the project (${await apiError(p)}).`);
+    const req = (await p.json()).lastAliasRequest;
+    const job = req?.toDeploymentId === d.id && req.requestedAt >= recent ? req.jobStatus : undefined;
+    if (job === "failed") fail(`Vercel could not move all production domains to ${d.id}.`);
+    if (job !== undefined && !KNOWN_JOB.includes(job)) fail(`Unknown promotion status "${job}" for ${d.id}.`);
+
+    const a = await api(`/v4/aliases/${encodeURIComponent(productionHost)}?projectId=${encodeURIComponent(PROJECT)}`);
+    if (!a.ok && a.status !== 404) fail(`Could not read the ${productionHost} alias (${await apiError(a)}).`);
+    const serving = a.ok ? (await a.json()).deploymentId : undefined;
+
+    const now = `promotion job: ${job ?? (req ? `none for ${d.id} (last is ${req.type} of ${req.toDeploymentId}: ${req.jobStatus})` : "not reported")}; ${productionHost} serves: ${serving ?? (a.ok ? "unknown" : "alias not found")}`;
+    if (now !== last) console.log(now);
+    last = now;
+
+    if (serving === d.id) return console.log(`Production domain ${productionHost} now points at ${d.id}.`);
+    if (Date.now() > deadline) fail(`Promotion of ${d.id} not confirmed after ${WAIT_MS / 1000}s (${now}).`);
     await new Promise((r) => setTimeout(r, 3000));
   }
 }
@@ -148,11 +163,11 @@ async function assertAlias(productionHost, expectedId) {
 
 try {
   if (!TOKEN) fail("VERCEL_TOKEN is not set.");
-  const [command, a, b] = process.argv.slice(2);
+  const [command, a, b, c] = process.argv.slice(2);
   if (command === "ready" && a && b) await ready(a, b);
-  else if (command === "promote" && a && b) await promote(a, b);
+  else if (command === "promote" && a && b && c) await promote(a, b, c);
   else if (command === "assert-alias" && a && b) await assertAlias(a, b);
-  else fail("Usage: vercel-deployment.mjs ready <url> <sha> | promote <deployment-id> <sha> | assert-alias <host> <deployment-id>");
+  else fail("Usage: vercel-deployment.mjs ready <url> <sha> | promote <deployment-id> <sha> <production-url> | assert-alias <host> <deployment-id>");
 } catch (err) {
   console.error(`::error::${err instanceof Failure ? err.message : `Unexpected error: ${err.message}`}`);
   process.exitCode = 1;
