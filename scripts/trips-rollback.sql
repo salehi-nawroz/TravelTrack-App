@@ -64,6 +64,7 @@ grant execute on function public.delete_own_account() to authenticated;
 drop policy if exists "Trip owners can upload trip photos" on storage.objects;
 drop policy if exists "Trip photos are visible to owner and trip admins" on storage.objects;
 drop policy if exists "Trip photos are deletable by owner and trip admins" on storage.objects;
+drop policy if exists "Trip photos are deletable by owner and super admins" on storage.objects;  -- admin-deletion-permissions.sql
 
 -- 3. RPCs, tables (their policies, indexes and triggers go with them), then
 --    the trip-only helper functions.
@@ -75,6 +76,12 @@ drop table if exists public.trips;
 drop function if exists public.trip_photos_prevent_orphan_file();
 drop function if exists public.trip_destinations_check_city();
 drop function if exists public.can_manage_trips_of(uuid);
+drop function if exists public.can_delete_trips_of(uuid);  -- admin-deletion-permissions.sql
 drop function if exists public.trips_set_updated_at();
+
+-- 4. admin_delete_user() (admin-deletion-permissions.sql) deletes from the
+--    trip tables, so it can't outlive them. Admin -> Users then reports that
+--    accounts can't be deleted until it is recreated without the trip steps.
+drop function if exists public.admin_delete_user(uuid, boolean);
 
 commit;

@@ -4,6 +4,7 @@
 //   "<table>.<select|insert|update|delete>"  (receives the query state)
 //   "rpc.<name>"                             (receives the args)
 //   "storage.<remove|list|createSignedUrls>" (receives the arguments)
+//   "functions.<name>"                       (receives the invoke body)
 // Unregistered calls succeed with empty data.
 //
 // Use in a test file:
@@ -107,6 +108,13 @@ const supabase = {
         });
       },
     }),
+  },
+
+  functions: {
+    invoke(name, options) {
+      mockState.calls.push({ type: "functions.invoke", name, body: options?.body });
+      return answer(`functions.${name}`, options?.body, { data: null, error: null });
+    },
   },
 
   auth: {

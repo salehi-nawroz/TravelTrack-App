@@ -1,7 +1,8 @@
 # CI/CD for TravelTrack. GitHub Actions is the only thing that deploys:
 # Vercel's Git deployments are switched off in frontend/vercel.json.
 #
-#   verify   every push and pull request: npm ci, lint, tests, audit, build.
+#   verify   every push and pull request: npm ci, lint, tests (frontend, and
+#            database/Edge Function tests from the root), audit, build.
 #   stage    pushes to main only, after verify: build once with the Vercel
 #            project's production settings, deploy it WITHOUT production
 #            domains (--prod --skip-domain), wait for READY, smoke-test the
@@ -56,6 +57,14 @@ jobs:
 
       - name: Test
         run: npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/junit.xml
+
+      # The SQL scripts in PGlite (RLS policies, admin_delete_user) and the
+      # admin-delete-user Edge Function logic. No Supabase project involved.
+      - name: Database and Edge Function tests
+        working-directory: .
+        run: |
+          npm ci
+          npm test
 
       - name: Audit runtime dependencies (high and critical)
         run: npm audit --omit=dev --audit-level=high

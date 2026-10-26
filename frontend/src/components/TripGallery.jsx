@@ -25,9 +25,10 @@ let queueKey = 0;
 // A trip's photos: grid, lightbox, cover choice and delete, plus (for the
 // owner) an upload queue with previews, per-file progress and errors.
 //   canUpload:    the trip's owner (the storage policy only lets them)
-//   canManage:    owner or permitted admin: set cover, delete
+//   canManage:    owner or permitted admin: set cover
+//   canDelete:    owner or super admin: delete (a plain admin can't)
 //   onTripChange: receives the trip with its updated photos
-function TripGallery({ trip, canUpload, canManage, onTripChange }) {
+function TripGallery({ trip, canUpload, canManage, canDelete = false, onTripChange }) {
   const titleId = useId();
   const fileInputRef = useRef(null);
 
@@ -302,9 +303,9 @@ function TripGallery({ trip, canUpload, canManage, onTripChange }) {
                   {photo.isCover && <span className={styles.coverBadge}>Cover</span>}
                 </button>
 
-                {canManage && (
+                {(canManage || canDelete) && (
                   <div className={styles.tileActions}>
-                    {!photo.isCover && (
+                    {canManage && !photo.isCover && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -316,17 +317,19 @@ function TripGallery({ trip, canUpload, canManage, onTripChange }) {
                         Set as cover
                       </Button>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      htmlType="button"
-                      className={styles.delete}
-                      onClick={() => setPendingDelete(photo)}
-                      disabled={isBusy}
-                      aria-label={`Delete photo ${index + 1}`}
-                    >
-                      {isBusy ? "Working…" : "Delete"}
-                    </Button>
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        htmlType="button"
+                        className={styles.delete}
+                        onClick={() => setPendingDelete(photo)}
+                        disabled={isBusy}
+                        aria-label={`Delete photo ${index + 1}`}
+                      >
+                        {isBusy ? "Working…" : "Delete"}
+                      </Button>
+                    )}
                   </div>
                 )}
               </li>

@@ -15,6 +15,15 @@ export function canManageTrip(trip, viewer, ownerRole) {
   );
 }
 
+// UI-side mirror of public.can_delete_trips_of()
+// (scripts/admin-deletion-permissions.sql): deleting a trip or its photos
+// is for the owner and super admins only. A plain admin can manage (edit) a
+// trip but never delete it or its photos.
+export function canDeleteTrip(trip, viewer) {
+  if (!trip || !viewer?.id) return false;
+  return trip.userId === viewer.id || viewer.role === "super_admin";
+}
+
 // Only the owner adds photos (the storage upload policy requires the
 // owner's own folder).
 export const canUploadTripPhotos = (trip, viewer) =>

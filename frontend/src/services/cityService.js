@@ -132,10 +132,19 @@ export async function updateCity(id, city) {
   return toDomainCity(data);
 }
 
+// Permanent delete from Admin -> Cities. RLS blocks by matching 0 rows
+// rather than erroring, so "nothing deleted" is reported as a failure.
 export async function deleteCity(id) {
-  const { error } = await supabase.from("cities").delete().eq("id", id);
+  const { data, error } = await supabase
+    .from("cities")
+    .delete()
+    .eq("id", id)
+    .select("id");
 
   if (error) throw new Error(error.message);
+  if (!data.length) {
+    throw new Error("This city no longer exists, or you don't have permission to delete it.");
+  }
 }
 
 // --- Trash (soft delete via cities.deleted_at) ---

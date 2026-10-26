@@ -15,6 +15,8 @@ const formatDate = (date) =>
 // Purely presentational, same shape as ConfirmDialog: the caller resolves
 // the avatar URl and filters the user's cities beforehand (both already
 // available from data AdminUsers already has - no request is made here).
+// onDelete is passed only when the viewer may delete this account; the
+// caller asks for confirmation and does the deleting.
 function UserDetails({
   user,
   avatarUrl,
@@ -23,6 +25,7 @@ function UserDetails({
   cityCount,
   cities,
   onClose,
+  onDelete,
 }) {
   // The shared Dialog shell handles Escape, overlay click, the × button,
   // focus and the portal.
@@ -86,6 +89,11 @@ function UserDetails({
       )}
 
       <div className={styles.actions}>
+        {onDelete && (
+          <Button variant="danger" htmlType="button" onClick={onDelete}>
+            Delete account
+          </Button>
+        )}
         <Button variant="secondary" htmlType="button" onClick={onClose}>
           Close
         </Button>

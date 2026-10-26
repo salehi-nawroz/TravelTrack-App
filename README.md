@@ -88,6 +88,11 @@ The SQL lives in `scripts/`. Run each file in the Supabase Dashboard → SQL Edi
    - then do the read-only checks in `trips-verify.sql`.
 
    `trips-rollback.sql` undoes this step.
+9. Admin deletion permissions (**not yet applied to the live project**):
+   - run `admin-deletion-permissions.sql`. Admins can then delete cities in their scope, only owners and super admins can delete trips and trip photos, and `admin_delete_user()` deletes an account in one transaction;
+   - deploy the Edge Function that Admin → Users → **Delete account** calls: `supabase functions deploy admin-delete-user --project-ref <project ref>` (Supabase CLI). It uses the service-role key that Supabase provides to functions, so nothing has to be configured, and the key never reaches the browser.
+
+   Until both are done, a regular admin's city and account deletions fail with an error, and admins can still delete trips through the API.
 
 `scripts/recommended-hardening.sql` contains reviewed, optional hardening for the live project (see Security). It has **not** been applied.
 
@@ -116,6 +121,10 @@ An **admin demo** isn't provided, on purpose: the `admin` role can read every no
   - admins are limited to non-super-admin users, and super admins are unrestricted;
   - writes that RLS blocks return no rows, and the app treats that as a failure.
 - **Roles:** users can only update `full_name` and `avatar_path` on their own profile (column-level grant). The signup trigger copies only the display name from sign-up metadata, never a role.
+- **Deletion** (`admin-deletion-permissions.sql`):
+  - cities: the owner, an admin within their scope, or a super admin;
+  - trips, trip photo records and photo files: only the owner or a super admin. A plain admin can view and edit trips but not delete them;
+  - accounts: through `admin_delete_user()`, which checks the caller's role in `profiles`. Nobody deletes their own account that way (that is Profile → Delete account), and an admin can't delete a super admin. The `admin-delete-user` Edge Function removes the photo and avatar files with the service role, after the function's checks pass.
 - **Storage:** both buckets are private and are read through short-lived signed URLs. Files sit under a `<user id>/` folder, and the Storage policies check that folder. Size and type limits are enforced by the bucket and re-checked in the browser.
 - **Emails:** they live only in `auth.users` and reach the browser only through the admin-only `get_admin_users()` function.
 - **Sessions:** stored in `sessionStorage`, so a session lasts until the tab is closed.
@@ -135,13 +144,19 @@ From `frontend/`:
 | `npm run build` | Production build into `frontend/dist` |
 | `npm run preview` | Serves the production build locally |
 
+From the repository root (after `npm ci` there):
+
+| Command | What it does |
+| --- | --- |
+| `npm test` | Runs the SQL scripts in PGlite (in-memory Postgres) and checks the RLS policies and `admin_delete_user()` as different roles, plus the `admin-delete-user` Edge Function logic with fake clients. No Supabase project is touched. |
+
 ## Continuous integration and deployment
 
 GitHub Actions is the only thing that deploys TravelTrack. `frontend/vercel.json` sets `"git": { "deploymentEnabled": false }`, so pushes no longer make Vercel build anything by itself. Everything runs in `.github/workflows/ci.yml`:
 
 | Job | Runs for | What it does |
 | --- | --- | --- |
-| `verify` | every push and pull request | `npm ci`, `npm run lint`, `npm test` (JUnit report uploaded as an artifact), `npm audit --omit=dev --audit-level=high`, `npm run build` |
+| `verify` | every push and pull request | `npm ci`, `npm run lint`, `npm test` (JUnit report uploaded as an artifact), the root `npm test` (database and Edge Function tests), `npm audit --omit=dev --audit-level=high`, `npm run build` |
 | `stage` | pushes to `main` only, after `verify` passed | checks the commit is still the head of `main`; `vercel pull` + `vercel build --prod` (the project's production settings and env vars); `vercel deploy --prebuilt --prod --skip-domain`, which creates a deployment that **no production domain points at**; waits until it is `READY` and built from this commit; smoke-tests its immutable URL |
 | `promote` | after `stage` passed, in the `production` environment | re-checks that the commit is still the head of `main`; Vercel's promote API (`POST /v10/projects/{id}/promote/{deployment}`, what `vercel promote` calls) moves the production domains to that exact, tested build (no rebuild) after checking it is the staged build of this commit in this project; checks that the production domain now serves it, and smoke-tests and compares it with the tested build |
 

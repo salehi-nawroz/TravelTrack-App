@@ -153,13 +153,22 @@ describe("TripGallery", () => {
   it("only offers uploads to the owner", () => {
     const trip = makeTrip({ photos: [photo("a")] });
     const { rerender } = render(
-      <TripGallery trip={trip} canUpload={false} canManage onTripChange={vi.fn()} />,
+      <TripGallery trip={trip} canUpload={false} canManage canDelete onTripChange={vi.fn()} />,
     );
     expect(screen.queryByRole("button", { name: "+ Add photos" })).toBeNull();
     expect(screen.getByRole("button", { name: "Delete photo 1" })).toBeTruthy();
 
-    rerender(<TripGallery trip={trip} canUpload canManage onTripChange={vi.fn()} />);
+    rerender(<TripGallery trip={trip} canUpload canManage canDelete onTripChange={vi.fn()} />);
     expect(screen.getByRole("button", { name: "+ Add photos" })).toBeTruthy();
+  });
+
+  it("lets a plain admin set the cover but never delete a photo", () => {
+    // TripDetail passes canManage without canDelete for a plain admin.
+    render(
+      <TripGallery trip={makeTrip({ photos: [photo("a", true), photo("b")] })} canUpload={false} canManage onTripChange={vi.fn()} />,
+    );
+    expect(screen.getByRole("button", { name: "Make photo 2 the cover" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Delete photo/ })).toBeNull();
   });
 
   it("hides cover and delete controls from viewers who can't manage", () => {
@@ -174,7 +183,7 @@ describe("TripGallery", () => {
     const onTripChange = vi.fn();
     const trip = makeTrip({ photos: [photo("a", true), photo("b")] });
     vi.mocked(deleteTripPhoto).mockResolvedValue();
-    render(<TripGallery trip={trip} canUpload canManage onTripChange={onTripChange} />);
+    render(<TripGallery trip={trip} canUpload canManage canDelete onTripChange={onTripChange} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Delete photo 1" }));
     const dialog = screen.getByRole("dialog");
@@ -190,7 +199,7 @@ describe("TripGallery", () => {
   it("keeps the photo and shows an error when deletion fails", async () => {
     const onTripChange = vi.fn();
     vi.mocked(deleteTripPhoto).mockRejectedValue(new Error("Couldn't delete this photo. Please try again."));
-    render(<TripGallery trip={makeTrip({ photos: [photo("a")] })} canUpload canManage onTripChange={onTripChange} />);
+    render(<TripGallery trip={makeTrip({ photos: [photo("a")] })} canUpload canManage canDelete onTripChange={onTripChange} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Delete photo 1" }));
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete photo" }));
@@ -225,22 +234,24 @@ describe("AdminTrips", () => {
       />,
     );
 
-  it("lets an admin delete user and admin trips, never a super admin's", () => {
+  it("never offers a plain admin a trip delete, but still lets them open and edit", () => {
     renderAdmin({ id: "admin-1", role: "admin" });
-    expect(screen.getByRole("button", { name: "Delete User trip, owned by Una User" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Delete Admin trip, owned by Ada Admin" })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /Delete Super trip/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Delete / })).toBeNull();
+    expect(screen.getByRole("link", { name: "Open User trip" }).textContent).toBe("Open / edit");
+    expect(screen.getByRole("link", { name: "Open Admin trip" }).textContent).toBe("Open / edit");
   });
 
   it("lets a super admin delete any trip", () => {
     renderAdmin({ id: "s2", role: "super_admin" });
+    expect(screen.getByRole("button", { name: "Delete User trip, owned by Una User" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Delete Admin trip, owned by Ada Admin" })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Delete Super trip/ })).toBeTruthy();
   });
 
   it("names the trip and its owner before deleting", async () => {
     const onTripDeleted = vi.fn();
     vi.mocked(deleteTrip).mockResolvedValue();
-    renderAdmin({ id: "admin-1", role: "admin" }, { onTripDeleted });
+    renderAdmin({ id: "s2", role: "super_admin" }, { onTripDeleted });
 
     fireEvent.click(screen.getByRole("button", { name: "Delete User trip, owned by Una User" }));
     const dialog = screen.getByRole("dialog");
@@ -250,7 +261,7 @@ describe("AdminTrips", () => {
 
     fireEvent.click(within(dialog).getByRole("button", { name: "Delete trip" }));
     await waitFor(() => expect(onTripDeleted).toHaveBeenCalledWith("t-user"));
-    expect(deleteTrip).toHaveBeenCalledWith(trips[0], "admin-1");
+    expect(deleteTrip).toHaveBeenCalledWith(trips[0], "s2");
   });
 
   it("filters by owner and search text", () => {

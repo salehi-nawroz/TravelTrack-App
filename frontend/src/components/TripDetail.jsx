@@ -19,7 +19,7 @@ import { useTripOwner } from "../hooks/useTripOwner";
 import { deleteTrip, endTrip, getTrip } from "../services/tripService";
 import { formatTripRange, todayIso, tripLengthDays } from "../utils/tripDates";
 import { hasErrors, latestDeparture, validateTrip } from "../utils/tripValidation";
-import { canManageTrip, canUploadTripPhotos } from "../utils/tripPermissions";
+import { canDeleteTrip, canManageTrip, canUploadTripPhotos } from "../utils/tripPermissions";
 import styles from "./TripDetail.module.css";
 
 const plural = (count, word, words = `${word}s`) =>
@@ -126,6 +126,8 @@ function TripDetail() {
   }
 
   const canManage = canManageTrip(trip, viewer, owner?.role);
+  // A plain admin can edit someone's trip but not delete it or its photos.
+  const canDelete = canManage && canDeleteTrip(trip, viewer);
   const isOwner = canUploadTripPhotos(trip, viewer);
   const days = tripLengthDays(trip.startDate, trip.endDate);
 
@@ -198,16 +200,18 @@ function TripDetail() {
                 Edit details
               </Link>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              htmlType="button"
-              className={styles.danger}
-              onClick={() => setIsConfirmingDelete(true)}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting…" : "Delete trip"}
-            </Button>
+            {canDelete && (
+              <Button
+                variant="outline"
+                size="sm"
+                htmlType="button"
+                className={styles.danger}
+                onClick={() => setIsConfirmingDelete(true)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting…" : "Delete trip"}
+              </Button>
+            )}
           </div>
         )}
       </Card>
@@ -237,6 +241,7 @@ function TripDetail() {
           trip={trip}
           canUpload={isOwner && !isDeleting}
           canManage={canManage && !isDeleting}
+          canDelete={canDelete && !isDeleting}
           onTripChange={handleTripChange}
         />
       </Card>

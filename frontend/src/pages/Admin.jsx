@@ -418,8 +418,16 @@ function Admin() {
       setCities((current) => current.filter((c) => c.id !== city.id));
     } catch (err) {
       console.error("Failed to delete city:", err.message);
-      setDeleteError("Could not delete this city. Please try again.");
+      setDeleteError(`Could not delete ${city.cityName}. ${err.message}`);
     }
+  }
+
+  // After the server confirmed it: everything of that user leaves the lists.
+  function handleUserDeleted(userId) {
+    setUsers((current) => current.filter((u) => u.id !== userId));
+    setProfiles((current) => current.filter((p) => p.id !== userId));
+    setCities((current) => current.filter((c) => c.userId !== userId));
+    setTrips((current) => current.filter((trip) => trip.userId !== userId));
   }
 
   return (
@@ -429,7 +437,7 @@ function Admin() {
         summary={
           isSuperAdmin
             ? "Super admin"
-            : "Admin · read and edit; can also delete trips"
+            : "Admin · read and edit; can delete users and cities, not trips"
         }
       />
 
@@ -466,6 +474,8 @@ function Admin() {
           usersError={usersError}
           onRetry={() => setUsersReloadKey((key) => key + 1)}
           cities={cities}
+          viewer={{ id: user?.id, role: profile?.role }}
+          onUserDeleted={handleUserDeleted}
         />
       )}
 
@@ -666,7 +676,9 @@ function Admin() {
                                       >
                                         Edit
                                       </Link>
-                                      {isSuperAdmin && (
+                                      {/* RLS hides super admins' cities from admins. */}
+                                      {(isSuperAdmin ||
+                                        (isAdmin && role !== "super_admin")) && (
                                         <Button
                                           variant="ghost"
                                           size="sm"

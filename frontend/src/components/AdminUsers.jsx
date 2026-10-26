@@ -9,8 +9,11 @@ import { usePagination } from "../hooks/usePagination";
 import { compareDates } from "../utils/compareDates";
 import Button from "./Button";
 import Card from "./Card";
-import Field from "./Field";
+import Field, { FormMessage } from "./Field";
 import CollapsibleFilters from "./CollapsibleFilters";
+import ConfirmDialog from "./ConfirmDialog";
+import { adminDeleteUser } from "../services/accountService";
+import { canDeleteUser } from "../utils/userPermissions";
 import {
   getAvatarSignedUrl,
   getAvatarSignedUrls,
@@ -34,10 +37,21 @@ const SORT_OPTIONS = [
   { value: "fewestCities", label: "Fewest cities" },
 ];
 
+const displayName = (user) => user.fullName || user.email || "this user";
+
 // `users` comes from profileService.getAdminUsers() (loaded by Admin.jsx);
 // `cities` is the same already-loaded array the Cities tab uses - reused
 // here only to derive a per-user city count/list, never refetched.
-function AdminUsers({ users, isLoadingUsers, usersError, onRetry, cities }) {
+// onUserDeleted(id) runs only after the server confirmed the deletion.
+function AdminUsers({
+  users,
+  isLoadingUsers,
+  usersError,
+  onRetry,
+  cities,
+  viewer,
+  onUserDeleted,
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [sortOption, setSortOption] = useState("default");
@@ -51,6 +65,11 @@ function AdminUsers({ users, isLoadingUsers, usersError, onRetry, cities }) {
   const selectedUserIdRef = useRef(null);
   // avatarPath -> signed URL for the rows on the current page only.
   const [thumbUrlByPath, setThumbUrlByPath] = useState({});
+
+  const [pendingDeleteUser, setPendingDeleteUser] = useState(null);
+  const [deletingUser, setDeletingUser] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteNotice, setDeleteNotice] = useState("");
 
   const activeControlCount = [
     searchQuery.trim(),
@@ -169,6 +188,28 @@ function AdminUsers({ users, isLoadingUsers, usersError, onRetry, cities }) {
     selectedUserIdRef.current = null;
   }
 
+  function handleRequestDelete(user) {
+    handleCloseDetails();
+    setPendingDeleteUser(user);
+  }
+
+  async function handleConfirmDelete() {
+    const user = pendingDeleteUser;
+    setPendingDeleteUser(null);
+    setDeleteError("");
+    setDeleteNotice("");
+    setDeletingUser(user);
+    try {
+      const { warnings } = await adminDeleteUser(user.id);
+      onUserDeleted(user.id);
+      setDeleteNotice([`Deleted ${displayName(user)}'s account.`, ...warnings].join(" "));
+    } catch (err) {
+      setDeleteError(`Couldn't delete ${displayName(user)}'s account. ${err.message}`);
+    } finally {
+      setDeletingUser(null);
+    }
+  }
+
   const paginatedUsers = processedUsers.slice(startIndex, endIndex);
 
   // Sign only the visible page's avatars, in a single request. The joined
@@ -209,6 +250,16 @@ function AdminUsers({ users, isLoadingUsers, usersError, onRetry, cities }) {
           <span className={adminStyles.count}>({users.length})</span>
         )}
       </h3>
+
+      {deletingUser && (
+        <Spinner label={`Deleting ${displayName(deletingUser)}'s account…`} />
+      )}
+      {deleteError && <FormMessage>{deleteError}</FormMessage>}
+      {deleteNotice && (
+        <p className={styles.notice} role="status">
+          {deleteNotice}
+        </p>
+      )}
 
       {isLoadingUsers ? (
         <Spinner label="Loading users…" />
@@ -389,6 +440,28 @@ function AdminUsers({ users, isLoadingUsers, usersError, onRetry, cities }) {
           cityCount={cityCountByUserId[selectedUser.id] ?? 0}
           cities={cities.filter((city) => city.userId === selectedUser.id)}
           onClose={handleCloseDetails}
+          onDelete={
+            canDeleteUser(selectedUser, viewer) && !deletingUser
+              ? () => handleRequestDelete(selectedUser)
+              : undefined
+          }
+        />
+      )}
+
+      {pendingDeleteUser && (
+        <ConfirmDialog
+          title="Delete account?"
+          message={
+            <>
+              Permanently delete <strong>{displayName(pendingDeleteUser)}</strong>
+              {pendingDeleteUser.email && ` (${pendingDeleteUser.email})`}? Their
+              sign-in, profile, cities, trips and trip photos are all deleted.
+            </>
+          }
+          warning="This can't be undone."
+          confirmLabel="Delete account"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setPendingDeleteUser(null)}
         />
       )}
     </Card>

@@ -1,5 +1,9 @@
 {
   "scripts": {
+    "test": "node --test \"scripts/tests/*.test.mjs\" \"supabase/functions/**/*.test.mjs\"",
     "migrate:cities": "node --env-file=scripts/.env scripts/migrate-cities.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.2.17"
   }
 }

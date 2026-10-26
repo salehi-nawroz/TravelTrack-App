@@ -5,9 +5,14 @@ import TripDetail from "./TripDetail";
 import { endTrip, getTrip } from "../services/tripService";
 import { todayIso } from "../utils/tripDates";
 
+import { mockState, resetSupabaseMock } from "../test/supabaseMock";
+
+const OWNER_AUTH = { user: { id: "owner" }, profile: { role: "user" } };
+const auth = vi.hoisted(() => ({ current: null }));
+
 vi.mock("../services/supabaseClient", () => import("../test/supabaseMock"));
 vi.mock("../contexts/AuthContext", () => ({
-  useAuth: () => ({ user: { id: "owner" }, profile: { role: "user" } }),
+  useAuth: () => auth.current,
 }));
 vi.mock("../contexts/CitiesContext", () => ({ useCities: () => ({ cities: [] }) }));
 vi.mock("../contexts/tripsContext", () => ({
@@ -55,6 +60,8 @@ const setEndDate = (dialog, value) =>
 beforeEach(() => {
   vi.mocked(getTrip).mockReset();
   vi.mocked(endTrip).mockReset();
+  resetSupabaseMock();
+  auth.current = OWNER_AUTH;
 });
 
 afterEach(cleanup);
@@ -134,5 +141,52 @@ describe("Trip page errors", () => {
     expect(await screen.findByText("This trip doesn't exist, or you don't have access to it.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByRole("heading", { name: "Iberia" })).toBeTruthy();
+  });
+});
+
+describe("Delete controls by role", () => {
+  const tripWithPhoto = () => ({
+    ...activeTrip(),
+    photos: [{ id: "p1", tripId: "t1", userId: "owner", storagePath: "owner/t1/p1.jpg", isCover: false, caption: "" }],
+  });
+
+  // The owner's profile, as an admin's RLS lets them read it.
+  const ownerProfile = () => {
+    mockState.handlers["profiles.select"] = () => ({
+      data: { id: "owner", full_name: "Olive Owner", role: "user" },
+      error: null,
+    });
+  };
+
+  it("offers the owner Delete trip and photo deletion", async () => {
+    vi.mocked(getTrip).mockResolvedValue(tripWithPhoto());
+    renderDetail();
+    expect(await screen.findByRole("button", { name: "Delete trip" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Delete photo 1" })).toBeTruthy();
+  });
+
+  it("lets a plain admin edit a user's trip but never delete it or its photos", async () => {
+    auth.current = { user: { id: "admin-1" }, profile: { role: "admin" } };
+    ownerProfile();
+    vi.mocked(getTrip).mockResolvedValue(tripWithPhoto());
+    renderDetail();
+
+    expect(await screen.findByText("Olive Owner")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Edit details" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "End trip" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Make photo 1 the cover" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Delete trip" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Delete photo/ })).toBeNull();
+  });
+
+  it("offers a super admin Delete trip and photo deletion", async () => {
+    auth.current = { user: { id: "super-1" }, profile: { role: "super_admin" } };
+    ownerProfile();
+    vi.mocked(getTrip).mockResolvedValue(tripWithPhoto());
+    renderDetail();
+
+    expect(await screen.findByText("Olive Owner")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Delete trip" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Delete photo 1" })).toBeTruthy();
   });
 });

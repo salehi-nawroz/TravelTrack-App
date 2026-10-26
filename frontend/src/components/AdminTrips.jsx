@@ -1,4 +1,4 @@
-// This component is used in the Admin page to list all trips that the current admin can see. It supports searching, filtering, sorting, and pagination. Admins can also delete trips they have permission to manage.
+// This component is used in the Admin page to list all trips that the current admin can see. It supports searching, filtering, sorting, and pagination. Only super admins can delete trips from here; plain admins can open and edit them.
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import adminStyles from "../pages/Admin.module.css";
@@ -16,7 +16,7 @@ import { buttonClassName } from "./buttonClassName";
 import { usePagination } from "../hooks/usePagination";
 import { deleteTrip } from "../services/tripService";
 import { compareIsoDates, formatTripRange } from "../utils/tripDates";
-import { canManageTrip } from "../utils/tripPermissions";
+import { canDeleteTrip, canManageTrip } from "../utils/tripPermissions";
 
 const TRIPS_PAGE_SIZE = 10;
 
@@ -337,6 +337,8 @@ function AdminTrips({
               {pageTrips.map((trip) => {
                 const ownerRole = profileById[trip.userId]?.role;
                 const canManage = canManageTrip(trip, viewer, ownerRole);
+                // Super admins (and the owner) only; a plain admin edits but never deletes.
+                const canDelete = canManage && canDeleteTrip(trip, viewer);
                 const isDeleting = deletingId === trip.id;
 
                 return (
@@ -388,7 +390,7 @@ function AdminTrips({
                       >
                         {canManage ? "Open / edit" : "Open"}
                       </Link>
-                      {canManage && (
+                      {canDelete && (
                         <Button
                           variant="ghost"
                           size="sm"
