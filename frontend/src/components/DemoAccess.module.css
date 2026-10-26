@@ -1,0 +1,123 @@
+/* Sits under the login form at the same width; the amber edge marks it as
+   the demo, apart from the form itself. Breakpoints match Auth.module.css. */
+.demo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto 8rem;
+  padding: 2.4rem 3rem;
+  background-color: var(--color-dark--2);
+  border-radius: var(--radius-md);
+  border-top: 3px solid var(--color-accent);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-accent-text);
+}
+
+.notice {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.credentials {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 8.4rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.row dt {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+}
+
+.row dd {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+  margin: 0;
+}
+
+/* Long values wrap instead of pushing the panel wider. */
+.value {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-1);
+  font-size: var(--font-size-base);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.copy {
+  flex-shrink: 0;
+}
+
+.fill {
+  width: 100%;
+  min-height: var(--control-height);
+}
+
+/* Polite announcements (copied / filled). Always rendered so screen readers
+   pick up changes; the reserved line keeps the panel from jumping. */
+.status {
+  min-height: 1.8rem;
+  margin-top: -0.6rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-brand-text);
+}
+
+/* --- Tablet --- */
+@media (max-width: 1099.98px) {
+  .demo {
+    margin-bottom: 6rem;
+  }
+}
+
+/* --- Phones --- */
+@media (max-width: 767.98px) {
+  .demo {
+    margin-bottom: 2.4rem;
+    padding: 2rem;
+  }
+
+  /* Label above the value on narrow screens. */
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 767.98px), (pointer: coarse) {
+  .copy,
+  .fill {
+    min-height: var(--touch-target);
+  }
+}
+
+@media (max-width: 359.98px) {
+  .demo {
+    padding: 1.6rem;
+  }
+}

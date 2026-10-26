@@ -110,7 +110,7 @@ describe("Map trip mode", () => {
   it("keeps the search box and 'Use your position' while a trip is open", async () => {
     await renderMap(trip);
     expect(screen.getByLabelText("Search for a city or country")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Use your position" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Use Your Position" })).toBeTruthy();
   });
 
   it("restores the city pins once the trip is closed", async () => {

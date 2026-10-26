@@ -107,25 +107,6 @@ function AppNav() {
           </div>
         )}
       </div>
-
-      {/* Primary action: outside the scrolling content area, so it stays in
-          view however long the current list is. */}
-      <NavLink to="form" className={styles.addCity}>
-        <svg
-          className={styles.addCityIcon}
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path
-            d="M12 5v14M5 12h14"
-            stroke="currentColor"
-            strokeWidth="2.6"
-            strokeLinecap="round"
-          />
-        </svg>
-        Add city
-      </NavLink>
     </nav>
   );
 }

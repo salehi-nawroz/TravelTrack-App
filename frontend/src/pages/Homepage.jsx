@@ -10,6 +10,8 @@ import { buttonClassName } from "../components/buttonClassName";
 import { SAMPLE_CITIES, SAMPLE_TRIPS, getSampleStats } from "../data/exploreSample";
 import { formatTripDate, formatTripRange, toIsoDate, tripLengthDays } from "../utils/tripDates";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import GitHubIcon from "../components/GitHubIcon";
+import { SOURCE_REPO_URL } from "../config/portfolio";
 
 const FEATURES = [
   {
@@ -209,11 +211,21 @@ export default function Homepage() {
         <p>Log in to pin your first city - or take the demo for a spin first.</p>
         <div className={styles.actions}>
           <Link to="/login" className={`${buttonClassName({ variant: "primary" })} ${styles.bigButton}`}>
-            Log in
+            Explore TravelTrack
           </Link>
           <Link to="/explore" className={`${buttonClassName({ variant: "outline" })} ${styles.bigButton}`}>
             Explore the demo
           </Link>
+          <a
+            href={SOURCE_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${buttonClassName({ variant: "outline" })} ${styles.bigButton}`}
+          >
+            <GitHubIcon className={styles.buttonIcon} />
+            View on GitHub
+            <span className={styles.srOnly}> (opens in a new tab)</span>
+          </a>
         </div>
       </section>
 

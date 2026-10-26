@@ -28,6 +28,12 @@ export function isItemActive(item, isActive, pathname) {
   );
 }
 
+// The Cities section (the list, a city, and the add/edit form): the only
+// place the Add city buttons (AppNav, AppLayout's phone button) are offered.
+export function isCitiesSection(pathname) {
+  return pathname.startsWith("/app/cities") || pathname.startsWith("/app/form");
+}
+
 // Title for the mobile bottom sheet's header: the section the current route
 // belongs to.
 const SECTION_TITLES = [

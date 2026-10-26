@@ -3,6 +3,7 @@ import { NavLink, useLocation, useSearchParams } from "react-router-dom";
 import Map from "../components/Map";
 import MobileNav from "../components/MobileNav";
 import Sidebar from "../components/Sidebar";
+import { isCitiesSection } from "../components/navItems";
 import User from "../components/User";
 import { useTripMap } from "../contexts/tripMapContext";
 import {
@@ -94,33 +95,36 @@ function AppLayout() {
       <Map />
       <User />
 
-      {/* Phones only: same /app/form route as the sidebar's Add city button.
-          Sits above the map's zoom buttons while the sheet is collapsed and
-          at the sheet's bottom-right while it's open (CSS). Not shown on the
-          add/edit form itself, where it would only reset the form. */}
-      <NavLink
-        to="form"
-        onClick={expandSheet}
-        className={[
-          styles.fab,
-          isSheetExpanded ? styles.fabOverSheet : "",
-          isCityForm ? styles.fabHidden : "",
-        ].join(" ")}
-        aria-label="Add city"
-        title="Add city"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          focusable="false"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.6"
-          strokeLinecap="round"
+      {/* Phones only: same /app/form route as the sidebar's Add city button,
+          and like it only in the Cities section. Sits above the map's zoom
+          buttons while the sheet is collapsed and at the sheet's
+          bottom-right while it's open (CSS). Not shown on the add/edit form
+          itself, where it would only reset the form. */}
+      {isCitiesSection(pathname) && (
+        <NavLink
+          to="form"
+          onClick={expandSheet}
+          className={[
+            styles.fab,
+            isSheetExpanded ? styles.fabOverSheet : "",
+            isCityForm ? styles.fabHidden : "",
+          ].join(" ")}
+          aria-label="Add city"
+          title="Add city"
         >
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-      </NavLink>
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </NavLink>
+      )}
 
       <MobileNav onNavigate={expandSheet} />
     </div>

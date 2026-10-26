@@ -10,6 +10,7 @@ import { compareDates } from "../utils/compareDates";
 import Button from "./Button";
 import Card from "./Card";
 import Field from "./Field";
+import CollapsibleFilters from "./CollapsibleFilters";
 import {
   getAvatarSignedUrl,
   getAvatarSignedUrls,
@@ -51,9 +52,12 @@ function AdminUsers({ users, isLoadingUsers, usersError, onRetry, cities }) {
   // avatarPath -> signed URL for the rows on the current page only.
   const [thumbUrlByPath, setThumbUrlByPath] = useState({});
 
-  const hasActiveControls = Boolean(
-    searchQuery.trim() || roleFilter || sortOption !== "default",
-  );
+  const activeControlCount = [
+    searchQuery.trim(),
+    roleFilter,
+    sortOption !== "default",
+  ].filter(Boolean).length;
+  const hasActiveControls = activeControlCount > 0;
 
   const nameOptions = useMemo(
     () =>
@@ -229,53 +233,55 @@ function AdminUsers({ users, isLoadingUsers, usersError, onRetry, cities }) {
       ) : (
         <>
           <div className={`${adminStyles.toolbar} ${adminStyles.userToolbar}`}>
-            <Field variant="toolbar" id="adminUserSearch" label="Search">
-              <input
-                id="adminUserSearch"
-                type="text"
-                className={adminStyles.toolbarCombo}
-                placeholder="Search by name or email..."
-                list="adminUserNames"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <datalist id="adminUserNames">
-                {nameOptions.map((name) => (
-                  <option key={name} value={name} />
-                ))}
-              </datalist>
-            </Field>
+            <CollapsibleFilters activeCount={activeControlCount}>
+              <Field variant="toolbar" id="adminUserSearch" label="Search">
+                <input
+                  id="adminUserSearch"
+                  type="text"
+                  className={adminStyles.toolbarCombo}
+                  placeholder="Search by name or email..."
+                  list="adminUserNames"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <datalist id="adminUserNames">
+                  {nameOptions.map((name) => (
+                    <option key={name} value={name} />
+                  ))}
+                </datalist>
+              </Field>
 
-            <Field variant="toolbar" id="adminRoleFilter" label="Role">
-              <select
-                id="adminRoleFilter"
-                className={adminStyles.toolbarCombo}
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-              >
-                <option value="">All Roles</option>
-                {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </Field>
+              <Field variant="toolbar" id="adminRoleFilter" label="Role">
+                <select
+                  id="adminRoleFilter"
+                  className={adminStyles.toolbarCombo}
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                >
+                  <option value="">All Roles</option>
+                  {Object.entries(ROLE_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
 
-            <Field variant="toolbar" id="adminUserSort" label="Sort">
-              <select
-                id="adminUserSort"
-                className={adminStyles.toolbarCombo}
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
+              <Field variant="toolbar" id="adminUserSort" label="Sort">
+                <select
+                  id="adminUserSort"
+                  className={adminStyles.toolbarCombo}
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </CollapsibleFilters>
 
             <div className={adminStyles.toolbarResult}>
               <span className={adminStyles.toolbarCount}>

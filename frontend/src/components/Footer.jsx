@@ -1,8 +1,14 @@
+import { useContext } from "react";
+import { AuthContext } from "../contexts/authContextObject";
 import styles from "./Footer.module.css";
 
-// `showCredits` adds the technology / AI-assistance line; only the public
-// pages show it, not the app sidebar.
+// `showCredits` adds the technology / AI-assistance line on the public
+// pages. Hidden for signed-in users. Reads the context directly rather than
+// through useAuth so it also renders outside AuthProvider (signed out).
 function Footer({ showCredits = false }) {
+  const auth = useContext(AuthContext);
+  if (auth?.isAuthenticated) return null;
+
   return (
     <footer className={styles.footer}>
       <p className={styles.copyright}>

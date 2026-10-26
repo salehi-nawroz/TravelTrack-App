@@ -5,6 +5,7 @@ import ProtectRoute from "./ProtectRoute";
 import Login from "./Login";
 import PageNotFound from "./PageNotFound";
 import Footer from "../components/Footer";
+import { AuthContext } from "../contexts/authContextObject";
 import { useAuth } from "../contexts/AuthContext";
 import { getLoginErrorMessage } from "../utils/authErrors";
 
@@ -104,5 +105,21 @@ describe("404 page and footer", () => {
     expect(
       screen.getByText("Built with React, Supabase and Leaflet, with AI-assisted development using Claude Code."),
     ).toBeTruthy();
+  });
+
+  it("hides the footer while a user is signed in", () => {
+    const { rerender, container } = render(
+      <AuthContext.Provider value={{ isAuthenticated: true }}>
+        <Footer showCredits />
+      </AuthContext.Provider>,
+    );
+    expect(container.querySelector("footer")).toBeNull();
+
+    rerender(
+      <AuthContext.Provider value={{ isAuthenticated: false }}>
+        <Footer showCredits />
+      </AuthContext.Provider>,
+    );
+    expect(container.querySelector("footer")).toBeTruthy();
   });
 });

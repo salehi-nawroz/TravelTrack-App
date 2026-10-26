@@ -116,7 +116,7 @@
 /* The Users tab only has two fields (name search + role), so its search
    field doesn't need the wider basis tuned for the five-field Cities
    toolbar - a narrower one keeps both fields comfortably side by side. */
-.userToolbar > div:first-child {
+.userToolbar [data-filters-panel] > div:first-child {
   flex: 1 1 18rem;
 }
 
@@ -319,7 +319,7 @@
 
   /* Fields stack full width (the Field toolbar variant does the same for
      its own sizing); this resets the Users toolbar's search-field basis. */
-  .userToolbar > div:first-child {
+  .userToolbar [data-filters-panel] > div:first-child {
     flex: 1 1 auto;
   }
 

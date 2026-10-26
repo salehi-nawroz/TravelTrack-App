@@ -8,6 +8,8 @@ import Field, { FormMessage } from "../components/Field";
 import PasswordInput from "../components/PasswordInput";
 import { getLoginErrorMessage } from "../utils/authErrors";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import DemoAccess from "../components/DemoAccess";
+import { DEMO_ACCOUNT } from "../config/portfolio";
 
 export default function Login() {
   useDocumentTitle("Log in");
@@ -59,10 +61,21 @@ export default function Login() {
     if (isAuthenticated) navigate(returnTo, { replace: true });
   }, [isAuthenticated, navigate, returnTo]);
 
+  // Fills the form only; the visitor still presses Login.
+  function fillDemoCredentials(demoEmail, demoPassword) {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setError("");
+  }
+
   return (
     <main className={styles.page}>
       <PageNav />
-      <form className={styles.form} onSubmit={handleSubmit} aria-labelledby="login-title">
+      <form
+        className={`${styles.form} ${DEMO_ACCOUNT ? styles.formWithDemo : ""}`}
+        onSubmit={handleSubmit}
+        aria-labelledby="login-title"
+      >
         <div className={styles.header}>
           <h1 id="login-title" className={styles.title}>
             Log in
@@ -106,6 +119,14 @@ export default function Login() {
           Don&apos;t have an account? <Link to="/signup">Sign up</Link>
         </p>
       </form>
+
+      {DEMO_ACCOUNT && (
+        <DemoAccess
+          email={DEMO_ACCOUNT.email}
+          password={DEMO_ACCOUNT.password}
+          onFill={fillDemoCredentials}
+        />
+      )}
     </main>
   );
 }

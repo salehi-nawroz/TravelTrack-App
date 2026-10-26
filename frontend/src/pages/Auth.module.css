@@ -27,6 +27,12 @@
   border-radius: var(--radius-md);
 }
 
+/* Login with the demo panel (DemoAccess) underneath: keep the two together.
+   Two classes so it wins over the breakpoint margins below. */
+.form.formWithDemo {
+  margin-bottom: 2.4rem;
+}
+
 .header {
   display: flex;
   flex-direction: column;

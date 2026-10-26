@@ -250,7 +250,7 @@
 .geoError {
   position: absolute;
   z-index: 1000;
-  bottom: 9.6rem;
+  bottom: 8rem;
   left: 50%;
   transform: translateX(-50%);
   width: max-content;

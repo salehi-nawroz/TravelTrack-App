@@ -88,6 +88,8 @@
   color: var(--color-dark--1);
   font-size: 1.4rem;
   font-family: inherit;
+  /* The map's longer placeholder ends in "…" when the box is narrow. */
+  text-overflow: ellipsis;
   box-shadow: var(--shadow-sm);
   outline: none;
   transition:

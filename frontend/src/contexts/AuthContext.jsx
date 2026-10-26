@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import supabase from "../services/supabaseClient";
+import { AuthContext } from "./authContextObject";
 import {
   getProfile,
   updateProfile as updateProfileApi,
@@ -11,8 +12,6 @@ import {
 } from "../services/avatarService";
 import { deleteAccount as deleteAccountApi } from "../services/accountService";
 import { removeAllMyTripFiles } from "../services/tripPhotoService";
-
-const AuthContext = createContext();
 
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);

@@ -472,6 +472,21 @@
   color: var(--color-text-secondary);
 }
 
+.buttonIcon {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .footer {
   padding: 0 1rem 1rem;
   text-align: center;

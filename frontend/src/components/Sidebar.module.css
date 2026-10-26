@@ -36,10 +36,9 @@
   }
 }
 
-/* Fills whatever vertical space is left after Logo/AppNav/GlobalSearch/
-   Footer, and is the one place sidebar content scrolls - so the Footer stays
-   pinned at the bottom instead of being pushed off-screen or overlapped when
-   a route's content (Countries, Stats, a long Admin list) grows tall. */
+/* Fills whatever vertical space is left after Logo/AppNav/GlobalSearch,
+   and is the one place sidebar content scrolls, so a route's tall content
+   (Countries, Stats, a long Admin list) never pushes the panel off-screen. */
 .outlet {
   width: 100%;
   flex: 1 1 auto;

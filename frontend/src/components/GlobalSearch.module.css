@@ -156,6 +156,12 @@
   color: var(--color-light--1);
 }
 
+/* The Search toggle on a narrow sidebar (CollapsibleFilters shows it only
+   there): when closed, the same gap below it as the search box leaves. */
+.toggle[aria-expanded="false"] {
+  margin-bottom: 1.2rem;
+}
+
 @media (max-width: 600px) {
   .resultsPanel {
     max-height: 40vh;

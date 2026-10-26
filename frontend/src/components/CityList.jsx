@@ -15,6 +15,7 @@ import Button from "./Button";
 import { buttonClassName } from "./buttonClassName";
 import Field from "./Field";
 import PageHeader from "./PageHeader";
+import CollapsibleFilters from "./CollapsibleFilters";
 
 const plural = (count, word, words = `${word}s`) =>
   `${count} ${count === 1 ? word : words}`;
@@ -31,6 +32,17 @@ const SORT_OPTIONS = [
 
 const getVisitYear = (city) =>
   city.date ? String(new Date(city.date).getFullYear()) : "";
+
+// Same placement and look as Trips' "+ Start a Trip": in the page header and
+// the empty state.
+const addCityAction = (
+  <Link
+    to="/app/form"
+    className={buttonClassName({ variant: "primary", size: "sm" })}
+  >
+    + Add City
+  </Link>
+);
 
 function CityList() {
   const { cities, isLoading } = useCities();
@@ -60,9 +72,13 @@ function CityList() {
     [cities],
   );
 
-  const hasActiveControls = Boolean(
-    searchQuery.trim() || filterCountry || filterYear || sortOption !== "default",
-  );
+  const activeControlCount = [
+    searchQuery.trim(),
+    filterCountry,
+    filterYear,
+    sortOption !== "default",
+  ].filter(Boolean).length;
+  const hasActiveControls = activeControlCount > 0;
 
   // Pipeline: the user's own (already-loaded) cities -> search -> country
   // filter -> visit year filter -> sort. `cities` itself is never mutated,
@@ -133,6 +149,7 @@ function CityList() {
         message="Click a city on the map to add it, or import a CSV file."
         action={
           <>
+            {addCityAction}
             <CityImport
               buttonClassName={buttonClassName({ variant: "outline", size: "sm" })}
               onDialogOpenChange={setIsEmptyStateImportOpen}
@@ -160,62 +177,65 @@ function CityList() {
           "country",
           "countries",
         )}`}
+        actions={addCityAction}
       />
 
       <div className={`${adminStyles.toolbar} ${styles.toolbar}`}>
-        <Field variant="toolbar" id="citySearch" label="Search">
-          <input
-            id="citySearch"
-            type="text"
-            placeholder="Search by city or country..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </Field>
+        <CollapsibleFilters activeCount={activeControlCount}>
+          <Field variant="toolbar" id="citySearch" label="Search">
+            <input
+              id="citySearch"
+              type="text"
+              placeholder="Search by city or country..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </Field>
 
-        <Field variant="toolbar" id="cityCountryFilter" label="Country">
-          <select
-            id="cityCountryFilter"
-            value={filterCountry}
-            onChange={(e) => setFilterCountry(e.target.value)}
-          >
-            <option value="">All countries</option>
-            {countryOptions.map((country) => (
-              <option key={country} value={country}>
-                {country}
-              </option>
-            ))}
-          </select>
-        </Field>
+          <Field variant="toolbar" id="cityCountryFilter" label="Country">
+            <select
+              id="cityCountryFilter"
+              value={filterCountry}
+              onChange={(e) => setFilterCountry(e.target.value)}
+            >
+              <option value="">All countries</option>
+              {countryOptions.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+          </Field>
 
-        <Field variant="toolbar" id="cityYearFilter" label="Visited">
-          <select
-            id="cityYearFilter"
-            value={filterYear}
-            onChange={(e) => setFilterYear(e.target.value)}
-          >
-            <option value="">Any year</option>
-            {yearOptions.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </Field>
+          <Field variant="toolbar" id="cityYearFilter" label="Visited">
+            <select
+              id="cityYearFilter"
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+            >
+              <option value="">Any year</option>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </Field>
 
-        <Field variant="toolbar" id="citySort" label="Sort">
-          <select
-            id="citySort"
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </Field>
+          <Field variant="toolbar" id="citySort" label="Sort">
+            <select
+              id="citySort"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </CollapsibleFilters>
 
         <div className={adminStyles.toolbarResult}>
           <span className={adminStyles.toolbarCount}>

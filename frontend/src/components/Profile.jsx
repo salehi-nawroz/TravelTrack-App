@@ -8,6 +8,7 @@ import Field, { FormMessage } from "./Field";
 import Spinner from "./Spinner";
 import PageHeader from "./PageHeader";
 import ConfirmDialog from "./ConfirmDialog";
+import { isDemoAccount } from "../config/portfolio";
 import styles from "./Profile.module.css";
 
 // What account deletion removes, for the warning texts below.
@@ -161,6 +162,10 @@ function Profile() {
 
   const displayName = profile?.full_name || user.email;
   const isAdmin = profile?.role === "admin";
+  // The shared portfolio demo account: one visitor must not be able to lock
+  // out or delete it for everyone else. (UI only - README, "Portfolio demo
+  // account", has the database-side guard.)
+  const isDemo = isDemoAccount(user.email);
 
   return (
     <div className={styles.profile}>
@@ -261,7 +266,14 @@ function Profile() {
         </div>
       </Card>
 
-      {profile?.role === "admin" ? (
+      {isDemo ? (
+        <Card className={styles.form}>
+          <h3 className={styles.cardTitle}>Change password</h3>
+          <p className={styles.note}>
+            Password changes are turned off for the shared demo account.
+          </p>
+        </Card>
+      ) : profile?.role === "admin" ? (
         <Card className={styles.form}>
           <h3 className={styles.cardTitle}>Change password</h3>
           <p className={styles.note}>
@@ -320,7 +332,14 @@ function Profile() {
         </Card>
       )}
 
-      {isAdmin ? (
+      {isDemo ? (
+        <Card className={`${styles.form} ${styles.dangerZone}`}>
+          <h3 className={styles.cardTitle}>Danger zone</h3>
+          <p className={styles.note}>
+            The shared demo account can&apos;t be deleted.
+          </p>
+        </Card>
+      ) : isAdmin ? (
         <Card className={`${styles.form} ${styles.dangerZone}`}>
           <h3 className={styles.cardTitle}>Danger zone</h3>
           <p className={styles.note}>

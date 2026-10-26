@@ -2,7 +2,6 @@ import { forwardRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import styles from "./Sidebar.module.css";
 import AppNav from "./AppNav";
-import Footer from "./Footer";
 import GlobalSearch from "./GlobalSearch";
 import Logo from "./Logo";
 import User from "./User";
@@ -82,10 +81,6 @@ const Sidebar = forwardRef(function Sidebar(
 
         <div className={styles.outlet}>
           <Outlet />
-        </div>
-
-        <div className={styles.desktopOnly}>
-          <Footer />
         </div>
       </div>
     </div>

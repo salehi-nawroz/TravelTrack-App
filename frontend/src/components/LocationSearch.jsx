@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { searchLocations } from "../services/geocodingService";
 import styles from "./LocationSearch.module.css";
 
-function LocationSearch({ onSelect, variant = "form" }) {
+function LocationSearch({ onSelect, variant = "form", placeholder = "Search city or country" }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +51,7 @@ function LocationSearch({ onSelect, variant = "form" }) {
       <input
         id={`${variant}-location-search`}
         type="search"
-        placeholder="Search city or country"
+        placeholder={placeholder}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />

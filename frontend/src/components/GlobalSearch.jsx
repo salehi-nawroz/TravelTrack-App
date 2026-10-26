@@ -5,6 +5,7 @@ import { useCities } from "../contexts/CitiesContext";
 import { getCities } from "../services/cityService";
 import { getAllProfiles } from "../services/profileService";
 import { getContinent } from "../utils/continent";
+import CollapsibleFilters from "./CollapsibleFilters";
 import FlagBox from "./FlagBox";
 import styles from "./GlobalSearch.module.css";
 
@@ -80,6 +81,9 @@ function GlobalSearch() {
 
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  // The box itself, on a narrow sidebar (CollapsibleFilters); isOpen above
+  // is the results list.
+  const [isSearchShown, setIsSearchShown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const containerRef = useRef(null);
 
@@ -186,6 +190,9 @@ function GlobalSearch() {
     navigate(item.path);
     setQuery("");
     setIsOpen(false);
+    // A picked result is a finished search: fold the box away again where
+    // it's collapsible (narrow sidebar).
+    setIsSearchShown(false);
   }
 
   function handleClear() {
@@ -215,99 +222,107 @@ function GlobalSearch() {
   }
 
   return (
-    <div className={styles.container} ref={containerRef}>
-      <div className={styles.searchBox}>
-        <span className={styles.searchIcon} aria-hidden="true">
-          &#128269;
-        </span>
+    <CollapsibleFilters
+      label="Search"
+      activeCount={hasQuery ? 1 : 0}
+      toggleClassName={styles.toggle}
+      open={isSearchShown}
+      onOpenChange={setIsSearchShown}
+    >
+      <div className={styles.container} ref={containerRef}>
+        <div className={styles.searchBox}>
+          <span className={styles.searchIcon} aria-hidden="true">
+            &#128269;
+          </span>
 
-        <input
-          type="text"
-          placeholder="Search cities, countries, continents, users..."
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setIsOpen(true);
-          }}
-          onFocus={() => setIsOpen(true)}
-          onKeyDown={handleKeyDown}
-          aria-label="Global search"
-        />
+          <input
+            type="text"
+            placeholder="Search cities, countries, continents, users..."
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setIsOpen(true);
+            }}
+            onFocus={() => setIsOpen(true)}
+            onKeyDown={handleKeyDown}
+            aria-label="Global search"
+          />
 
-        {hasQuery && (
-          <button
-            type="button"
-            className={styles.clearButton}
-            onClick={handleClear}
-            aria-label="Clear search"
-          >
-            &times;
-          </button>
-        )}
-      </div>
-
-      {isOpen && hasQuery && (
-        <div className={styles.resultsPanel} role="listbox">
-          {!grouped.length ? (
-            <p className={styles.emptyState}>
-              No results for &quot;{query.trim()}&quot;.
-            </p>
-          ) : (
-            grouped.map((group) => (
-              <div key={group.type} className={styles.group}>
-                <h3 className={styles.groupLabel}>{group.label}</h3>
-                <ul>
-                  {group.items.map((item) => {
-                    const flatIndex = flatResults.indexOf(item);
-                    const icon = getIcon(item);
-
-                    return (
-                      <li
-                        key={`${item.type}-${item.title}-${item.subtitle || ""}`}
-                      >
-                        <button
-                          type="button"
-                          className={`${styles.resultItem} ${
-                            flatIndex === highlightedIndex
-                              ? styles.resultItemActive
-                              : ""
-                          }`}
-                          onClick={() => handleSelect(item)}
-                          onMouseEnter={() => setHighlightedIndex(flatIndex)}
-                        >
-                          {icon && (
-                            <span className={styles.resultIcon} aria-hidden="true">
-                              {icon}
-                            </span>
-                          )}
-                          {(item.type === "country" || item.type === "city") && (
-                            <FlagBox
-                              countryCode={item.countryCode}
-                              country={item.title}
-                              position="left"
-                            />
-                          )}
-                          <span className={styles.resultText}>
-                            <span className={styles.resultTitle}>
-                              {item.title}
-                            </span>
-                            {item.subtitle && (
-                              <span className={styles.resultSubtitle}>
-                                {item.subtitle}
-                              </span>
-                            )}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))
+          {hasQuery && (
+            <button
+              type="button"
+              className={styles.clearButton}
+              onClick={handleClear}
+              aria-label="Clear search"
+            >
+              &times;
+            </button>
           )}
         </div>
-      )}
-    </div>
+
+        {isOpen && hasQuery && (
+          <div className={styles.resultsPanel} role="listbox">
+            {!grouped.length ? (
+              <p className={styles.emptyState}>
+                No results for &quot;{query.trim()}&quot;.
+              </p>
+            ) : (
+              grouped.map((group) => (
+                <div key={group.type} className={styles.group}>
+                  <h3 className={styles.groupLabel}>{group.label}</h3>
+                  <ul>
+                    {group.items.map((item) => {
+                      const flatIndex = flatResults.indexOf(item);
+                      const icon = getIcon(item);
+
+                      return (
+                        <li
+                          key={`${item.type}-${item.title}-${item.subtitle || ""}`}
+                        >
+                          <button
+                            type="button"
+                            className={`${styles.resultItem} ${
+                              flatIndex === highlightedIndex
+                                ? styles.resultItemActive
+                                : ""
+                            }`}
+                            onClick={() => handleSelect(item)}
+                            onMouseEnter={() => setHighlightedIndex(flatIndex)}
+                          >
+                            {icon && (
+                              <span className={styles.resultIcon} aria-hidden="true">
+                                {icon}
+                              </span>
+                            )}
+                            {(item.type === "country" || item.type === "city") && (
+                              <FlagBox
+                                countryCode={item.countryCode}
+                                country={item.title}
+                                position="left"
+                              />
+                            )}
+                            <span className={styles.resultText}>
+                              <span className={styles.resultTitle}>
+                                {item.title}
+                              </span>
+                              {item.subtitle && (
+                                <span className={styles.resultSubtitle}>
+                                  {item.subtitle}
+                                </span>
+                              )}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </CollapsibleFilters>
   );
 }
 

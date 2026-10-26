@@ -8,6 +8,7 @@ import Card from "./Card";
 import ConfirmDialog from "./ConfirmDialog";
 import EmptyState from "./EmptyState";
 import Field, { FormMessage } from "./Field";
+import CollapsibleFilters from "./CollapsibleFilters";
 import Pagination from "./Pagination";
 import Spinner from "./Spinner";
 import TripStatusBadge from "./TripStatusBadge";
@@ -84,13 +85,14 @@ function AdminTrips({
     [trips],
   );
 
-  const hasActiveControls = Boolean(
-    searchQuery.trim() ||
-    statusFilter ||
-    ownerFilter ||
-    countryFilter ||
+  const activeControlCount = [
+    searchQuery.trim(),
+    statusFilter,
+    ownerFilter,
+    countryFilter,
     sortOption !== "startNewest",
-  );
+  ].filter(Boolean).length;
+  const hasActiveControls = activeControlCount > 0;
 
   // Pipeline: raw trips -> search -> filters -> sort; pagination slices the
   // result. The raw `trips` prop is never mutated.
@@ -228,71 +230,73 @@ function AdminTrips({
       ) : (
         <>
           <div className={adminStyles.toolbar}>
-            <Field variant="toolbar" id="adminTripSearch" label="Search">
-              <input
-                id="adminTripSearch"
-                type="text"
-                placeholder="Search titles, owners, cities or countries..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </Field>
+            <CollapsibleFilters activeCount={activeControlCount}>
+              <Field variant="toolbar" id="adminTripSearch" label="Search">
+                <input
+                  id="adminTripSearch"
+                  type="text"
+                  placeholder="Search titles, owners, cities or countries..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </Field>
 
-            <Field variant="toolbar" id="adminTripStatus" label="Status">
-              <select
-                id="adminTripStatus"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="">All statuses</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-              </select>
-            </Field>
+              <Field variant="toolbar" id="adminTripStatus" label="Status">
+                <select
+                  id="adminTripStatus"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="">All statuses</option>
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </Field>
 
-            <Field variant="toolbar" id="adminTripOwner" label="Owner">
-              <select
-                id="adminTripOwner"
-                value={ownerFilter}
-                onChange={(e) => setOwnerFilter(e.target.value)}
-              >
-                <option value="">All owners</option>
-                {ownerOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
+              <Field variant="toolbar" id="adminTripOwner" label="Owner">
+                <select
+                  id="adminTripOwner"
+                  value={ownerFilter}
+                  onChange={(e) => setOwnerFilter(e.target.value)}
+                >
+                  <option value="">All owners</option>
+                  {ownerOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
 
-            <Field variant="toolbar" id="adminTripCountry" label="Country">
-              <select
-                id="adminTripCountry"
-                value={countryFilter}
-                onChange={(e) => setCountryFilter(e.target.value)}
-              >
-                <option value="">All countries</option>
-                {countryOptions.map((country) => (
-                  <option key={country} value={country}>
-                    {country}
-                  </option>
-                ))}
-              </select>
-            </Field>
+              <Field variant="toolbar" id="adminTripCountry" label="Country">
+                <select
+                  id="adminTripCountry"
+                  value={countryFilter}
+                  onChange={(e) => setCountryFilter(e.target.value)}
+                >
+                  <option value="">All countries</option>
+                  {countryOptions.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))}
+                </select>
+              </Field>
 
-            <Field variant="toolbar" id="adminTripSort" label="Sort">
-              <select
-                id="adminTripSort"
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
+              <Field variant="toolbar" id="adminTripSort" label="Sort">
+                <select
+                  id="adminTripSort"
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </CollapsibleFilters>
 
             <div className={adminStyles.toolbarResult}>
               <span className={adminStyles.toolbarCount}>

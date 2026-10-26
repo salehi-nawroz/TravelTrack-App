@@ -116,16 +116,18 @@
   background-color: var(--color-danger-hover);
 }
 
-/* Floating "Use your position" button over the map. */
+/* Floating "Use your position" button over the map: compact (like .sm),
+   low over the map but clear of the attribution line. */
 .position {
   position: absolute;
   z-index: 1000;
-  bottom: 4rem;
+  bottom: 2.4rem;
   left: 50%;
   transform: translateX(-50%);
 
-  padding: 1rem 2rem;
-  font-size: var(--font-size-base);
+  min-height: 0;
+  padding: 0.6rem 1.4rem;
+  font-size: var(--font-size-xs);
   white-space: nowrap;
 
   background-color: var(--color-brand);

@@ -19,6 +19,7 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import Field, { FormMessage } from "../components/Field";
 import PageHeader from "../components/PageHeader";
+import CollapsibleFilters from "../components/CollapsibleFilters";
 import { buttonClassName } from "../components/buttonClassName";
 
 const CITIES_PAGE_SIZE = 10;
@@ -238,13 +239,14 @@ function Admin() {
     return options.sort((a, b) => a.name.localeCompare(b.name));
   }, [cities, nameById]);
 
-  const hasActiveControls = Boolean(
-    searchQuery.trim() ||
-      filterCountry ||
-      filterContinent ||
-      filterUserId ||
-      sortOption !== "default",
-  );
+  const activeControlCount = [
+    searchQuery.trim(),
+    filterCountry,
+    filterContinent,
+    filterUserId,
+    sortOption !== "default",
+  ].filter(Boolean).length;
+  const hasActiveControls = activeControlCount > 0;
 
   // Pipeline: raw cities -> search -> country filter -> continent filter ->
   // user filter -> sort. The existing user/country grouping below then
@@ -507,74 +509,76 @@ function Admin() {
           ) : (
             <>
               <div className={styles.toolbar}>
-                <Field variant="toolbar" id="adminCitySearch" label="Search">
-                  <input
-                    id="adminCitySearch"
-                    type="text"
-                    placeholder="Search cities, countries, continents, or users..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </Field>
+                <CollapsibleFilters activeCount={activeControlCount}>
+                  <Field variant="toolbar" id="adminCitySearch" label="Search">
+                    <input
+                      id="adminCitySearch"
+                      type="text"
+                      placeholder="Search cities, countries, continents, or users..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </Field>
 
-                <Field variant="toolbar" id="adminCountryFilter" label="Country">
-                  <select
-                    id="adminCountryFilter"
-                    value={filterCountry}
-                    onChange={(e) => setFilterCountry(e.target.value)}
-                  >
-                    <option value="">All Countries</option>
-                    {countryOptions.map((country) => (
-                      <option key={country} value={country}>
-                        {country}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                  <Field variant="toolbar" id="adminCountryFilter" label="Country">
+                    <select
+                      id="adminCountryFilter"
+                      value={filterCountry}
+                      onChange={(e) => setFilterCountry(e.target.value)}
+                    >
+                      <option value="">All Countries</option>
+                      {countryOptions.map((country) => (
+                        <option key={country} value={country}>
+                          {country}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
 
-                <Field variant="toolbar" id="adminContinentFilter" label="Continent">
-                  <select
-                    id="adminContinentFilter"
-                    value={filterContinent}
-                    onChange={(e) => setFilterContinent(e.target.value)}
-                  >
-                    <option value="">All Continents</option>
-                    {continentOptions.map((continent) => (
-                      <option key={continent} value={continent}>
-                        {continent}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                  <Field variant="toolbar" id="adminContinentFilter" label="Continent">
+                    <select
+                      id="adminContinentFilter"
+                      value={filterContinent}
+                      onChange={(e) => setFilterContinent(e.target.value)}
+                    >
+                      <option value="">All Continents</option>
+                      {continentOptions.map((continent) => (
+                        <option key={continent} value={continent}>
+                          {continent}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
 
-                <Field variant="toolbar" id="adminUserFilter" label="User">
-                  <select
-                    id="adminUserFilter"
-                    value={filterUserId}
-                    onChange={(e) => setFilterUserId(e.target.value)}
-                  >
-                    <option value="">All Users</option>
-                    {userOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                  <Field variant="toolbar" id="adminUserFilter" label="User">
+                    <select
+                      id="adminUserFilter"
+                      value={filterUserId}
+                      onChange={(e) => setFilterUserId(e.target.value)}
+                    >
+                      <option value="">All Users</option>
+                      {userOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.name}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
 
-                <Field variant="toolbar" id="adminCitySort" label="Sort">
-                  <select
-                    id="adminCitySort"
-                    value={sortOption}
-                    onChange={(e) => setSortOption(e.target.value)}
-                  >
-                    {SORT_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                  <Field variant="toolbar" id="adminCitySort" label="Sort">
+                    <select
+                      id="adminCitySort"
+                      value={sortOption}
+                      onChange={(e) => setSortOption(e.target.value)}
+                    >
+                      {SORT_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </CollapsibleFilters>
 
                 <div className={styles.toolbarResult}>
                   <span className={styles.toolbarCount}>

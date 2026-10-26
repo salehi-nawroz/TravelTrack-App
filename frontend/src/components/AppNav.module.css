@@ -4,7 +4,7 @@
 .nav {
   width: 100%;
   margin-top: var(--space-6);
-  margin-bottom: 0.8rem; /* 8px gap below the Add city button */
+  margin-bottom: 0.8rem; /* 8px gap above the search box */
 }
 
 .list {
@@ -218,78 +218,6 @@
   white-space: nowrap;
 }
 
-/* --- Add city: the sidebar's primary action --- */
-
-/* Compact, fixed-size button (110 x 30px; 1rem = 10px here), centred under
-   the navigation by auto side margins, at any sidebar width. The
-   ".nav a.addCity" selectors keep it independent of the .link rows above. */
-.nav a.addCity:link,
-.nav a.addCity:visited {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  width: 11rem;
-  height: 3rem;
-  margin: 0.8rem auto 0;
-  padding: 0.5rem 0.8rem;
-
-  background-color: var(--color-brand);
-  color: #fff;
-  border-radius: var(--radius-sm);
-
-  font-size: 1.2rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  text-decoration: none;
-  white-space: nowrap;
-
-  transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
-}
-
-.nav a.addCity:hover {
-  background-color: var(--color-brand-dark);
-  transform: translateY(-1px);
-}
-
-.nav a.addCity:active {
-  transform: translateY(0);
-}
-
-.nav a.addCity:focus-visible {
-  outline: 2px solid var(--color-light--2);
-  outline-offset: 2px;
-}
-
-/* On the add-city form itself (NavLink sets .active and
-   aria-current="page"): keep white text instead of the active-tab colour,
-   with a slightly pressed look. */
-.nav a.addCity:global(.active) {
-  background-color: var(--color-brand);
-  color: #fff;
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15);
-  transform: none;
-}
-
-.addCityIcon {
-  flex-shrink: 0;
-  width: 1.2rem;
-  height: 1.2rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nav a.addCity:link,
-  .nav a.addCity:visited {
-    transition: none;
-  }
-
-  .nav a.addCity:hover {
-    transform: none;
-  }
-}
-
 /* Short windows (700px tall or less): 38px rows and tighter spacing, so the
    navigation leaves more room for the content area below it. */
 @media (max-height: 700px) {
@@ -311,23 +239,12 @@
     margin-top: 0.4rem;
     padding-top: 0.4rem;
   }
-
-  .nav a.addCity:link,
-  .nav a.addCity:visited {
-    margin-top: 0.6rem;
-  }
 }
 
-/* Touch screens (tablets): the sidebar's Sections toggle and Add city
-   button get a 44px touch target. */
+/* Touch screens (tablets): the sidebar's Sections toggle gets a 44px touch
+   target. */
 @media (pointer: coarse) {
   .toggle {
-    height: auto;
-    min-height: var(--touch-target);
-  }
-
-  .nav a.addCity:link,
-  .nav a.addCity:visited {
     height: auto;
     min-height: var(--touch-target);
   }

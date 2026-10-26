@@ -59,8 +59,22 @@ const userLocationIcon = L.divIcon({
   popupAnchor: [0, -10],
 });
 
+// The map's default view: where it opens, and where "Back to Default View"
+// returns to.
+const DEFAULT_CENTER = [40, 0];
+const DEFAULT_ZOOM = 6;
+
 // Close enough to see the user's neighbourhood and streets.
 const USER_LOCATION_ZOOM = 12;
+
+// The "Use Your Position" toggle's label per state: "default" (map as it
+// opens), "locating" (request in flight), "user-location" (map centred on
+// the user).
+const POSITION_BUTTON_LABELS = {
+  default: "Use Your Position",
+  locating: "Locating…",
+  "user-location": "Back to Default View",
+};
 
 const formatVisitDate = (date) =>
   new Intl.DateTimeFormat("en", {
@@ -73,14 +87,36 @@ function Map() {
   const navigate = useNavigate();
   const location = useLocation();
   const { cities } = useCities();
-  const [mapPosition, setMapPosition] = useState([40, 0]);
+  const [mapPosition, setMapPosition] = useState(DEFAULT_CENTER);
   const {
     isLoading: isLoadingPosition,
     position: geolocationPosition,
     error: geolocationError,
     getPosition,
+    clearPosition,
     clearError: clearGeolocationError,
   } = useGeolocation();
+  // Derived from the geolocation hook rather than stored separately, so the
+  // label can't drift from what the map shows: a fix only exists once the
+  // request succeeded with valid coordinates (and UserLocation has moved
+  // the map to it).
+  const positionMode = isLoadingPosition
+    ? "locating"
+    : geolocationPosition
+      ? "user-location"
+      : "default";
+  // Bumped by "Back to Default View"; DefaultView applies it.
+  const [defaultViewRequest, setDefaultViewRequest] = useState(0);
+
+  function handlePositionToggle() {
+    if (positionMode === "user-location") {
+      clearPosition();
+      clearGeolocationError();
+      setDefaultViewRequest((count) => count + 1);
+    } else {
+      getPosition();
+    }
+  }
   const [searchParams] = useSearchParams();
   const isSelectingLocation = searchParams.get("selectLocation") === "true";
   const { lat: mapLat, lng: mapLng } = useUrlPosition();
@@ -119,7 +155,11 @@ function Map() {
 
   return (
     <div className={styles.mapContainer}>
-      <LocationSearch onSelect={handleSearchSelect} variant="map" />
+      <LocationSearch
+        onSelect={handleSearchSelect}
+        variant="map"
+        placeholder="Search city or country you visited"
+      />
 
       {tripMapSummary && (
         <p className={tripStyles.chip} role="status">
@@ -146,19 +186,20 @@ function Map() {
         </div>
       )}
 
-      {/* Stays available after a first fix, so the user can re-centre on
-          themselves after browsing elsewhere on the map. */}
+      {/* Toggle: go to the user's position, then back to the default view.
+          Disabled while locating, so only one request runs at a time. */}
       <Button
         type="position"
-        onClick={getPosition}
-        disabled={isLoadingPosition}
+        htmlType="button"
+        onClick={handlePositionToggle}
+        disabled={positionMode === "locating"}
       >
-        {isLoadingPosition ? "Locating…" : "Use your position"}
+        {POSITION_BUTTON_LABELS[positionMode]}
       </Button>
 
       <MapContainer
         center={mapPosition}
-        zoom={6}
+        zoom={DEFAULT_ZOOM}
         scrollWheelZoom={true}
         zoomControl={false}
         className={`${styles.map} ${isSelectingLocation ? styles.selecting : ""}`}
@@ -222,6 +263,7 @@ function Map() {
           </Marker>
         )}
         <UserLocation position={geolocationPosition} />
+        <DefaultView request={defaultViewRequest} />
         <ChangeCenter position={mapPosition} />
         <MapAutoResize />
         <DetectClick isSelectingLocation={isSelectingLocation} />
@@ -244,9 +286,24 @@ function ChangeCenter({ position }) {
   return null;
 }
 
-// Centres and zooms in on each new geolocation fix (every button press
-// yields a new position object, so pressing it again re-centres), and marks
-// the spot with the blue dot plus a circle for the reported accuracy.
+// "Back to Default View": returns to the map's default centre and zoom each
+// time `request` changes (0 = never asked, so nothing happens on load). Only
+// the view moves - markers, the selected city and filters are untouched.
+function DefaultView({ request }) {
+  const map = useMap();
+
+  // Same reasoning as ChangeCenter for animate: false.
+  useLayoutEffect(() => {
+    if (!request) return;
+    map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, { animate: false });
+  }, [map, request]);
+
+  return null;
+}
+
+// Centres and zooms in on each new geolocation fix, and marks the spot with
+// the blue dot plus a circle for the reported accuracy. Panning or zooming
+// afterwards is left alone until the toggle is pressed again.
 function UserLocation({ position }) {
   const map = useMap();
 

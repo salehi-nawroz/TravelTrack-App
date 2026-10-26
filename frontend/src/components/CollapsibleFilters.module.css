@@ -1,0 +1,114 @@
+/* One box for the toggle and the panel. Full width without a flex basis, so
+   it behaves the same inside a toolbar (a wrapping row: it takes the whole
+   row, as the fields did together) and inside the sidebar (a column: its
+   natural height, never stretched). */
+.root {
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+/* --- Wide sidebar (desktop default and wider): as before --- */
+
+.toggle {
+  display: none;
+}
+
+/* The fields in one wrapping row with the toolbar's own spacing (Admin
+   .toolbar), so the desktop layout is unchanged. */
+.panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1.2rem;
+  min-width: 0;
+}
+
+/* --- Narrow sidebar ---
+   Narrower than the sidebar's 56rem desktop default: tablets, the phone
+   bottom sheet, a sidebar dragged narrow. Measured on Sidebar's .sidebar
+   size container rather than the window, because the lists live in the
+   resizable sidebar. */
+@container (max-width: 55.98rem) {
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    max-width: 100%;
+    min-height: var(--control-height-sm);
+    padding: 0.6rem 1.2rem;
+
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      border-color var(--duration-fast) var(--ease-standard),
+      color var(--duration-fast) var(--ease-standard);
+  }
+
+  .toggle:hover,
+  .toggle[aria-expanded="true"] {
+    border-color: var(--color-brand);
+    color: var(--color-brand-text);
+  }
+
+  .panel {
+    display: none;
+  }
+
+  /* Open: the fields stacked full width under the toggle. A grid, because
+     the fields' own flex sizing (Field's toolbar variant) is meant for a
+     row and would turn into heights in a column. */
+  .panel.open {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .panel.open > * {
+    min-width: 0;
+  }
+}
+
+/* Phones and touch screens: a 44px touch target. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .toggle {
+    min-height: var(--touch-target);
+  }
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+/* How many searches/filters are set, so a closed panel doesn't hide it. */
+.badge {
+  min-width: 1.8rem;
+  padding: 0 0.5rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-brand);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-xs);
+  line-height: 1.8rem;
+  text-align: center;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

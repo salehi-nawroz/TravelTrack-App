@@ -59,6 +59,8 @@ These are set in `frontend/.env.local` for local development and in the Vercel p
 | --- | --- | --- |
 | `VITE_SUPABASE_URL` | yes | Project URL, from Supabase → Project Settings → API |
 | `VITE_SUPABASE_ANON_KEY` | yes | The **anon / publishable** key from the same page |
+| `VITE_DEMO_EMAIL` | no | Email of the dedicated public demo account (see [Portfolio demo account](#portfolio-demo-account)) |
+| `VITE_DEMO_PASSWORD` | no | Its password. **Intentionally public**: shown on the login page |
 
 Every `VITE_*` value is compiled into the public JavaScript. **Never** put the `service_role` / secret key there.
 
@@ -88,6 +90,24 @@ The SQL lives in `scripts/`. Run each file in the Supabase Dashboard → SQL Edi
    `trips-rollback.sql` undoes this step.
 
 `scripts/recommended-hardening.sql` contains reviewed, optional hardening for the live project (see Security). It has **not** been applied.
+
+### Portfolio demo account
+
+When `VITE_DEMO_EMAIL` and `VITE_DEMO_PASSWORD` are both set, the login page shows a **Try the Demo Account** panel with the credentials, copy buttons and a **Fill Demo Credentials** button (it fills the form; the visitor still presses Login). When either is unset, the panel is hidden.
+
+Those values end up in the public JavaScript, so they must belong to a **dedicated demo account with the regular `user` role**. Never use an admin, super admin or personal account. A regular user can only see and change their own rows (RLS), so visitors can't reach anyone else's data.
+
+Setting it up:
+
+1. **Create the user.** Supabase → Authentication → Users → **Add user → Create new user**. Use an address you control that is only for the demo (e.g. a plus-address of your own mailbox), a new random password used nowhere else, and tick **Auto Confirm User**. The signup trigger creates its profile with role `user`.
+2. **Check the role** (SQL Editor, read-only): `select p.role from public.profiles p join auth.users u on u.id = p.id where u.email = '<demo email>';`. It must be `user`.
+3. **Protect it.** Review and run `scripts/demo-account-guard.sql`, then its section 3 with the demo email. Visitors share the password, so without this anyone could change it or delete the account through the API. The Profile page also hides those two forms for the demo account, but that's only the UI.
+4. **Add sample data.** Sign in as the demo user and add a few cities and trips (no personal information, no photos of people). Visitors can edit or delete it, so note what you added to restore it later.
+5. **Configure the app.** Set `VITE_DEMO_EMAIL` and `VITE_DEMO_PASSWORD` in `frontend/.env.local`, and in Vercel → Settings → Environment Variables (Production, and Preview if wanted). The next deployment shows the panel.
+
+To retire the demo: unset the two variables and redeploy, then remove the account's row from `public.demo_accounts` and delete the user.
+
+An **admin demo** isn't provided, on purpose: the `admin` role can read every non-super-admin user's profile and data, so a public admin login would expose real users. If one is ever needed, use a separate Supabase project with sample data only, never production. A super admin account is never shared.
 
 ### Security model
 
@@ -185,7 +205,7 @@ The Vercel project imports this repository with **Root Directory** `frontend`. `
 - asset caching and the security headers;
 - `git.deploymentEnabled: false`, so only the workflow above deploys.
 
-Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` under **Settings → Environment Variables** for Production. `VITE_TRIPS_ENABLED` is no longer used. A manual emergency deploy is still possible with `vercel deploy --prod` from a linked checkout, but it skips CI.
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` under **Settings → Environment Variables** for Production (plus the optional `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD`). `VITE_TRIPS_ENABLED` is no longer used. A manual emergency deploy is still possible with `vercel deploy --prod` from a linked checkout, but it skips CI.
 
 ### Supabase settings for production
 
